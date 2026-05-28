@@ -55,7 +55,7 @@ export default function GalleriesPage() {
 
       <section className="relative z-10 px-6 pb-24 pt-10 md:px-10">
         <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-          CamVelle Galleries
+          Camvelle Galleries
         </p>
 
         <h1 className="mt-8 max-w-6xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl lg:text-[7rem]">

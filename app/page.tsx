@@ -167,11 +167,7 @@ export default function HomePage() {
 
         </h2>
 
-        <div className="relative z-[999999] mb-6 rounded-xl bg-red-600 p-4 text-white">
-  Photos loaded: {galleryPhotos.length}
-  <br />
-  Types: {galleryPhotos.map((p) => p.gallery_type).join(", ")}
-</div>
+      
 
         <div className="mt-14 grid gap-5 md:grid-cols-3">
           {services.map((service, i) => {
