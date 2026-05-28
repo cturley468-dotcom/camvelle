@@ -1,26 +1,209 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cv-bg: #050403;
+  --cv-cream: #f5f0e7;
+  --cv-muted: rgba(245, 240, 231, 0.52);
+  --cv-soft: rgba(255, 255, 255, 0.045);
+  --cv-border: rgba(255, 255, 255, 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--cv-bg);
+  color: var(--cv-cream);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+/* CAMVELLE MASTER DESIGN */
+
+.cv-page {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--cv-bg);
+  color: var(--cv-cream);
+}
+
+.cv-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cv-bg-main {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 244, 220, 0.14), transparent 28%),
+    radial-gradient(circle at 80% 75%, rgba(255, 255, 255, 0.05), transparent 30%),
+    linear-gradient(135deg, #0e0b08, #030303 72%);
+}
+
+.cv-bg-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 72px 72px;
+}
+
+.cv-bg-dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: radial-gradient(circle, white 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.cv-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .cv-header {
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+.cv-brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cv-brand-mark {
+  display: grid;
+  height: 3rem;
+  width: 3rem;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.08);
+}
+
+.cv-brand-mark span {
+  font-size: 1.25rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+}
+
+.cv-brand-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.45em;
+}
+
+.cv-brand-subtitle {
+  margin-top: 0.25rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.45em;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.cv-pill-outline {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.65);
+  transition: all 0.2s ease;
+}
+
+.cv-pill-outline:hover {
+  background: white;
+  color: black;
+}
+
+.cv-pill-solid {
+  border-radius: 999px;
+  background: var(--cv-cream);
+  padding: 1.25rem 2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: black;
+  transition: all 0.2s ease;
+}
+
+.cv-pill-solid:hover {
+  background: white;
+}
+
+.cv-card {
+  border-radius: 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 0 90px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+}
+
+.cv-eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.cv-input {
+  width: 100%;
+  border-radius: 1.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.045);
+  padding: 1.05rem 1.15rem;
+  color: var(--cv-cream);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.cv-input::placeholder {
+  color: rgba(245, 240, 231, 0.34);
+}
+
+.cv-input:focus {
+  border-color: rgba(245, 240, 231, 0.55);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: 0 0 0 1px rgba(245, 240, 231, 0.08);
+}
+
+.cv-nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.cv-nav-links a:hover {
+  color: white;
 }
