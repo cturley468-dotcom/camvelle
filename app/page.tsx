@@ -190,11 +190,11 @@ export default function HomePage() {
           </p>
 
           {previewPhotos.length > 0 && (
-            <div className="mt-10 grid grid-cols-2 gap-4">
+            <div className="mt-10 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide">
               {previewPhotos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="aspect-square overflow-hidden rounded-3xl border border-white/10 bg-black/40"
+                  className="aspect-square w-[75%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40"
                 >
                   <img
                     src={photo.image_url}
