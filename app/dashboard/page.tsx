@@ -26,7 +26,7 @@ type GalleryPhoto = {
 
 const sidebarItems = ["Overview", "Bookings", "Calendar", "Galleries", "Invoices", "Financial"];
 
-const galleryTypes = ["proposals", "couples", "families", "portraits", "business", "events"];
+const galleryTypes = ["proposals", "couples", "families", "portraits", "business","automotive", "events"];
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("Overview");

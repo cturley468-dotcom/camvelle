@@ -28,6 +28,11 @@ const galleries = [
     description: "Brand imagery, headshots, and content visuals.",
   },
   {
+    title: "Automotive",
+    href: "/galleries/automotive",
+    description: "Showcase passion, craftsmanship, and character.",
+  },
+  {
     title: "Events",
     href: "/galleries/events",
     description: "Milestones, celebrations, and meaningful moments.",
