@@ -73,7 +73,7 @@ export default function LoginPage() {
       <section className="relative z-10 flex min-h-[calc(100vh-112px)] items-center justify-center px-5 pb-10 pt-4 md:px-10 md:pb-16">
         <div className="w-full max-w-2xl rounded-[2.5rem] border border-white/10 bg-white/[0.035] px-6 py-8 text-center shadow-[0_0_90px_rgba(255,255,255,.08)] backdrop-blur-2xl sm:px-8 md:rounded-[3rem] md:px-12 md:py-12">
           <p className="text-[10px] uppercase tracking-[0.45em] text-white/35 md:text-[11px]">
-            CamVelle Creative
+            Camvelle Creative
           </p>
 
           <h1 className="mt-5 text-5xl font-light leading-none tracking-[-0.08em] md:text-7xl">
@@ -81,8 +81,7 @@ export default function LoginPage() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-xl text-base leading-7 text-white/55 md:text-lg md:leading-8">
-            Access bookings, galleries, uploads, schedules, and client management
-            inside your creative dashboard.
+            Access bookings, galleries, uploads, schedules, and more.
           </p>
 
           <form onSubmit={handleLogin} className="mt-9 space-y-4 text-left md:mt-10">
