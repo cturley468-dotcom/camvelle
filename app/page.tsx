@@ -169,62 +169,61 @@ export default function HomePage() {
 
       
 
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
-          {services.map((service, i) => {
-            const slug = gallerySlug(service);
-            const previewPhotos = galleryPhotos
-              .filter((photo) => photo.gallery_type?.trim().toLowerCase() === slug)
-              .slice(0, 4);
+     <div className="mt-14 flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide">
+  {services.map((service, i) => {
+    const slug = gallerySlug(service);
+    const previewPhotos = galleryPhotos
+      .filter((photo) => photo.gallery_type === slug)
+      .slice(0, 4);
 
-            return (
-              <Link
-                key={service}
-                href={`/galleries/${slug}`}
-                className={`group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-8 transition hover:border-white/20 hover:bg-white/[0.06] ${
-                  i === 0 ? "min-h-[430px] md:col-span-2" : "min-h-[430px]"
-                }`}
-              >
-                <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(circle_at_70%_20%,rgba(245,240,231,.14),transparent_28%)]" />
-
-                <div className="relative z-10 flex h-full flex-col">
-                  <p className="text-xs uppercase tracking-[0.35em] text-white/30">
-                    0{i + 1} / Gallery
-                  </p>
-
-                 {previewPhotos.length > 0 && (
-  <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-    {previewPhotos.map((photo) => (
-      <div
-        key={photo.id}
-        className="h-32 overflow-hidden rounded-2xl border border-white/10 bg-black/40 sm:h-28 md:h-24"
+    return (
+      <Link
+        key={service}
+        href={`/galleries/${slug}`}
+        className="group relative flex min-h-[520px] w-[82vw] shrink-0 snap-center flex-col justify-between overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-8 transition hover:border-white/20 hover:bg-white/[0.06] md:w-[520px]"
       >
-        <img
-          src={photo.image_url}
-          alt={photo.caption || service}
-          className="block h-full w-full object-cover"
-        />
-      </div>
-    ))}
-  </div>
-)}
+        <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(circle_at_70%_20%,rgba(245,240,231,.14),transparent_28%)]" />
 
+        <div className="relative z-10">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/30">
+            0{i + 1} / Gallery
+          </p>
 
-                  <div className="mt-auto pt-8">
-                    <h3 className="text-5xl font-light tracking-[-0.07em]">
-                      {service}
-                    </h3>
-
-                    <p className="mt-5 max-w-sm leading-7 text-white/45">
-                      Elevated direction, intentional editing, and images that
-                      feel like memory.
-                    </p>
-                  </div>
+          {previewPhotos.length > 0 && (
+            <div className="mt-10 grid grid-cols-2 gap-4">
+              {previewPhotos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="aspect-square overflow-hidden rounded-3xl border border-white/10 bg-black/40"
+                >
+                  <img
+                    src={photo.image_url}
+                    alt={photo.caption || service}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                  />
                 </div>
-              </Link>
-            );
-          })}
+              ))}
+            </div>
+          )}
         </div>
-      </section>
+
+        <div className="relative z-10 mt-12">
+          <h3 className="text-6xl font-light tracking-[-0.07em]">
+            {service}
+          </h3>
+
+          <p className="mt-6 max-w-sm text-lg leading-8 text-white/45">
+            Elevated direction, intentional editing, and images that feel like
+            memory.
+          </p>
+        </div>
+      </Link>
+    );
+  })}
+</div>
+</section>
+
+   
 
       <section id="services" className="relative z-10 px-5 py-24 md:px-10">
         <div className="rounded-[3rem] border border-white/10 bg-white/[0.045] p-7 backdrop-blur-2xl md:p-12">
@@ -343,6 +342,16 @@ export default function HomePage() {
           background: #050403;
           color: #f5f0e7;
         }
+
+        .scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
       `}</style>
     </main>
   );
