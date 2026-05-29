@@ -169,7 +169,7 @@ export default function HomePage() {
 
       
 
-     <div className="mt-14 flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide">
+     <div className="mt-14 grid gap-5 md:grid-cols-3">
   {services.map((service, i) => {
     const slug = gallerySlug(service);
     const previewPhotos = galleryPhotos
@@ -190,11 +190,11 @@ export default function HomePage() {
           </p>
 
           {previewPhotos.length > 0 && (
-            <div className="mt-10 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory scrollbar-hide">
+            <div className="mt-10 flex max-w-full gap-4 overflow-x-scroll overscroll-x-contain pb-3 snap-x snap-mandatory scrollbar-hide">
               {previewPhotos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="aspect-square w-[75%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40"
+                  className="aspect-square w-[72%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40 sm:w-[45%] md:w-[42%]"
                 >
                   <img
                     src={photo.image_url}
