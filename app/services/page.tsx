@@ -3,7 +3,7 @@ import Link from "next/link";
 const services = [
   {
     title: "Proposal Photography",
-    price: "Starting at $600",
+    price: "Starting at $800",
     description:
       "Discreet planning, cinematic capture, emotional reactions, and beautifully preserved once-in-a-lifetime moments.",
   },
@@ -21,7 +21,7 @@ const services = [
   },
   {
     title: "Portrait Sessions",
-    price: "Starting at $250",
+    price: "Starting at $300",
     description:
       "Personal branding, lifestyle portraits, graduation, creative shoots, and cinematic editorial-style imagery.",
   },
@@ -30,6 +30,18 @@ const services = [
     price: "Starting at $350",
     description:
       "Celebrate the season before the wedding with intentional imagery full of chemistry, style, and story.",
+  },
+  {
+    title: "Business",
+    price: "Starting at $1,200",
+    description:
+      "Create a lasting impression with authentic, high-quality brand phtography.",
+  },
+  {
+    title: "Automotive",
+    price: "Starting at $425",
+    description:
+      "Showcase the passion, craftsmanship, and character behind every vehicle with naturally timeless imagery.",
   },
   {
     title: "Events",

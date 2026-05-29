@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
-const services = ["Proposals", "Couples", "Families", "Portraits", "Business", "Events"];
+const services = ["Proposals", "Couples", "Families", "Portraits", "Business", "Automotive", "Events"];
 
 type GalleryPhoto = {
   id: string;
