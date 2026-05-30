@@ -168,6 +168,65 @@ export default function HomePage() {
         </div>
       </section>
 
+<section id="galleries" className="relative z-10 px-5 py-24 md:px-10">
+  <h2 className="max-w-5xl text-5xl font-light leading-none tracking-[-0.08em] md:text-7xl">
+    Choose the experience.
+  </h2>
+
+  <div className="mt-14 grid gap-5 md:grid-cols-3">
+    {services.map((service, i) => {
+      const slug = gallerySlug(service);
+      const previewPhotos = galleryPhotos
+        .filter((photo) => photo.gallery_type === slug)
+        .slice(0, 4);
+
+      return (
+        <Link
+          key={service}
+          href={`/galleries/${slug}`}
+          className={`group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-8 transition hover:border-white/20 hover:bg-white/[0.06] ${
+            i === 0 ? "min-h-[520px] md:col-span-2" : "min-h-[520px]"
+          }`}
+        >
+          <div className="absolute inset-0 opacity-0 transition group-hover:opacity-100 bg-[radial-gradient(circle_at_70%_20%,rgba(245,240,231,.14),transparent_28%)]" />
+
+          <div className="relative z-10 flex h-full flex-col">
+            <p className="text-xs uppercase tracking-[0.35em] text-white/30">
+              0{i + 1} / Gallery
+            </p>
+
+            {previewPhotos.length > 0 && (
+              <div className="mt-10 flex max-w-full gap-4 overflow-x-scroll overscroll-x-contain pb-3 snap-x snap-mandatory scrollbar-hide">
+                {previewPhotos.map((photo) => (
+                  <div
+                    key={photo.id}
+                    className="aspect-square w-[72%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40 sm:w-[45%] md:w-[42%]"
+                  >
+                    <img
+                      src={photo.image_url}
+                      alt={photo.caption || service}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-auto pt-12">
+              <h3 className="text-5xl font-light tracking-[-0.07em]">
+                {service}
+              </h3>
+
+              <p className="mt-5 max-w-sm leading-7 text-white/45">
+                Elevated direction, intentional editing, and images that feel like memory.
+              </p>
+            </div>
+          </div>
+        </Link>
+      );
+    })}
+  </div>
+</section>
 
    
 
