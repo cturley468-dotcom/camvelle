@@ -277,31 +277,60 @@ export default function HomePage() {
    
 
       <section id="services" className="relative z-10 px-5 py-24 md:px-10">
-        <div className="rounded-[3rem] border border-white/10 bg-white/[0.045] p-7 backdrop-blur-2xl md:p-12">
-          <p className="mb-5 text-xs uppercase tracking-[0.7em] text-white/35">
-            Services
-          </p>
+  <div className="rounded-[3rem] border border-white/10 bg-black/55 p-7 backdrop-blur-2xl md:p-12">
+    <p className="mb-5 text-xs uppercase tracking-[0.7em] text-white/35">
+      Services
+    </p>
 
-          <h2 className="max-w-4xl text-5xl font-light leading-none tracking-[-0.08em] md:text-7xl">
-            Premium imagery built for modern stories.
-          </h2>
+    <Link href="/services" className="block">
+      <h2 className="max-w-4xl text-5xl font-light leading-none tracking-[-0.08em] transition hover:text-white/90 md:text-7xl">
+        Premium imagery built for modern stories.
+      </h2>
+    </Link>
 
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-            {services.map((service) => (
-              <div
-                key={service}
-                className="rounded-[2rem] border border-white/10 bg-black/25 p-6"
-              >
-                <h3 className="text-2xl font-light">{service}</h3>
-                <p className="mt-4 leading-7 text-white/45">
-                  Polished direction, cinematic edits, and a gallery-ready final
-                  look.
-                </p>
-              </div>
-            ))}
+    <div className="mt-12 grid gap-6 md:grid-cols-3">
+      {services.map((service) => (
+        <Link
+          key={service}
+          href="/services"
+          className="group block overflow-hidden rounded-[3rem] border border-white/10 bg-black/40 backdrop-blur-2xl transition duration-300 hover:border-white/20"
+        >
+          <div className="p-8">
+            <h3 className="text-3xl font-light tracking-[-0.04em]">
+              {service}
+            </h3>
+
+            <p className="mt-5 leading-8 text-white/45">
+              {service === "Proposals" &&
+                "Authentic reactions, unforgettable moments, and the beginning of your story together."}
+
+              {service === "Couples" &&
+                "Natural connection, genuine emotion, and imagery that feels timeless."}
+
+              {service === "Families" &&
+                "Real moments, meaningful connections, and memories preserved for generations."}
+
+              {service === "Portraits" &&
+                "Confident direction, intentional composition, and imagery built around you."}
+
+              {service === "Events" &&
+                "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most."}
+
+              {service === "Automotive" &&
+                "Dynamic imagery that showcases craftsmanship, performance, and personality."}
+            </p>
+
+            <div className="mt-8 text-xs uppercase tracking-[0.4em] text-white/30 transition group-hover:text-white/60">
+              View Service →
+            </div>
           </div>
-        </div>
-      </section>
+        </Link>
+      ))}
+    </div>
+  </div>
+</section>
+
+      
 
       <section id="book" className="relative z-10 px-5 py-24 md:px-10">
         <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr]">
