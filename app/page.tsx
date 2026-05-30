@@ -218,8 +218,32 @@ export default function HomePage() {
               </h3>
 
               <p className="mt-5 max-w-sm leading-7 text-white/45">
-                Elevated direction, intentional editing, and images that feel like memory.
-              </p>
+  {
+    {
+      Proposals:
+        "Authentic reactions, unforgettable moments, and the beginning of your story together.",
+
+      Couples:
+        "Natural connection, genuine emotion, and timeless imagery that celebrates your relationship.",
+
+      Families:
+        "Real moments, meaningful connections, and memories preserved for generations.",
+
+      Portraits:
+        "Confident, refined portraits designed to showcase personality and presence.",
+
+      Business:
+        "Professional imagery crafted to elevate your brand, reputation, and visual identity.",
+
+      Events:
+        "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most.",
+
+      Automotive:
+        "Dynamic compositions, dramatic detail, and imagery that highlights the character of every vehicle.",
+    }[service]
+  }
+</p>
+
             </div>
           </div>
         </Link>
