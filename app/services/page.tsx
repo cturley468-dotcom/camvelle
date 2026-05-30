@@ -104,9 +104,7 @@ export default function ServicesPage() {
                 Home
               </Link>
 
-              <Link href="/services" className="text-white">
-                Services
-              </Link>
+              <Link href="/galleries" className="hover:text-white">Galleries</Link>
 
               <Link href="/book" className="hover:text-white">
                 Book
