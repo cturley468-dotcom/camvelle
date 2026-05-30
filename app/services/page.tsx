@@ -65,7 +65,7 @@ export default function ServicesPage() {
   <div
     className="absolute inset-0 bg-cover bg-center bg-fixed"
     style={{
-      backgroundImage: "url('/camvelle-background.png')",
+      backgroundImage: "url('/backgrounds/camvelle-background.png')",
     }}
   />
 

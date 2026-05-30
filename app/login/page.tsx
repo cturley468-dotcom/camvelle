@@ -40,7 +40,7 @@ export default function LoginPage() {
   <div
     className="absolute inset-0 bg-cover bg-center"
     style={{
-      backgroundImage: "url('/camvelle-background.png')",
+      backgroundImage: "url('/backgrounds/camvelle-background.png')",
     }}
   />
 
