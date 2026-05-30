@@ -196,22 +196,42 @@ export default function HomePage() {
             </p>
 
             {previewPhotos.length > 0 && (
-  <div className="mt-10 flex max-w-full gap-4 overflow-x-auto pb-3 snap-x snap-mandatory">
-    {previewPhotos.map((photo) => (
-      <div
-        key={photo.id}
-        className="h-[210px] w-[72%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40 sm:w-[45%] md:w-[42%]"
-      >
+  <div className="relative mt-10 h-[300px]">
+    
+    {/* Back Image */}
+    {previewPhotos[2] && (
+      <div className="absolute left-8 top-4 h-[220px] w-[75%] overflow-hidden rounded-[2rem] opacity-20">
         <img
-          src={photo.image_url}
-          alt={photo.caption || service}
-          loading="lazy"
-          className="h-full w-full object-cover md:transition md:duration-500 md:group-hover:scale-105"
+          src={previewPhotos[2].image_url}
+          alt=""
+          className="h-full w-full object-cover"
         />
       </div>
-    ))}
+    )}
+
+    {/* Middle Image */}
+    {previewPhotos[1] && (
+      <div className="absolute left-4 top-2 h-[240px] w-[82%] overflow-hidden rounded-[2rem] opacity-40">
+        <img
+          src={previewPhotos[1].image_url}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      </div>
+    )}
+
+    {/* Main Featured Image */}
+    <div className="relative z-10 h-[260px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/40">
+      <img
+        src={previewPhotos[0].image_url}
+        alt={previewPhotos[0].caption || service}
+        className="h-full w-full object-cover transition duration-700 md:hover:scale-105"
+      />
+    </div>
+
   </div>
 )}
+
 
 
             <div className="mt-auto pt-12">
