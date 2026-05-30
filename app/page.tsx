@@ -323,7 +323,7 @@ export default function HomePage() {
               {service === "Business" && 
                 "Professional imagery crafted to elevate your brand, reputation, and visual identity."}
 
-              {service === "Real Estate" && 
+              {service === "Real-Estate" && 
                 "Clean, polished property imagery designed to showcase spaces with clarity and intention."}
 
 
