@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
 const services = ["Proposals", "Couples", "Families", 
-  "Portraits", "Business","Real Estate", "Automotive", "Events"];
+  "Portraits", "Business","Real-Estate", "Automotive", "Events"];
 
 type GalleryPhoto = {
   id: string;
