@@ -104,10 +104,6 @@ export default function ServicesPage() {
                 Home
               </Link>
 
-              <Link href="/portfolio" className="hover:text-white">
-                Portfolio
-              </Link>
-
               <Link href="/services" className="text-white">
                 Services
               </Link>
