@@ -24,7 +24,6 @@ export default function Header() {
         <div className="absolute right-0 top-16 w-72 rounded-[2rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
           <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
             <Link href="/">Home</Link>
-            <Link href="/portfolio">Portfolio</Link>
             <Link href="/services">Services</Link>
             <Link href="/book">Book</Link>
             <Link href="/login">Studio Login</Link>
