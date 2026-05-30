@@ -33,7 +33,7 @@ const services = [
   },
   {
     title: "Business",
-    price: "Starting at $1,200",
+    price: "Starting at $800",
     description:
       "Create a lasting impression with authentic, high-quality brand phtography.",
   },
