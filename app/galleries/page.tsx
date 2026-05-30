@@ -127,7 +127,7 @@ export default function GalleriesPage() {
               <Link
                 key={gallery.title}
                 href={gallery.href}
-                className="group min-h-[520px] overflow-hidden rounded-[3rem] border border-white/10 bg-black/55 p-8 backdrop-blur-2xl transition hover:border-white/25"
+                className="group rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
               >
                 <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
                   {String(index + 1).padStart(2, "0")} / Gallery
