@@ -75,10 +75,17 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f0e7]">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,.16),transparent_24%),radial-gradient(circle_at_80%_10%,rgba(167,139,250,.13),transparent_28%),radial-gradient(circle_at_50%_85%,rgba(245,240,231,.10),transparent_30%),linear-gradient(135deg,#050505,#000)]" />
-        <div className="absolute inset-0 opacity-[0.12] bg-[linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] bg-[size:96px_96px]" />
-      </div>
+     <div className="fixed inset-0 pointer-events-none">
+  <div
+    className="absolute inset-0 bg-center bg-cover"
+    style={{
+      backgroundImage:
+        "url('/backgrounds/camvelle-background.png')",
+    }}
+  />
+
+  <div className="absolute inset-0 bg-black/50" />
+</div>
 
       <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
         <Link href="/" className="flex items-center">
