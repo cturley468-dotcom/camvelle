@@ -39,7 +39,6 @@ export default function LoginPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      {/* BACKGROUND */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
@@ -47,9 +46,7 @@ export default function LoginPage() {
             backgroundImage: "url('/backgrounds/camvelle-background.png')",
           }}
         />
-
         <div className="absolute inset-0 bg-black/40" />
-
         <div
           className="absolute inset-0"
           style={{
@@ -59,7 +56,6 @@ export default function LoginPage() {
         />
       </div>
 
-      {/* HEADER */}
       <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
         <Link href="/" className="flex items-center">
           <Image
@@ -80,33 +76,18 @@ export default function LoginPage() {
 
           <div className="absolute right-0 top-16 z-[99999] w-72 rounded-[3rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
             <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
-              <Link href="/" className="hover:text-white">
-                Home
-              </Link>
-
-              <Link href="/galleries" className="hover:text-white">
-                Galleries
-              </Link>
-
-              <Link href="/services" className="hover:text-white">
-                Services
-              </Link>
-
-              <Link href="/book" className="hover:text-white">
-                Book
-              </Link>
-
-              <Link href="/login" className="text-white">
-                Studio Login
-              </Link>
+              <Link href="/" className="hover:text-white">Home</Link>
+              <Link href="/galleries" className="hover:text-white">Galleries</Link>
+              <Link href="/services" className="hover:text-white">Services</Link>
+              <Link href="/book" className="hover:text-white">Book</Link>
+              <Link href="/login" className="text-white">Studio Login</Link>
             </nav>
           </div>
         </details>
       </header>
 
-      {/* LOGIN */}
       <section className="relative z-10 flex min-h-[calc(100vh-112px)] items-center justify-center px-5 pb-14 pt-6 md:px-10 md:pb-20">
-        <div className="w-full max-w-2xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
+        <div className="w-full max-w-2xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
           <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
             Camvelle Creative
           </p>
@@ -175,17 +156,9 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-7 text-[11px] uppercase tracking-[0.3em] text-white/40">
-            <Link href="/galleries" className="transition hover:text-white">
-              Galleries
-            </Link>
-
-            <Link href="/services" className="transition hover:text-white">
-              Services
-            </Link>
-
-            <Link href="/book" className="transition hover:text-white">
-              Book
-            </Link>
+            <Link href="/galleries" className="transition hover:text-white">Galleries</Link>
+            <Link href="/services" className="transition hover:text-white">Services</Link>
+            <Link href="/book" className="transition hover:text-white">Book</Link>
           </div>
         </div>
       </section>
