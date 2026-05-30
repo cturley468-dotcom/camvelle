@@ -188,7 +188,7 @@ export default function HomePage() {
             i === 0 ? "min-h-[520px] md:col-span-2" : "min-h-[520px]"
           }`}
         >
-          <div className="absolute inset-0 rounded-[3rem] border border-white/10 bg-black/60 backdrop-blur-xl" />
+          <div className="absolute inset-0 rounded-[3rem] border border-white/10 bg-black/55 backdrop-blur-2xl" />
 
           <div className="relative z-10 flex h-full flex-col">
             <p className="text-xs uppercase tracking-[0.35em] text-white/30">
