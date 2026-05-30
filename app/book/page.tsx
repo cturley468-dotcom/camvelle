@@ -6,17 +6,13 @@ import { useState } from "react";
 export default function BookPage() {
   const [success, setSuccess] = useState("");
 
-  async function handleBooking(
-    e: React.FormEvent<HTMLFormElement>
-  ) {
+  async function handleBooking(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const formElement = e.currentTarget;
 
     setSuccess("");
-
     formElement.reset();
-
     setSuccess("Booking request submitted. I’ll follow up soon.");
   }
 
@@ -24,16 +20,20 @@ export default function BookPage() {
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
       {/* BACKGROUND */}
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_28%),radial-gradient(circle_at_80%_15%,rgba(80,70,180,0.16),transparent_26%),radial-gradient(circle_at_50%_85%,rgba(255,255,255,0.08),transparent_30%)]" />
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-fixed"
+          style={{
+            backgroundImage: "url('/backgrounds/camvelle-background.png')",
+          }}
+        />
+
+        <div className="absolute inset-0 bg-black/40" />
 
         <div
-          className="absolute inset-0 opacity-[0.10]"
+          className="absolute inset-0"
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
-            `,
-            backgroundSize: "72px 72px",
+            background:
+              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
           }}
         />
       </div>
@@ -53,14 +53,14 @@ export default function BookPage() {
             Menu
           </summary>
 
-          <div className="absolute right-0 top-16 w-72 rounded-[2rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
+          <div className="absolute right-0 top-16 w-72 rounded-[3rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
             <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
               <Link href="/" className="hover:text-white">
                 Home
               </Link>
 
-              <Link href="/portfolio" className="hover:text-white">
-                Portfolio
+              <Link href="/galleries" className="hover:text-white">
+                Galleries
               </Link>
 
               <Link href="/services" className="hover:text-white">
@@ -93,16 +93,15 @@ export default function BookPage() {
           </h1>
 
           <p className="mt-8 max-w-3xl text-lg leading-9 text-white/50 md:text-xl">
-            Whether it’s a proposal, portrait session, family memories,
-            or cinematic storytelling — every session is crafted with
-            intention and emotion.
+            Tell me about your vision, your story, and the experience you want
+            to create. Every session begins with intention.
           </p>
         </div>
       </section>
 
       {/* FORM */}
       <section className="relative z-10 px-6 pb-28 md:px-10">
-        <div className="mx-auto max-w-5xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 shadow-[0_0_60px_rgba(255,255,255,0.03)] backdrop-blur-xl md:p-14">
+        <div className="mx-auto max-w-5xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
           <div className="mb-14">
             <p className="text-[11px] uppercase tracking-[0.45em] text-white/35">
               SESSION INQUIRY
@@ -115,12 +114,8 @@ export default function BookPage() {
             </h2>
           </div>
 
-          <form
-            onSubmit={handleBooking}
-            className="grid gap-6 md:grid-cols-2"
-          >
-            {/* NAME */}
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6">
+          <form onSubmit={handleBooking} className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
               <label className="mb-3 block text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Full Name
               </label>
@@ -129,12 +124,11 @@ export default function BookPage() {
                 required
                 type="text"
                 placeholder="Your name"
-                className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/20"
+                className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/25"
               />
             </div>
 
-            {/* EMAIL */}
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6">
+            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
               <label className="mb-3 block text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Email
               </label>
@@ -143,12 +137,11 @@ export default function BookPage() {
                 required
                 type="email"
                 placeholder="Your email"
-                className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/20"
+                className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/25"
               />
             </div>
 
-            {/* PHONE */}
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6">
+            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
               <label className="mb-3 block text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Phone
               </label>
@@ -156,12 +149,11 @@ export default function BookPage() {
               <input
                 type="tel"
                 placeholder="Phone number"
-                className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/20"
+                className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/25"
               />
             </div>
 
-            {/* SESSION TYPE */}
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6">
+            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
               <label className="mb-3 block text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Session Type
               </label>
@@ -169,15 +161,16 @@ export default function BookPage() {
               <select className="w-full bg-transparent text-lg text-white outline-none">
                 <option className="bg-black">Proposal</option>
                 <option className="bg-black">Couples</option>
+                <option className="bg-black">Families</option>
                 <option className="bg-black">Portraits</option>
-                <option className="bg-black">Family</option>
-                <option className="bg-black">Engagement</option>
+                <option className="bg-black">Business</option>
+                <option className="bg-black">Real Estate</option>
+                <option className="bg-black">Automotive</option>
                 <option className="bg-black">Events</option>
               </select>
             </div>
 
-            {/* MESSAGE */}
-            <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 md:col-span-2">
+            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:col-span-2">
               <label className="mb-3 block text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Project Details
               </label>
@@ -185,11 +178,10 @@ export default function BookPage() {
               <textarea
                 rows={7}
                 placeholder="Tell me about your vision, date, location, ideas, or anything important..."
-                className="w-full resize-none bg-transparent text-lg text-white outline-none placeholder:text-white/20"
+                className="w-full resize-none bg-transparent text-lg text-white outline-none placeholder:text-white/25"
               />
             </div>
 
-            {/* SUBMIT */}
             <div className="md:col-span-2">
               <button
                 type="submit"
@@ -199,10 +191,9 @@ export default function BookPage() {
               </button>
             </div>
 
-            {/* SUCCESS */}
             {success && (
               <div className="md:col-span-2">
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-6 py-5 text-center text-sm tracking-[0.15em] text-white/65">
+                <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-5 text-center text-sm tracking-[0.15em] text-white/65 backdrop-blur-xl">
                   {success}
                 </div>
               </div>
