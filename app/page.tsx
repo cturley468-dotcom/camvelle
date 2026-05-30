@@ -258,7 +258,7 @@ export default function HomePage() {
       Business:
         "Professional imagery crafted to elevate your brand, reputation, and visual identity.",
 
-      "Real Estate":
+      "Real-Estate":
         "Clean, polished property imagery designed to showcase spaces with clarity, depth, and market appeal.",
 
       Automotive:
