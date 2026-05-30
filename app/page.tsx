@@ -269,7 +269,7 @@ export default function HomePage() {
    
 
       <section id="services" className="relative z-10 px-5 py-24 md:px-10">
-  <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+  <div className="rounded-[3rem] border border-white/10 bg-black/55 p-7 backdrop-blur-2xl md:p-12">
     <p className="mb-5 text-xs uppercase tracking-[0.7em] text-white/35">
       Services
     </p>
@@ -285,7 +285,7 @@ export default function HomePage() {
         <Link
           key={service}
           href="/services"
-          className="group rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
+          className="group block overflow-hidden rounded-[3rem] border border-white/10 bg-black/40 backdrop-blur-2xl transition duration-300 hover:border-white/20"
         >
           <div className="p-8">
             <h3 className="text-3xl font-light tracking-[-0.04em]">
