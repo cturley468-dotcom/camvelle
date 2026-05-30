@@ -196,21 +196,23 @@ export default function HomePage() {
             </p>
 
             {previewPhotos.length > 0 && (
-              <div className="mt-10 flex max-w-full gap-4 overflow-x-scroll overscroll-x-contain pb-3 snap-x snap-mandatory scrollbar-hide">
-                {previewPhotos.map((photo) => (
-                  <div
-                    key={photo.id}
-                    className="aspect-square w-[72%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40 sm:w-[45%] md:w-[42%]"
-                  >
-                    <img
-                      src={photo.image_url}
-                      alt={photo.caption || service}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+  <div className="mt-10 flex max-w-full gap-4 overflow-x-auto pb-3 snap-x snap-mandatory">
+    {previewPhotos.map((photo) => (
+      <div
+        key={photo.id}
+        className="h-[210px] w-[72%] shrink-0 snap-center overflow-hidden rounded-3xl border border-white/10 bg-black/40 sm:w-[45%] md:w-[42%]"
+      >
+        <img
+          src={photo.image_url}
+          alt={photo.caption || service}
+          loading="lazy"
+          className="h-full w-full object-cover md:transition md:duration-500 md:group-hover:scale-105"
+        />
+      </div>
+    ))}
+  </div>
+)}
+
 
             <div className="mt-auto pt-12">
               <h3 className="text-5xl font-light tracking-[-0.07em]">
