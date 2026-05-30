@@ -151,21 +151,6 @@ export default function HomePage() {
               </a>
             </div>
           </div>
-
-          <div className="relative hidden lg:block">
-            <div className="absolute -inset-8 rounded-full bg-white/10 blur-3xl" />
-            <div className="relative rounded-[3rem] border border-white/10 bg-white/[0.05] p-5 shadow-[0_0_100px_rgba(255,255,255,.08)] backdrop-blur-2xl">
-              <div className="aspect-[4/5] rounded-[2.5rem] border border-white/10 bg-[radial-gradient(circle_at_45%_20%,rgba(255,255,255,.25),transparent_24%),linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.02))]" />
-              <div className="absolute bottom-10 left-10 right-10 rounded-[2rem] border border-white/10 bg-black/35 p-6 backdrop-blur-2xl">
-                <p className="text-xs uppercase tracking-[0.35em] text-white/35">
-                  Signature System
-                </p>
-                <p className="mt-3 text-3xl font-light tracking-[-0.06em]">
-                  cinematic / clean / emotional
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
