@@ -5,7 +5,8 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
 
-const services = ["Proposals", "Couples", "Families", "Portraits", "Business", "Automotive", "Events"];
+const services = ["Proposals", "Couples", "Families", 
+  "Portraits", "Business","Real Estate", "Automotive", "Events"];
 
 type GalleryPhoto = {
   id: string;
@@ -257,11 +258,17 @@ export default function HomePage() {
       Business:
         "Professional imagery crafted to elevate your brand, reputation, and visual identity.",
 
-      Events:
-        "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most.",
+      "Real Estate":
+        "Clean, polished property imagery designed to showcase spaces with clarity, depth, and market appeal.",
 
       Automotive:
         "Dynamic compositions, dramatic detail, and imagery that highlights the character of every vehicle.",
+
+
+      Events:
+        "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most.",
+
+    
     }[service]
   }
 </p>
@@ -313,11 +320,20 @@ export default function HomePage() {
               {service === "Portraits" &&
                 "Confident direction, intentional composition, and imagery built around you."}
 
-              {service === "Events" &&
-                "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most."}
+              {service === "Business" && 
+                "Professional imagery crafted to elevate your brand, reputation, and visual identity."}
+
+              {service === "Real Estate" && 
+                "Clean, polished property imagery designed to showcase spaces with clarity and intention."}
+
 
               {service === "Automotive" &&
                 "Dynamic imagery that showcases craftsmanship, performance, and personality."}
+
+              {service === "Events" &&
+                "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most."}
+
+              
             </p>
 
             <div className="mt-8 text-xs uppercase tracking-[0.4em] text-white/30 transition group-hover:text-white/60">

@@ -38,6 +38,12 @@ const services = [
       "Create a lasting impression with authentic, high-quality brand phtography.",
   },
   {
+    title: "Real-Estate",
+    price: "Starting at $350",
+    description:
+      "Clean, polished property imagery designed to showcase spaces with clarity, depth, and market appeal.",
+  },
+  {
     title: "Automotive",
     price: "Starting at $425",
     description:
@@ -54,21 +60,28 @@ const services = [
 export default function ServicesPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      {/* BACKGROUND */}
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_28%),radial-gradient(circle_at_80%_15%,rgba(80,70,180,0.16),transparent_26%),radial-gradient(circle_at_50%_85%,rgba(255,255,255,0.08),transparent_30%)]" />
+     {/* BACKGROUND */}
+<div className="pointer-events-none fixed inset-0">
+  <div
+    className="absolute inset-0 bg-cover bg-center bg-fixed"
+    style={{
+      backgroundImage: "url('/camvelle-background.png')",
+    }}
+  />
 
-        <div
-          className="absolute inset-0 opacity-[0.10]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
-            `,
-            backgroundSize: "72px 72px",
-          }}
-        />
-      </div>
+  {/* subtle dark overlay for readability */}
+  <div className="absolute inset-0 bg-black/40" />
+
+  {/* optional luxury vignette */}
+  <div
+    className="absolute inset-0"
+    style={{
+      background:
+        "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
+    }}
+  />
+</div>
+
 
       {/* HEADER */}
       <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
@@ -85,7 +98,7 @@ export default function ServicesPage() {
             Menu
           </summary>
 
-          <div className="absolute right-0 top-16 w-72 rounded-[2rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
+          <div className="absolute right-0 top-16 w-72 rounded-[3rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
             <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
               <Link href="/" className="hover:text-white">
                 Home
