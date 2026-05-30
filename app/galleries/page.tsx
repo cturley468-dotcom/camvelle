@@ -28,6 +28,11 @@ const galleries = [
     description: "Brand imagery, headshots, and content visuals.",
   },
   {
+    title: "Real Estate",
+    href: "/galleries/real estate",
+    description: "Clean, polished property imagery designed to showcase your property.",
+  },
+  {
     title: "Automotive",
     href: "/galleries/automotive",
     description: "Showcase passion, craftsmanship, and character.",
