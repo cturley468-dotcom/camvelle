@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -7,14 +8,32 @@ export default function BookPage() {
   const [success, setSuccess] = useState("");
 
   async function handleBooking(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const formElement = e.currentTarget;
+  const formElement = e.currentTarget;
+  const formData = new FormData(formElement);
 
-    setSuccess("");
-    formElement.reset();
-    setSuccess("Booking request submitted. I’ll follow up soon.");
+  setSuccess("");
+
+  const { error } = await supabase.from("inquiries").insert({
+    full_name: String(formData.get("full_name")),
+    email: String(formData.get("email")),
+    phone: String(formData.get("phone")),
+    service_type: String(formData.get("service_type")),
+    preferred_date: String(formData.get("preferred_date")) || null,
+    message: String(formData.get("message")),
+    status: "new",
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
   }
+
+  formElement.reset();
+  setSuccess("Booking request submitted. I’ll follow up soon.");
+}
+
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
