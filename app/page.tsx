@@ -174,7 +174,7 @@ export default function HomePage() {
             i === 0 ? "min-h-[520px] md:col-span-2" : "min-h-[520px]"
           }`}
         >
-          <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12"></div>
+          <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12"/>
 
           <div className="relative z-10 flex h-full flex-col">
             <p className="text-xs uppercase tracking-[0.35em] text-white/30">
