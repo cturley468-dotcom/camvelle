@@ -99,7 +99,7 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  Camvelle Studio HQ
+                  CamVelle Studio HQ
                 </p>
 
                 <h1 className="mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
