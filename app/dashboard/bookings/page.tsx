@@ -31,6 +31,17 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [editForm, setEditForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    service_type: "",
+    preferred_date: "",
+    message: "",
+    status: "",
+  });
 
   useEffect(() => {
     loadBookings();
@@ -46,6 +57,56 @@ export default function BookingsPage() {
 
     if (!error) setBookings(data || []);
     setLoading(false);
+  }
+
+  function startEdit(booking: Booking) {
+    setEditingId(booking.id);
+    setEditForm({
+      full_name: booking.full_name || "",
+      email: booking.email || "",
+      phone: booking.phone || "",
+      service_type: booking.service_type || "",
+      preferred_date: booking.preferred_date || "",
+      message: booking.message || "",
+      status: booking.status || "new",
+    });
+  }
+
+  async function saveBookingEdit(id: string) {
+    const { error } = await supabase
+      .from("inquiries")
+      .update({
+        full_name: editForm.full_name,
+        email: editForm.email,
+        phone: editForm.phone,
+        service_type: editForm.service_type,
+        preferred_date: editForm.preferred_date || null,
+        message: editForm.message,
+        status: editForm.status,
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setEditingId(null);
+    await loadBookings();
+  }
+
+  async function deleteBooking(id: string) {
+    const confirmDelete = confirm("Delete this booking request?");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from("inquiries").delete().eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadBookings();
   }
 
   async function createClientFromBooking(booking: Booking) {
@@ -78,7 +139,6 @@ export default function BookingsPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      {/* BACKGROUND */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
@@ -96,7 +156,6 @@ export default function BookingsPage() {
         />
       </div>
 
-      {/* HEADER */}
       <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
         <Link href="/dashboard" className="flex items-center">
           <Image
@@ -121,7 +180,6 @@ export default function BookingsPage() {
 
       <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          {/* HERO */}
           <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Booking Management
@@ -134,8 +192,8 @@ export default function BookingsPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Review inquiries, client details, requested services, preferred
-              dates, and next steps before moving them into the client workflow.
+              Review inquiries, edit details, delete old requests, and convert
+              approved bookings into client records.
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
@@ -168,7 +226,6 @@ export default function BookingsPage() {
             </div>
           </div>
 
-          {/* STATS */}
           <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-2 xl:grid-cols-4">
             <StatCard title="New Requests" value={loading ? "..." : String(newBookings)} />
             <StatCard title="Needs Reply" value={String(newBookings)} />
@@ -176,7 +233,6 @@ export default function BookingsPage() {
             <StatCard title="Converted Clients" value="0" />
           </div>
 
-          {/* BOOKING LIST */}
           <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Booking Requests
@@ -200,10 +256,95 @@ export default function BookingsPage() {
               {bookings.map((booking, index) => (
                 <div
                   key={booking.id}
-                  className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-8"
+                  className="mx-auto w-full max-w-3xl rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-7"
                 >
-                  <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr]">
+                  {editingId === booking.id ? (
                     <div>
+                      <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
+                        Edit Request
+                      </p>
+
+                      <div className="mt-6 grid gap-4">
+                        <EditInput
+                          label="Full Name"
+                          value={editForm.full_name}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, full_name: value })
+                          }
+                        />
+
+                        <EditInput
+                          label="Email"
+                          value={editForm.email}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, email: value })
+                          }
+                        />
+
+                        <EditInput
+                          label="Phone"
+                          value={editForm.phone}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, phone: value })
+                          }
+                        />
+
+                        <EditInput
+                          label="Service Type"
+                          value={editForm.service_type}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, service_type: value })
+                          }
+                        />
+
+                        <EditInput
+                          label="Preferred Date"
+                          type="date"
+                          value={editForm.preferred_date}
+                          onChange={(value) =>
+                            setEditForm({ ...editForm, preferred_date: value })
+                          }
+                        />
+
+                        <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                          <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                            Message
+                          </label>
+
+                          <textarea
+                            value={editForm.message}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                message: e.target.value,
+                              })
+                            }
+                            rows={5}
+                            className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => saveBookingEdit(booking.id)}
+                          className="rounded-full bg-[#f5f0e7] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
+                        >
+                          Save Changes
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
                       <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
                         {String(index + 1).padStart(2, "0")} / Request
                       </p>
@@ -216,87 +357,72 @@ export default function BookingsPage() {
                         {booking.service_type || "Session type not selected"}
                       </p>
 
-                      <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-  <div className="grid gap-4 text-sm text-white/55">
-    <p>
-      <span className="text-white/30">Email:</span>{" "}
-      {booking.email || "Not provided"}
-    </p>
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                        <div className="grid gap-3 text-sm leading-6 text-white/55">
+                          <p>
+                            <span className="text-white/30">Email:</span>{" "}
+                            {booking.email || "Not provided"}
+                          </p>
 
-    <p>
-      <span className="text-white/30">Phone:</span>{" "}
-      {booking.phone || "Not provided"}
-    </p>
+                          <p>
+                            <span className="text-white/30">Phone:</span>{" "}
+                            {booking.phone || "Not provided"}
+                          </p>
 
-    <p>
-      <span className="text-white/30">Preferred Date:</span>{" "}
-      {booking.preferred_date || "Not provided"}
-    </p>
+                          <p>
+                            <span className="text-white/30">Date:</span>{" "}
+                            {booking.preferred_date || "Not provided"}
+                          </p>
 
-    <p>
-      <span className="text-white/30">Status:</span>{" "}
-      {booking.status || "New Inquiry"}
-    </p>
-  </div>
-</div>
+                          <p>
+                            <span className="text-white/30">Status:</span>{" "}
+                            {booking.status || "New Inquiry"}
+                          </p>
+                        </div>
+                      </div>
 
-                    </div>
+                      {booking.message && (
+                        <div className="mt-5 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                          <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                            Details
+                          </p>
 
-                    <div className="grid gap-4">
-                      <WorkflowStatus
-                        title="Reply"
-                        status="Needed"
-                        detail="Send client follow-up or confirmation."
-                      />
+                          <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-white/50">
+                            {booking.message}
+                          </p>
+                        </div>
+                      )}
 
-                      <WorkflowStatus
-                        title="Client Card"
-                        status="Pending"
-                        detail="Convert inquiry into a client profile."
-                      />
+                      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => createClientFromBooking(booking)}
+                          disabled={creatingId === booking.id}
+                          className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {creatingId === booking.id
+                            ? "Creating..."
+                            : "Create Client"}
+                        </button>
 
-                      <WorkflowStatus
-                        title="Contract"
-                        status="Not Sent"
-                        detail="Agreement will be created after approval."
-                      />
+                        <button
+                          type="button"
+                          onClick={() => startEdit(booking)}
+                          className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
+                        >
+                          Edit
+                        </button>
 
-                      <WorkflowStatus
-                        title="Invoice"
-                        status="Not Created"
-                        detail="Deposit and balance tracking pending."
-                      />
-                    </div>
-                  </div>
-
-                  {booking.message && (
-                    <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/[0.025] p-6">
-                      <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
-                        Inquiry Message
-                      </p>
-
-                      <p className="mt-4 whitespace-pre-wrap leading-8 text-white/55">
-                        {booking.message}
-                      </p>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => deleteBooking(booking.id)}
+                          className="rounded-full border border-red-400/20 bg-red-500/10 px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-red-200 transition hover:bg-red-500/20"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
                   )}
-
-                  <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <ActionButton label="View Request" />
-
-                    <ActionButton label="Reply" />
-
-                    <button
-                      type="button"
-                      onClick={() => createClientFromBooking(booking)}
-                      disabled={creatingId === booking.id}
-                      className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {creatingId === booking.id ? "Creating..." : "Create Client"}
-                    </button>
-
-                    <ActionButton label="Schedule Session" />
-                  </div>
                 </div>
               ))}
             </div>
@@ -314,68 +440,34 @@ function StatCard({ title, value }: { title: string; value: string }) {
         {title}
       </p>
 
-      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">
-        {value}
-      </h3>
+      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
     </div>
   );
 }
 
-function InfoCard({
+function EditInput({
   label,
   value,
+  onChange,
+  type = "text",
 }: {
   label: string;
-  value: string | null;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
 }) {
   return (
     <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-      <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
         {label}
-      </p>
+      </label>
 
-      <p className="mt-3 break-words text-white/65">
-        {value || "Not provided"}
-      </p>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
+      />
     </div>
-  );
-}
-
-function WorkflowStatus({
-  title,
-  status,
-  detail,
-}: {
-  title: string;
-  status: string;
-  detail: string;
-}) {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-          {title}
-        </p>
-
-        <span className="rounded-full border border-white/10 px-3 py-1 text-[9px] uppercase tracking-[0.25em] text-white/45">
-          {status}
-        </span>
-      </div>
-
-      <p className="mt-4 text-sm text-white/55">
-        {detail}
-      </p>
-    </div>
-  );
-}
-
-function ActionButton({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
-    >
-      {label}
-    </button>
   );
 }
