@@ -63,7 +63,7 @@ export default function DashboardPage() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
+              "radial-gradient(circle at center, transparent 100%, rgba(0,0,0,0.45) 100%)",
           }}
         />
       </div>
