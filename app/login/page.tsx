@@ -60,7 +60,7 @@ export default function LoginPage() {
         <Link href="/" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
-            alt="CamVelle Creative"
+            alt="Camvelle Creative"
             width={420}
             height={120}
             priority
@@ -93,14 +93,13 @@ export default function LoginPage() {
           </p>
 
           <h1 className="mt-8 text-5xl font-light leading-[0.9] tracking-[-0.08em] text-[#f5f1e8] md:text-7xl">
-            Enter
+            Studio
             <br />
-            Studio.
+            Login
           </h1>
 
           <p className="mx-auto mt-8 max-w-xl text-lg leading-8 text-white/50">
-            Access bookings, galleries, uploads, schedules, and creative
-            management.
+            Access bookings, galleries, uploads, schedules, and more.
           </p>
 
           <form onSubmit={handleLogin} className="mt-12 space-y-5 text-left">
