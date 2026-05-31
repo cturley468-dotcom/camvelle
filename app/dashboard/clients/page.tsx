@@ -41,7 +41,7 @@ export default function ClientsPage() {
 
   async function loadClients() {
     const { data, error } = await supabase
-      .from("inquiries")
+      .from("clients")
       .select("*")
       .order("created_at", { ascending: false });
 
