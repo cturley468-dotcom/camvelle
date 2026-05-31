@@ -95,7 +95,7 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-7xl">
 
           {/* HERO */}
-          <div className="relative z-10 px-2 pb-20 pt-8 md:px-10">
+          <div className="relative z-10 px-2 pb-20 pt-6 md:px-10">
         <div className="w-full max-w-7xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-14 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-16">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
