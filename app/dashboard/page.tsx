@@ -113,7 +113,8 @@ export default function DashboardPage() {
                 </p>
               </div>
 
-              <div className="w-full max-w-sm">
+
+              <div className="mt-12 w-full max-w-sm">
                 <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
                   Navigate
                 </label>
