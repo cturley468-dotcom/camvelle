@@ -56,7 +56,6 @@ export default function BookingsPage() {
       email: booking.email,
       phone: booking.phone,
       service_type: booking.service_type,
-      preferred_date: booking.preferred_date,
       notes: booking.message,
       status: "active",
     });
@@ -217,12 +216,30 @@ export default function BookingsPage() {
                         {booking.service_type || "Session type not selected"}
                       </p>
 
-                      <div className="mt-8 grid gap-4 md:grid-cols-2">
-                        <InfoCard label="Email" value={booking.email} />
-                        <InfoCard label="Phone" value={booking.phone} />
-                        <InfoCard label="Preferred Date" value={booking.preferred_date} />
-                        <InfoCard label="Status" value={booking.status || "New Inquiry"} />
-                      </div>
+                      <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+  <div className="grid gap-4 text-sm text-white/55">
+    <p>
+      <span className="text-white/30">Email:</span>{" "}
+      {booking.email || "Not provided"}
+    </p>
+
+    <p>
+      <span className="text-white/30">Phone:</span>{" "}
+      {booking.phone || "Not provided"}
+    </p>
+
+    <p>
+      <span className="text-white/30">Preferred Date:</span>{" "}
+      {booking.preferred_date || "Not provided"}
+    </p>
+
+    <p>
+      <span className="text-white/30">Status:</span>{" "}
+      {booking.status || "New Inquiry"}
+    </p>
+  </div>
+</div>
+
                     </div>
 
                     <div className="grid gap-4">
