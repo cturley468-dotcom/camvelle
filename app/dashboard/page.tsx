@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type Inquiry = {
@@ -24,12 +24,30 @@ type GalleryPhoto = {
   created_at: string | null;
 };
 
-const sidebarItems = ["Overview", "Bookings", "Calendar", "Galleries", "Invoices", "Financial"];
+const sections = [
+  "Overview",
+  "Clients",
+  "Bookings",
+  "Calendar",
+  "Invoices",
+  "Contracts",
+  "Galleries",
+  "Finance",
+];
 
-const galleryTypes = ["proposals", "couples", "families", "portraits", "business","real-estate", "automotive", "events"];
+const galleryTypes = [
+  "proposals",
+  "couples",
+  "families",
+  "portraits",
+  "business",
+  "real-estate",
+  "automotive",
+  "events",
+];
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("Overview");
+  const [activeSection, setActiveSection] = useState("Overview");
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,15 +62,9 @@ export default function DashboardPage() {
     loadGalleryPhotos();
   }, []);
 
-  function selectTab(item: string) {
-    setActiveTab(item);
-
-    setTimeout(() => {
-      document
-        .getElementById("dashboard-content")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 75);
-  }
+  const estimatedRevenue = useMemo(() => {
+    return inquiries.length * 400;
+  }, [inquiries.length]);
 
   async function loadInquiries() {
     const { data, error } = await supabase
@@ -92,7 +104,6 @@ export default function DashboardPage() {
         .upload(fileName, file);
 
       if (uploadError) {
-        console.error(uploadError);
         alert(uploadError.message);
         setUploading(false);
         return;
@@ -109,7 +120,6 @@ export default function DashboardPage() {
       });
 
       if (insertError) {
-        console.error(insertError);
         alert(insertError.message);
         setUploading(false);
         return;
@@ -144,22 +154,27 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-x-hidden bg-[#020202] text-[#f5f1e8]">
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.12),transparent_28%),radial-gradient(circle_at_80%_15%,rgba(80,70,180,0.16),transparent_26%),radial-gradient(circle_at_50%_85%,rgba(255,255,255,0.08),transparent_30%)]" />
+    <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
+      {/* BACKGROUND */}
+      <div className="pointer-events-none fixed inset-0">
         <div
-          className="absolute inset-0 opacity-[0.10]"
+          className="absolute inset-0 bg-cover bg-center bg-fixed"
           style={{
-            backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)
-            `,
-            backgroundSize: "72px 72px",
+            backgroundImage: "url('/backgrounds/camvelle-background.png')",
+          }}
+        />
+        <div className="absolute inset-0 bg-black/45" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.5) 100%)",
           }}
         />
       </div>
 
-      <header className="relative z-50 flex items-center justify-between px-5 py-6 md:px-10">
+      {/* HEADER */}
+      <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
         <Link href="/" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
@@ -175,137 +190,248 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition active:scale-95 md:px-8"
+          className="rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02]"
         >
           Logout
         </button>
       </header>
 
       <section className="relative z-10 px-5 pb-24 pt-4 md:px-10">
-        <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-          <aside className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl">
-            <p className="mb-8 text-[11px] uppercase tracking-[0.45em] text-white/35">
-              Studio Dashboard
-            </p>
+        <div className="mx-auto max-w-7xl">
+          {/* TOP DASHBOARD CARD */}
+          <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  CamVelle Studio HQ
+                </p>
 
-            <div className="space-y-3">
-              {sidebarItems.map((item) =>
-                item === "Calendar" ? (
-                  <Link
-                    key={item}
-                    href="/calendar"
-                    className="block w-full rounded-full border border-white/10 bg-white/[0.03] px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.3em] text-white/65 transition active:scale-[0.98] hover:bg-white/[0.05] hover:text-white"
-                  >
-                    {item}
-                  </Link>
-                ) : (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => {
-  setActiveTab(item);
+                <h1 className="mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
+                  Manage the
+                  <br />
+                  creative flow.
+                </h1>
 
-  setTimeout(() => {
-    document
-      .getElementById("dashboard-content")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, 100);
-}}
-                    className={`block w-full rounded-full px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.3em] transition active:scale-[0.98] ${
-                      activeTab === item
-                        ? "bg-[#f5f0e7] text-black"
-                        : "border border-white/10 bg-white/[0.03] text-white/65 hover:bg-white/[0.05] hover:text-white"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                )
-              )}
+                <p className="mt-7 max-w-3xl text-lg leading-8 text-white/50">
+                  Bookings, clients, invoices, contracts, galleries, and reports —
+                  organized for your photography business.
+                </p>
+              </div>
+
+              <div className="w-full max-w-sm">
+                <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
+                  Dashboard Section
+                </label>
+
+                <select
+                  value={activeSection}
+                  onChange={(e) => setActiveSection(e.target.value)}
+                  className="w-full rounded-full border border-white/10 bg-white/[0.035] px-6 py-5 text-sm uppercase tracking-[0.25em] text-white outline-none backdrop-blur-xl"
+                >
+                  {sections.map((section) => (
+                    <option key={section} value={section} className="bg-black">
+                      {section}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </aside>
+          </div>
 
-          <section
-            id="dashboard-content"
-            className="scroll-mt-6 rounded-[3rem] border border-white/10 bg-white/[0.035] p-6 backdrop-blur-xl md:p-10"
-          >
-            {activeTab === "Overview" && (
-              <>
-                <p className="text-[11px] uppercase tracking-[0.45em] text-white/35">
+          {/* QUICK STATS */}
+          <div className="mt-6 grid gap-5 md:grid-cols-4">
+            <StatCard title="Inquiries" value={String(inquiries.length)} />
+            <StatCard title="Gallery Photos" value={String(photos.length)} />
+            <StatCard title="Estimated Revenue" value={`$${estimatedRevenue}`} />
+            <StatCard title="Open Invoices" value="0" />
+          </div>
+
+          {/* CONTENT */}
+          <div className="mt-6">
+            {activeSection === "Overview" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                   Overview
                 </p>
 
-                <h1 className="mt-6 text-5xl font-light tracking-[-0.06em] md:text-7xl">
-                  Welcome back.
-                </h1>
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Today’s studio pulse.
+                </h2>
 
-                <div className="mt-10 grid gap-5 md:grid-cols-3">
-                  <StatCard title="Bookings" value={String(inquiries.length)} />
-                  <StatCard title="Gallery Photos" value={String(photos.length)} />
-                  <StatCard title="Invoices" value="0" />
+                <div className="mt-10 grid gap-5 lg:grid-cols-3">
+                  <MiniPanel
+                    title="Next Priority"
+                    text="Review new inquiries and move qualified clients into the client workflow."
+                  />
+                  <MiniPanel
+                    title="Client Flow"
+                    text="Inquiry → Client Card → Contract → Invoice → Calendar → Gallery."
+                  />
+                  <MiniPanel
+                    title="Reports"
+                    text="Monthly and yearly reports will be generated from client cards, invoices, and payment records."
+                  />
                 </div>
-              </>
+              </GlassPanel>
             )}
 
-            {activeTab === "Bookings" && (
-              <>
-                <p className="text-[11px] uppercase tracking-[0.45em] text-white/35">
-                  Booking Inquiries
+            {activeSection === "Clients" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Clients
                 </p>
 
-                <h1 className="mt-6 text-5xl font-light tracking-[-0.06em] md:text-7xl">
-                  Client inquiries.
-                </h1>
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Client cards.
+                </h2>
 
-                <div className="mt-10 space-y-5">
-                  {loading && <PanelText>Loading inquiries...</PanelText>}
+                <div className="mt-10 grid gap-5">
+                  {loading && <PanelText>Loading clients...</PanelText>}
 
                   {!loading && inquiries.length === 0 && (
-                    <PanelText>No booking inquiries yet.</PanelText>
+                    <PanelText>No client inquiries yet.</PanelText>
                   )}
 
-                  {inquiries.map((item) => (
+                  {inquiries.map((client) => (
                     <div
-                      key={item.id}
-                      className="rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-6 md:p-8"
+                      key={client.id}
+                      className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
                     >
-                      <p className="text-3xl font-light tracking-[-0.04em]">
-                        {item.full_name || "Unnamed Inquiry"}
-                      </p>
+                      <div className="grid gap-7 lg:grid-cols-[1.1fr_.9fr]">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
+                            Client Profile
+                          </p>
 
-                      <p className="mt-3 text-sm uppercase tracking-[0.25em] text-white/35">
-                        {item.service_type || "No service selected"}
-                      </p>
+                          <h3 className="mt-5 text-4xl font-light tracking-[-0.06em]">
+                            {client.full_name || "Unnamed Client"}
+                          </h3>
 
-                      <div className="mt-8 grid gap-5 md:grid-cols-2">
-                        <InfoCard label="Email" value={item.email} />
-                        <InfoCard label="Phone" value={item.phone} />
+                          <p className="mt-3 text-white/45">
+                            {client.service_type || "Session type not selected"}
+                          </p>
+
+                          <div className="mt-7 grid gap-4 md:grid-cols-2">
+                            <InfoCard label="Email" value={client.email} />
+                            <InfoCard label="Phone" value={client.phone} />
+                            <InfoCard label="Preferred Date" value={client.preferred_date} />
+                            <InfoCard label="Status" value="Inquiry" />
+                          </div>
+                        </div>
+
+                        <div className="grid gap-4">
+                          <FileStatus title="Invoice" status="Not Created" detail="$0.00 due" />
+                          <FileStatus title="Payment" status="Pending" detail="Deposit not recorded" />
+                          <FileStatus title="Contract" status="Not Sent" detail="Agreement pending" />
+                          <FileStatus title="Report Filing" status="Unfiled" detail="Monthly / yearly report ready when complete" />
+                        </div>
                       </div>
 
-                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/20 p-6">
-                        <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
-                          Details
-                        </p>
-                        <p className="mt-4 whitespace-pre-wrap leading-8 text-white/55">
-                          {item.message || "No details provided."}
-                        </p>
-                      </div>
+                      {client.message && (
+                        <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/[0.025] p-6">
+                          <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
+                            Notes
+                          </p>
+                          <p className="mt-4 whitespace-pre-wrap leading-8 text-white/55">
+                            {client.message}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-              </>
+              </GlassPanel>
             )}
 
-            {activeTab === "Galleries" && (
-              <>
-                <p className="text-[11px] uppercase tracking-[0.45em] text-white/35">
+            {activeSection === "Bookings" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Bookings
+                </p>
+
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Incoming inquiries.
+                </h2>
+
+                <div className="mt-10 space-y-5">
+                  {inquiries.map((item) => (
+                    <MiniPanel
+                      key={item.id}
+                      title={item.full_name || "Unnamed Inquiry"}
+                      text={`${item.service_type || "Session"} — ${item.email || "No email"}`}
+                    />
+                  ))}
+
+                  {inquiries.length === 0 && <PanelText>No bookings yet.</PanelText>}
+                </div>
+              </GlassPanel>
+            )}
+
+            {activeSection === "Calendar" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Calendar
+                </p>
+
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Mobile-first schedule.
+                </h2>
+
+                <div className="mt-10 grid gap-5 md:grid-cols-3">
+                  <MiniPanel title="Day View" text="A focused mobile view for today’s sessions." />
+                  <MiniPanel title="Week View" text="Upcoming client work, edits, and delivery dates." />
+                  <MiniPanel title="Month View" text="High-level booking and availability overview." />
+                </div>
+              </GlassPanel>
+            )}
+
+            {activeSection === "Invoices" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Invoices
+                </p>
+
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Billing center.
+                </h2>
+
+                <div className="mt-10 grid gap-5 md:grid-cols-3">
+                  <MiniPanel title="Draft" text="Create invoices from client cards." />
+                  <MiniPanel title="Sent" text="Track invoices sent to clients." />
+                  <MiniPanel title="Paid" text="Payments will feed monthly and yearly reports." />
+                </div>
+              </GlassPanel>
+            )}
+
+            {activeSection === "Contracts" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Contracts
+                </p>
+
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Agreement files.
+                </h2>
+
+                <div className="mt-10 grid gap-5 md:grid-cols-3">
+                  <MiniPanel title="Proposal Agreement" text="Store signed proposal session agreements." />
+                  <MiniPanel title="Portrait Agreement" text="Store signed portrait and family session agreements." />
+                  <MiniPanel title="Commercial Agreement" text="Store business, real estate, and automotive contracts." />
+                </div>
+              </GlassPanel>
+            )}
+
+            {activeSection === "Galleries" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                   Galleries
                 </p>
 
-                <h1 className="mt-6 text-5xl font-light tracking-[-0.06em] md:text-7xl">
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
                   Upload gallery photos.
-                </h1>
+                </h2>
 
-                <div className="mt-10 rounded-[2.5rem] border border-white/10 bg-black/20 p-6 md:p-8">
+                <div className="mt-10 rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl">
                   <div className="grid gap-5 md:grid-cols-3">
                     <div>
                       <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
@@ -314,7 +440,7 @@ export default function DashboardPage() {
                       <select
                         value={galleryType}
                         onChange={(e) => setGalleryType(e.target.value)}
-                        className="w-full rounded-[1.5rem] border border-white/10 bg-white/[0.05] px-5 py-4 text-white outline-none"
+                        className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-white outline-none"
                       >
                         {galleryTypes.map((type) => (
                           <option key={type} value={type} className="bg-black">
@@ -332,7 +458,7 @@ export default function DashboardPage() {
                         value={caption}
                         onChange={(e) => setCaption(e.target.value)}
                         placeholder="Optional caption"
-                        className="w-full rounded-[1.5rem] border border-white/10 bg-white/[0.05] px-5 py-4 text-white outline-none placeholder:text-white/25"
+                        className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-white outline-none placeholder:text-white/25"
                       />
                     </div>
 
@@ -347,7 +473,7 @@ export default function DashboardPage() {
                         onChange={(e) =>
                           setFiles(e.target.files ? Array.from(e.target.files) : [])
                         }
-                        className="w-full rounded-[1.5rem] border border-white/10 bg-white/[0.05] px-5 py-4 text-white outline-none file:mr-4 file:rounded-full file:border-0 file:bg-[#f5f0e7] file:px-4 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-[0.2em] file:text-black"
+                        className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-white outline-none file:mr-4 file:rounded-full file:border-0 file:bg-[#f5f0e7] file:px-4 file:py-2 file:text-xs file:font-bold file:uppercase file:tracking-[0.2em] file:text-black"
                       />
                     </div>
                   </div>
@@ -362,11 +488,9 @@ export default function DashboardPage() {
                     type="button"
                     onClick={handleUpload}
                     disabled={uploading}
-                    className="mt-6 w-full rounded-full bg-[#f5f0e7] px-8 py-5 text-[11px] font-semibold uppercase tracking-[0.35em] text-black transition active:scale-[0.99] disabled:opacity-60"
+                    className="mt-6 w-full rounded-full bg-[#f5f0e7] px-8 py-5 text-[11px] font-semibold uppercase tracking-[0.35em] text-black transition hover:scale-[1.01] disabled:opacity-60"
                   >
-                    {uploading
-                      ? `Uploading ${files.length || ""}...`
-                      : "Upload Gallery Photos"}
+                    {uploading ? "Uploading..." : "Upload Gallery Photos"}
                   </button>
                 </div>
 
@@ -374,15 +498,13 @@ export default function DashboardPage() {
                   {photos.map((photo) => (
                     <div
                       key={photo.id}
-                      className="overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03]"
+                      className="overflow-hidden rounded-[3rem] border border-white/10 bg-white/[0.035] backdrop-blur-xl"
                     >
-                      <div className="relative aspect-[4/5] bg-black">
-                        <img
-                          src={photo.image_url}
-                          alt={photo.caption || photo.gallery_type}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
+                      <img
+                        src={photo.image_url}
+                        alt={photo.caption || photo.gallery_type}
+                        className="aspect-[4/5] w-full object-cover"
+                      />
 
                       <div className="p-6">
                         <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
@@ -403,65 +525,112 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
-
-                  {photos.length === 0 && (
-                    <PanelText>No gallery photos uploaded yet.</PanelText>
-                  )}
                 </div>
-              </>
+              </GlassPanel>
             )}
 
-            {activeTab !== "Overview" &&
-              activeTab !== "Bookings" &&
-              activeTab !== "Galleries" && (
-                <>
-                  <p className="text-[11px] uppercase tracking-[0.45em] text-white/35">
-                    {activeTab}
-                  </p>
+            {activeSection === "Finance" && (
+              <GlassPanel>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Finance
+                </p>
 
-                  <h1 className="mt-6 text-5xl font-light tracking-[-0.06em] md:text-7xl">
-                    {activeTab}
-                  </h1>
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Reports and revenue.
+                </h2>
 
-                  <div className="mt-10 rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-10">
-                    <p className="max-w-2xl text-lg leading-9 text-white/50">
-                      This section is ready for custom functionality.
-                    </p>
-                  </div>
-                </>
-              )}
-          </section>
+                <div className="mt-10 grid gap-5 md:grid-cols-4">
+                  <StatCard title="This Month" value="$0" />
+                  <StatCard title="This Year" value={`$${estimatedRevenue}`} />
+                  <StatCard title="Outstanding" value="$0" />
+                  <StatCard title="Avg. Booking" value="$400" />
+                </div>
+
+                <div className="mt-10 grid gap-5 md:grid-cols-2">
+                  <MiniPanel
+                    title="Monthly Report"
+                    text="Client cards, invoices, payments, and contracts will feed monthly financial reports."
+                  />
+                  <MiniPanel
+                    title="Yearly Report"
+                    text="Annual revenue, sessions, outstanding balances, and average booking value."
+                  />
+                </div>
+              </GlassPanel>
+            )}
+          </div>
         </div>
       </section>
     </main>
   );
 }
 
+function GlassPanel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+      {children}
+    </div>
+  );
+}
+
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-8">
+    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
       <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
         {title}
       </p>
-      <h2 className="mt-8 text-6xl font-light tracking-[-0.06em]">{value}</h2>
+      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
+    </div>
+  );
+}
+
+function MiniPanel({ title, text }: { title: string; text: string }) {
+  return (
+    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+      <h3 className="text-2xl font-light tracking-[-0.04em]">{title}</h3>
+      <p className="mt-5 leading-8 text-white/50">{text}</p>
     </div>
   );
 }
 
 function InfoCard({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="rounded-[1.8rem] border border-white/10 bg-black/20 p-6">
-      <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+      <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
         {label}
       </p>
-      <p className="mt-4 text-lg text-white/70">{value || "Not provided"}</p>
+      <p className="mt-3 text-white/65">{value || "Not provided"}</p>
+    </div>
+  );
+}
+
+function FileStatus({
+  title,
+  status,
+  detail,
+}: {
+  title: string;
+  status: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+          {title}
+        </p>
+        <span className="rounded-full border border-white/10 px-3 py-1 text-[9px] uppercase tracking-[0.25em] text-white/45">
+          {status}
+        </span>
+      </div>
+      <p className="mt-4 text-sm text-white/55">{detail}</p>
     </div>
   );
 }
 
 function PanelText({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 text-white/50">
+    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50 backdrop-blur-xl">
       {children}
     </div>
   );
