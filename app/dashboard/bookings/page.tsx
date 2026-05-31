@@ -116,9 +116,7 @@ export default function BookingsPage() {
       full_name: booking.full_name,
       email: booking.email,
       phone: booking.phone,
-      service_type: booking.service_type,
       notes: booking.message,
-      status: "active",
     });
 
     setCreatingId(null);
