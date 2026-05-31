@@ -63,7 +63,7 @@ export default function DashboardPage() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at center, transparent 100%, rgba(0,0,0,0.45) 100%)",
+              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
           }}
         />
       </div>
@@ -91,8 +91,8 @@ export default function DashboardPage() {
         </button>
       </header>
 
-      <section className="relative z-10 px-5 pb-24 pt-4 md:px-10">
-        <div className="mx-auto max-w-7xl">
+      <section className="relative z-10 flex min-h-[calc(100vh-112px)] items-center justify-center px-5 pb-14 pt-6 md:px-10 md:pb-20">
+        <div className="w-full max-w-xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-10">
 
           {/* HERO */}
           <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl shadow-[0_0_90px_rgba(255,255,255,.08)] transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
