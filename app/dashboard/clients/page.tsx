@@ -10,10 +10,7 @@ type Client = {
   full_name: string | null;
   email: string | null;
   phone: string | null;
-  service_type: string | null;
-  preferred_date: string | null;
-  message: string | null;
-  status: string | null;
+  notes: string | null;
   created_at: string | null;
 };
 
@@ -30,14 +27,12 @@ const sections = [
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
 
   useEffect(() => {
     loadClients();
   }, []);
-
-  const activeClients = useMemo(() => clients.length, [clients]);
-  const pendingContracts = useMemo(() => clients.length, [clients]);
-  const outstandingInvoices = useMemo(() => clients.length, [clients]);
 
   async function loadClients() {
     const { data, error } = await supabase
@@ -45,10 +40,7 @@ export default function ClientsPage() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setClients(data || []);
-    }
-
+    if (!error) setClients(data || []);
     setLoading(false);
   }
 
@@ -57,9 +49,21 @@ export default function ClientsPage() {
     window.location.href = "/login";
   }
 
+  const filteredClients = useMemo(() => {
+    const term = search.toLowerCase();
+
+    return clients.filter((client) => {
+      return (
+        client.full_name?.toLowerCase().includes(term) ||
+        client.email?.toLowerCase().includes(term) ||
+        client.phone?.toLowerCase().includes(term) ||
+        client.notes?.toLowerCase().includes(term)
+      );
+    });
+  }, [clients, search]);
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      {/* BACKGROUND */}
       <div className="pointer-events-none fixed inset-0">
         <div
           className="absolute inset-0 bg-cover bg-center bg-fixed"
@@ -77,7 +81,6 @@ export default function ClientsPage() {
         />
       </div>
 
-      {/* HEADER */}
       <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
         <Link href="/dashboard" className="flex items-center">
           <Image
@@ -100,10 +103,9 @@ export default function ClientsPage() {
         </button>
       </header>
 
-      <section className="relative z-10 px-2 pb-24 pt-6 md:px-10">
-        <div className="mx-auto max-w-7xl">
-          {/* HERO */}
-          <div className="w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
+      <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
+        <div className="mx-auto w-full max-w-7xl">
+          <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Client Management
             </p>
@@ -115,8 +117,8 @@ export default function ClientsPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage client records, session details, contracts, invoices,
-              payments, and gallery delivery.
+              View client records, contact information, notes, and creative
+              workflow details.
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
@@ -125,7 +127,7 @@ export default function ClientsPage() {
               </label>
 
               <select
-                defaultValue=""
+                defaultValue="clients"
                 onChange={(e) => {
                   if (e.target.value === "overview") {
                     window.location.href = "/dashboard";
@@ -138,7 +140,9 @@ export default function ClientsPage() {
                 }}
                 className="w-full rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[11px] uppercase tracking-[0.35em] text-white outline-none transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
               >
-                <option value="">Clients</option>
+                <option value="clients" className="bg-black">
+                  Clients
+                </option>
 
                 {sections.map((section) => (
                   <option key={section} value={section} className="bg-black">
@@ -149,109 +153,117 @@ export default function ClientsPage() {
             </div>
           </div>
 
-          {/* STATS */}
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard title="Total Clients" value={loading ? "..." : String(clients.length)} />
-            <StatCard title="Active Clients" value={String(activeClients)} />
-            <StatCard title="Pending Contracts" value={String(pendingContracts)} />
-            <StatCard title="Outstanding Invoices" value={String(outstandingInvoices)} />
+          <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-2">
+            <StatCard title="Total Clients" value={String(clients.length)} />
+            <StatCard title="Visible Results" value={String(filteredClients.length)} />
           </div>
 
-          {/* CLIENT CARDS */}
-          <div className="mt-6 rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-              Client Cards
-            </p>
+          <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Client Cards
+                </p>
 
-            <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-              Session records.
-            </h2>
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Session records.
+                </h2>
+              </div>
+
+              <div className="w-full max-w-md rounded-full border border-white/10 bg-white/[0.025] px-6 py-4">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search clients..."
+                  className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
+                />
+              </div>
+            </div>
 
             {loading && (
-              <p className="mt-10 text-white/50">Loading client records...</p>
+              <p className="mt-10 text-white/50">Loading clients...</p>
             )}
 
-            {!loading && clients.length === 0 && (
-              <div className="mt-10 rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-                No client inquiries yet.
+            {!loading && filteredClients.length === 0 && (
+              <div className="mt-10 rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-7 text-white/50">
+                No clients found.
               </div>
             )}
 
-            <div className="mt-10 grid gap-5">
-              {clients.map((client) => (
-                <div
-                  key={client.id}
-                  className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-8"
-                >
-                  <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr]">
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
-                        Client Profile
-                      </p>
+            <div className="mt-10 grid gap-4">
+              {filteredClients.map((client, index) => {
+                const isOpen = openId === client.id;
 
-                      <h3 className="mt-5 text-4xl font-light tracking-[-0.06em] md:text-5xl">
-                        {client.full_name || "Unnamed Client"}
-                      </h3>
+                return (
+                  <div
+                    key={client.id}
+                    className="mx-auto w-full max-w-3xl rounded-[2.25rem] border border-white/10 bg-white/[0.035] p-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-6"
+                  >
+                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          {String(index + 1).padStart(2, "0")} / Client
+                        </p>
 
-                      <p className="mt-4 text-lg text-white/45">
-                        {client.service_type || "Session type not selected"}
-                      </p>
+                        <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] md:text-4xl">
+                          {client.full_name || "Unnamed Client"}
+                        </h3>
 
-                      <div className="mt-8 grid gap-4 md:grid-cols-2">
-                        <InfoCard label="Email" value={client.email} />
-                        <InfoCard label="Phone" value={client.phone} />
-                        <InfoCard label="Preferred Date" value={client.preferred_date} />
-                        <InfoCard label="Status" value={client.status || "Inquiry"} />
+                        <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
+                          <p>{client.email || "No email"}</p>
+                          <p>{client.phone || "No phone"}</p>
+                        </div>
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setOpenId(isOpen ? null : client.id)}
+                        className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
+                      >
+                        {isOpen ? "Close" : "Open"}
+                      </button>
                     </div>
 
-                    <div className="grid gap-4">
-                      <FileStatus
-                        title="Invoice"
-                        status="Not Created"
-                        detail="$0.00 due"
-                      />
+                    {isOpen && (
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                        <div className="grid gap-4 text-sm leading-7 text-white/55">
+                          <p>
+                            <span className="text-white/30">Name:</span>{" "}
+                            {client.full_name || "Not provided"}
+                          </p>
 
-                      <FileStatus
-                        title="Payment"
-                        status="Pending"
-                        detail="Deposit not recorded"
-                      />
+                          <p>
+                            <span className="text-white/30">Email:</span>{" "}
+                            {client.email || "Not provided"}
+                          </p>
 
-                      <FileStatus
-                        title="Contract"
-                        status="Not Sent"
-                        detail="Agreement pending"
-                      />
+                          <p>
+                            <span className="text-white/30">Phone:</span>{" "}
+                            {client.phone || "Not provided"}
+                          </p>
 
-                      <FileStatus
-                        title="Gallery"
-                        status="Not Delivered"
-                        detail="Client gallery not published"
-                      />
-                    </div>
+                          <p>
+                            <span className="text-white/30">Created:</span>{" "}
+                            {client.created_at
+                              ? new Date(client.created_at).toLocaleDateString()
+                              : "Not provided"}
+                          </p>
+
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                              Notes
+                            </p>
+
+                            <p className="mt-3 whitespace-pre-wrap text-white/55">
+                              {client.notes || "No notes saved."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-
-                  {client.message && (
-                    <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/[0.025] p-6">
-                      <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
-                        Client Notes
-                      </p>
-
-                      <p className="mt-4 whitespace-pre-wrap leading-8 text-white/55">
-                        {client.message}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <ActionButton label="View Client" />
-                    <ActionButton label="Create Invoice" />
-                    <ActionButton label="Upload Contract" />
-                    <ActionButton label="Mark Paid" />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -262,7 +274,7 @@ export default function ClientsPage() {
 
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+    <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
       <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
         {title}
       </p>
@@ -271,64 +283,5 @@ function StatCard({ title, value }: { title: string; value: string }) {
         {value}
       </h3>
     </div>
-  );
-}
-
-function InfoCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null;
-}) {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-      <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-        {label}
-      </p>
-
-      <p className="mt-3 text-white/65">
-        {value || "Not provided"}
-      </p>
-    </div>
-  );
-}
-
-function FileStatus({
-  title,
-  status,
-  detail,
-}: {
-  title: string;
-  status: string;
-  detail: string;
-}) {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-          {title}
-        </p>
-
-        <span className="rounded-full border border-white/10 px-3 py-1 text-[9px] uppercase tracking-[0.25em] text-white/45">
-          {status}
-        </span>
-      </div>
-
-      <p className="mt-4 text-sm text-white/55">
-        {detail}
-      </p>
-    </div>
-  );
-}
-
-function ActionButton({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
-    >
-      {label}
-    </button>
   );
 }
