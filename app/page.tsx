@@ -170,9 +170,9 @@ export default function HomePage() {
         <Link
           key={service}
           href={`/galleries/${slug}`}
-          className={`group relative flex overflow-hidden rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] ${
-            i === 0 ? "min-h-[520px] md:col-span-2" : "min-h-[520px]"
-          }`}
+         className={`group relative flex overflow-hidden rounded-[3rem] border border-white/10 bg-white/[0.025] p-8 transition duration-500 hover:border-white/20 hover:bg-white/[0.04] ${
+  i === 0 ? "min-h-[520px] md:col-span-2" : "min-h-[520px]"
+}`}
         >
           <div className="flex h-full w-full flex-col">
             <p className="text-xs uppercase tracking-[0.35em] text-white/30">
@@ -180,7 +180,7 @@ export default function HomePage() {
             </p>
 
             {previewPhoto && (
-              <div className="mt-10 h-[260px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.025]">
+              <div className="mt-10 h-[260px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-transparent">
                 <img
                   src={previewPhoto.image_url}
                   alt={previewPhoto.caption || service}
