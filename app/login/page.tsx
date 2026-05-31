@@ -87,7 +87,7 @@ export default function LoginPage() {
       </header>
 
       <section className="relative z-10 flex min-h-[calc(100vh-112px)] items-center justify-center px-5 pb-14 pt-6 md:px-10 md:pb-20">
-        <div className="w-full max-w-2xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
+        <div className="w-full max-w-xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-10">
           <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
             Camvelle Creative
           </p>
@@ -104,7 +104,7 @@ export default function LoginPage() {
           </p>
 
           <form onSubmit={handleLogin} className="mt-12 space-y-5 text-left">
-            <div className="flex items-center gap-4 rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+            <div className="flex items-center gap-4 rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-3 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
               <label className="min-w-24 text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Email
               </label>
@@ -118,7 +118,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center gap-4 rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+            <div className="flex items-center gap-4 rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-3 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
               <label className="min-w-24 text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Password
               </label>
