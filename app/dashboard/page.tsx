@@ -99,23 +99,23 @@ export default function DashboardPage() {
         <div className="w-full max-w-7xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-14 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-16">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  CamVelle Studio HQ
+                  Camvelle Studio HQ
                 </p>
 
                 <h1 className="mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
-                  Manage the
+                  Dashboard
                   <br />
-                  creative flow.
+                  Creative HQ
                 </h1>
 
                 <p className="mt-7 max-w-3xl text-lg leading-8 text-white/50">
-                  Your complete photography business overview.
+                  Business Operations Overview.
                 </p>
               </div>
 
               <div className="w-full max-w-sm">
                 <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
-                  Open Section
+                  Navigate
                 </label>
 
                 <select
