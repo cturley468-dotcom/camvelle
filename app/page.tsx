@@ -155,7 +155,7 @@ export default function HomePage() {
       </section>
 
 <section id="galleries" className="relative z-10 px-5 py-24 md:px-10">
-  <h2 className="max-w-5xl text-5xl font-light leading-none tracking-[-0.08em] md:text-7xl">
+  <h2 className="max-w-5xl text-5xl font-light leading-none tracking-[-0.08em]">
     Choose the experience.
   </h2>
 
@@ -170,101 +170,63 @@ export default function HomePage() {
         <Link
           key={service}
           href={`/galleries/${slug}`}
-          className={`group relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.04] p-8 transition hover:border-white/20 hover:bg-white/[0.06] ${
+          className={`group relative overflow-hidden rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] ${
             i === 0 ? "min-h-[520px] md:col-span-2" : "min-h-[520px]"
           }`}
         >
-          <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12"/>
+          <p className="text-xs uppercase tracking-[0.35em] text-white/30">
+            {String(i + 1).padStart(2, "0")} / Gallery
+          </p>
 
-          <div className="relative z-10 flex h-full flex-col">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/30">
-              0{i + 1} / Gallery
-            </p>
-
-            {previewPhotos.length > 0 && (
-  <div className="relative mt-10 h-[300px]">
-    
-    {/* Back Image */}
-    {previewPhotos[2] && (
-      <div className="absolute left-8 top-4 h-[220px] w-[75%] overflow-hidden rounded-[2rem] opacity-20">
-        <img
-          src={previewPhotos[2].image_url}
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      </div>
-    )}
-
-    {/* Middle Image */}
-    {previewPhotos[1] && (
-      <div className="absolute left-4 top-2 h-[240px] w-[82%] overflow-hidden rounded-[2rem] opacity-40">
-        <img
-          src={previewPhotos[1].image_url}
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      </div>
-    )}
-
-    {/* Main Featured Image */}
-    <div className="relative z-10 h-[260px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/40">
-      <img
-        src={previewPhotos[0].image_url}
-        alt={previewPhotos[0].caption || service}
-        className="h-full w-full object-cover transition duration-700 md:hover:scale-105"
-      />
-    </div>
-
-  </div>
-)}
-
-
-
-            <div className="mt-auto pt-12">
-              <h3 className="text-5xl font-light tracking-[-0.07em]">
-                {service}
-              </h3>
-
-              <p className="mt-5 max-w-sm leading-7 text-white/45">
-  {
-    {
-      Proposals:
-        "Authentic reactions, unforgettable moments, and the beginning of your story together.",
-
-      Couples:
-        "Natural connection, genuine emotion, and timeless imagery that celebrates your relationship.",
-
-      Families:
-        "Real moments, meaningful connections, and memories preserved for generations.",
-
-      Portraits:
-        "Confident, refined portraits designed to showcase personality and presence.",
-
-      Business:
-        "Professional imagery crafted to elevate your brand, reputation, and visual identity.",
-
-      "Real-Estate":
-        "Clean, polished property imagery designed to showcase spaces with clarity, depth, and market appeal.",
-
-      Automotive:
-        "Dynamic compositions, dramatic detail, and imagery that highlights the character of every vehicle.",
-
-
-      Events:
-        "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most.",
-
-    
-    }[service]
-  }
-</p>
-
+          {previewPhotos.length > 0 && (
+            <div className="mt-10 flex gap-4 overflow-x-auto pb-4">
+              {previewPhotos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="h-[230px] w-[78%] shrink-0 overflow-hidden rounded-[2rem] border border-white/10 md:w-[45%]"
+                >
+                  <img
+                    src={photo.image_url}
+                    alt={photo.caption || service}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ))}
             </div>
+          )}
+
+          <div className="mt-auto pt-12">
+            <h3 className="text-5xl font-light tracking-[-0.07em]">
+              {service}
+            </h3>
+
+            <p className="mt-5 max-w-sm leading-8 text-white/45">
+              {{
+                Proposals:
+                  "Authentic reactions, unforgettable moments, and the beginning of your story together.",
+                Couples:
+                  "Natural connection, genuine emotion, and timeless imagery that celebrates your bond.",
+                Families:
+                  "Real moments, meaningful connections, and memories preserved for generations.",
+                Portraits:
+                  "Confident, refined portraits designed to showcase personality and presence.",
+                Business:
+                  "Professional imagery crafted to elevate your brand, reputation, and visual identity.",
+                "Real Estate":
+                  "Clean, polished property imagery designed to showcase spaces with clarity, depth, and market appeal.",
+                Automotive:
+                  "Dynamic compositions, dramatic detail, and imagery that highlights craftsmanship and performance.",
+                Events:
+                  "Thoughtful coverage that captures the atmosphere, energy, and moments that matter most.",
+              }[service]}
+            </p>
           </div>
         </Link>
       );
     })}
   </div>
 </section>
+
 
    
 
