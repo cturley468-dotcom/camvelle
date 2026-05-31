@@ -30,6 +30,7 @@ const sections = [
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creatingId, setCreatingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadBookings();
@@ -43,11 +44,32 @@ export default function BookingsPage() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) {
-      setBookings(data || []);
+    if (!error) setBookings(data || []);
+    setLoading(false);
+  }
+
+  async function createClientFromBooking(booking: Booking) {
+    setCreatingId(booking.id);
+
+    const { error } = await supabase.from("clients").insert({
+      full_name: booking.full_name,
+      email: booking.email,
+      phone: booking.phone,
+      service_type: booking.service_type,
+      preferred_date: booking.preferred_date,
+      notes: booking.message,
+      status: "active",
+    });
+
+    setCreatingId(null);
+
+    if (error) {
+      alert(error.message);
+      return;
     }
 
-    setLoading(false);
+    alert("Client created.");
+    window.location.href = "/dashboard/clients";
   }
 
   async function handleLogout() {
@@ -98,10 +120,10 @@ export default function BookingsPage() {
         </button>
       </header>
 
-      <section className="relative z-10 px-2 pb-24 pt-6 md:px-10">
-        <div className="mx-auto max-w-7xl">
+      <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
+        <div className="mx-auto w-full max-w-7xl">
           {/* HERO */}
-          <div className="w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
+          <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Booking Management
             </p>
@@ -148,7 +170,7 @@ export default function BookingsPage() {
           </div>
 
           {/* STATS */}
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-2 xl:grid-cols-4">
             <StatCard title="New Requests" value={loading ? "..." : String(newBookings)} />
             <StatCard title="Needs Reply" value={String(newBookings)} />
             <StatCard title="Scheduled" value="0" />
@@ -156,7 +178,7 @@ export default function BookingsPage() {
           </div>
 
           {/* BOOKING LIST */}
-          <div className="mt-6 rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+          <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Booking Requests
             </p>
@@ -179,7 +201,7 @@ export default function BookingsPage() {
               {bookings.map((booking, index) => (
                 <div
                   key={booking.id}
-                  className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-8"
+                  className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-8"
                 >
                   <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr]">
                     <div>
@@ -244,8 +266,18 @@ export default function BookingsPage() {
 
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     <ActionButton label="View Request" />
+
                     <ActionButton label="Reply" />
-                    <ActionButton label="Create Client" />
+
+                    <button
+                      type="button"
+                      onClick={() => createClientFromBooking(booking)}
+                      disabled={creatingId === booking.id}
+                      className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {creatingId === booking.id ? "Creating..." : "Create Client"}
+                    </button>
+
                     <ActionButton label="Schedule Session" />
                   </div>
                 </div>
@@ -260,7 +292,7 @@ export default function BookingsPage() {
 
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+    <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
       <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
         {title}
       </p>
@@ -285,7 +317,7 @@ function InfoCard({
         {label}
       </p>
 
-      <p className="mt-3 text-white/65">
+      <p className="mt-3 break-words text-white/65">
         {value || "Not provided"}
       </p>
     </div>
