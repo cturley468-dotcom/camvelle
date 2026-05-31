@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
           {/* HERO */}
           <div className="relative z-10 flex min-h-[calc(100vh-112px)] items-center justify-center px-5 pb-14 pt-6 md:px-10 md:pb-20">
-        <div className="w-full max-w-20xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-10 md:p-16 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-10">
+        <div className="w-full max-w-6xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-10 md:p-18 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-10">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                   CamVelle Studio HQ
