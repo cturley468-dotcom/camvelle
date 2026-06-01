@@ -65,11 +65,23 @@ export async function POST(request: Request) {
       );
     }
 
+    const origin =
+      request.headers.get("origin") ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://camvelle.vercel.app";
+
+    const signedPdfUrl = `${origin}/api/contracts/pdf?token=${encodeURIComponent(
+      token
+    )}`;
+
     if (contract.signed_at) {
       return NextResponse.json({
         success: true,
         message: "Contract was already signed.",
-        contract,
+        contract: {
+          ...contract,
+          signed_pdf_url: contract.signed_pdf_url || signedPdfUrl,
+        },
       });
     }
 
@@ -93,6 +105,7 @@ export async function POST(request: Request) {
         signed_at: now.toISOString(),
         signed_ip: ip,
         signed_user_agent: userAgent,
+        signed_pdf_url: signedPdfUrl,
       })
       .eq("id", contract.id)
       .select("*")
