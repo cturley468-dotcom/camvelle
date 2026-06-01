@@ -335,8 +335,7 @@ export default function ClientDetailPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage client details, schedule, contracts, invoices, and session
-              notes in one dedicated client page.
+              Manage client details, schedule, contracts, and invoices.
             </p>
 
             <div className="mx-auto mt-12 flex max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
@@ -457,8 +456,8 @@ export default function ClientDetailPage() {
                       />
 
                       <IconLink
-                        label="Contract"
-                        href={`/dashboard/contracts?clientId=${client.id}`}
+                        label="Create Contract"
+                        href={`/dashboard/clients/${client.id}/contract`}
                         icon={<FileSignature size={16} />}
                       />
 

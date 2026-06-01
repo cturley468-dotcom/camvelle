@@ -29,7 +29,6 @@ const sections = [
   "overview",
   "clients",
   "calendar",
-  "contracts",
   "galleries",
   "finance",
 ];
