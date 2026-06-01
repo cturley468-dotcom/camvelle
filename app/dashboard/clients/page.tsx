@@ -3,7 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, FileSignature, Pencil, ReceiptText, Trash2, X, Save } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  Calendar,
+  FileSignature,
+  Pencil,
+  ReceiptText,
+  Save,
+  Trash2,
+  X,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Client = {
@@ -31,6 +40,9 @@ export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
 
   const [editForm, setEditForm] = useState({
     full_name: "",
@@ -44,17 +56,28 @@ export default function ClientsPage() {
   }, []);
 
   async function loadClients() {
+    setLoading(true);
+
     const { data, error } = await supabase
       .from("clients")
-      .select("*")
+      .select("id, full_name, email, phone, notes, created_at")
       .order("created_at", { ascending: false });
 
-    if (!error) setClients(data || []);
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setClients(data || []);
     setLoading(false);
   }
 
   function startEdit(client: Client) {
+    setNotice("");
     setEditingId(client.id);
+    setOpenId(client.id);
+
     setEditForm({
       full_name: client.full_name || "",
       email: client.email || "",
@@ -64,15 +87,20 @@ export default function ClientsPage() {
   }
 
   async function saveClient(id: string) {
+    setSavingId(id);
+    setNotice("");
+
     const { error } = await supabase
       .from("clients")
       .update({
-        full_name: editForm.full_name,
-        email: editForm.email,
-        phone: editForm.phone,
-        notes: editForm.notes,
+        full_name: editForm.full_name || null,
+        email: editForm.email || null,
+        phone: editForm.phone || null,
+        notes: editForm.notes || null,
       })
       .eq("id", id);
+
+    setSavingId(null);
 
     if (error) {
       alert(error.message);
@@ -80,6 +108,7 @@ export default function ClientsPage() {
     }
 
     setEditingId(null);
+    setNotice("Client updated successfully.");
     await loadClients();
   }
 
@@ -87,13 +116,21 @@ export default function ClientsPage() {
     const confirmDelete = confirm("Delete this client?");
     if (!confirmDelete) return;
 
+    setDeletingId(id);
+    setNotice("");
+
     const { error } = await supabase.from("clients").delete().eq("id", id);
+
+    setDeletingId(null);
 
     if (error) {
       alert(error.message);
       return;
     }
 
+    setOpenId(null);
+    setEditingId(null);
+    setNotice("Client deleted successfully.");
     await loadClients();
   }
 
@@ -208,7 +245,10 @@ export default function ClientsPage() {
 
           <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-2">
             <StatCard title="Total Clients" value={String(clients.length)} />
-            <StatCard title="Visible Results" value={String(filteredClients.length)} />
+            <StatCard
+              title="Visible Results"
+              value={String(filteredClients.length)}
+            />
           </div>
 
           <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
@@ -233,6 +273,12 @@ export default function ClientsPage() {
               </div>
             </div>
 
+            {notice && (
+              <div className="mt-8 rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
+                {notice}
+              </div>
+            )}
+
             {loading && <p className="mt-10 text-white/50">Loading clients...</p>}
 
             {!loading && filteredClients.length === 0 && (
@@ -251,7 +297,7 @@ export default function ClientsPage() {
                     key={client.id}
                     className="mx-auto w-full max-w-3xl rounded-[2.25rem] border border-white/10 bg-white/[0.035] p-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-6"
                   >
-                    <div className="flex flex-col gap-5">
+                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
                           {String(index + 1).padStart(2, "0")} / Client
@@ -272,6 +318,7 @@ export default function ClientsPage() {
                         onClick={() => {
                           setOpenId(isOpen ? null : client.id);
                           setEditingId(null);
+                          setNotice("");
                         }}
                         className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
                       >
@@ -280,7 +327,7 @@ export default function ClientsPage() {
                     </div>
 
                     {isOpen && !isEditing && (
-                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]">
                         <div className="grid gap-4 text-sm leading-7 text-white/55">
                           <p>
                             <span className="text-white/30">Name:</span>{" "}
@@ -341,17 +388,20 @@ export default function ClientsPage() {
                           />
 
                           <IconButton
-                            label="Delete"
+                            label={
+                              deletingId === client.id ? "Deleting" : "Delete"
+                            }
                             danger
                             icon={<Trash2 size={16} />}
                             onClick={() => deleteClient(client.id)}
+                            disabled={deletingId === client.id}
                           />
                         </div>
                       </div>
                     )}
 
                     {isOpen && isEditing && (
-                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]">
                         <div className="grid gap-4">
                           <EditInput
                             label="Full Name"
@@ -377,7 +427,7 @@ export default function ClientsPage() {
                             }
                           />
 
-                          <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                          <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
                             <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
                               Notes
                             </label>
@@ -398,9 +448,10 @@ export default function ClientsPage() {
 
                         <div className="mt-6 flex flex-wrap gap-3">
                           <IconButton
-                            label="Save"
+                            label={savingId === client.id ? "Saving" : "Save"}
                             icon={<Save size={16} />}
                             onClick={() => saveClient(client.id)}
+                            disabled={savingId === client.id}
                           />
 
                           <IconButton
@@ -444,7 +495,7 @@ function EditInput({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
       <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
         {label}
       </label>
@@ -463,18 +514,21 @@ function IconButton({
   icon,
   onClick,
   danger = false,
+  disabled = false,
 }: {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   onClick: () => void;
   danger?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       title={label}
-      className={`flex h-12 w-12 items-center justify-center rounded-full border text-white/65 transition ${
+      disabled={disabled}
+      className={`flex h-12 w-12 items-center justify-center rounded-full border text-white/65 transition disabled:cursor-not-allowed disabled:opacity-50 ${
         danger
           ? "border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
           : "border-white/10 bg-white/[0.035] hover:bg-white hover:text-black"
@@ -491,7 +545,7 @@ function IconLink({
   href,
 }: {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   href: string;
 }) {
   return (
