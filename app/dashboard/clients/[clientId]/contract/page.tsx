@@ -127,7 +127,7 @@ export default function CreateClientContractPage() {
         <Link href="/dashboard" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
-            alt="CamVelle Creative"
+            alt="Camvelle Creative"
             width={420}
             height={120}
             priority

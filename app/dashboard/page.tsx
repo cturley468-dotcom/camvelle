@@ -13,7 +13,6 @@ const sections = [
   "clients",
   "bookings",
   "calendar",
-  "contracts",
   "galleries",
   "finance",
 ];
@@ -72,7 +71,7 @@ export default function DashboardPage() {
         <Link href="/" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
-            alt="CamVelle Creative"
+            alt="Camvelle Creative"
             width={420}
             height={120}
             priority

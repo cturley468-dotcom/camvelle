@@ -9,7 +9,7 @@ const resendApiKey = process.env.RESEND_API_KEY;
 
 const invoiceFromEmail =
   process.env.INVOICE_FROM_EMAIL ||
-  "CamVelle Creative <onboarding@resend.dev>";
+  "Camvelle Creative <onboarding@resend.dev>";
 
 if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
 if (!serviceRoleKey) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
@@ -64,10 +64,10 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         from: invoiceFromEmail,
         to: [invoice.client_email],
-        subject: `Invoice ${invoiceNumber} from CamVelle Creative`,
+        subject: `Invoice ${invoiceNumber} from Camvelle Creative`,
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-            <h2>CamVelle Creative</h2>
+            <h2>Camvelle Creative</h2>
 
             <p>Hi ${invoice.client_name || "there"},</p>
 
@@ -85,9 +85,9 @@ export async function POST(request: Request) {
               </a>
             </p>
 
-            <p>Thank you for choosing CamVelle Creative.</p>
+            <p>Thank you for choosing Camvelle Creative.</p>
 
-            <p style="color:#666;font-size:13px;">CamVelle.com</p>
+            <p style="color:#666;font-size:13px;">Camvelle.com</p>
           </div>
         `,
       }),

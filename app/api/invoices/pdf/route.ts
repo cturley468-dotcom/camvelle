@@ -310,7 +310,7 @@ async function createInvoicePdf(invoice: Invoice) {
     color: gray,
   });
 
-  page.drawText("CamVelle.com", {
+  page.drawText("Camvelle.com", {
     x: margin,
     y: 52,
     size: 10,

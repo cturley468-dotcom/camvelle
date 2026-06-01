@@ -61,7 +61,7 @@ export default function CalendarPage() {
         <Link href="/" className="flex items-center">
           <img
             src="/branding/camvelle-logo.png"
-            alt="CamVelle Creative"
+            alt="Camvelle Creative"
             className="h-12 w-auto object-contain md:h-16 lg:h-20 xl:h-24"
           />
         </Link>

@@ -12,7 +12,7 @@ export default function ContractSignPage() {
     <main className="min-h-screen bg-black px-6 py-10 text-white">
       <div className="mx-auto max-w-2xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center">
         <p className="text-[11px] uppercase tracking-[0.45em] text-white/35">
-          CamVelle Creative
+          Camvelle Creative
         </p>
 
         <h1 className="mt-6 text-5xl font-light tracking-[-0.07em]">
