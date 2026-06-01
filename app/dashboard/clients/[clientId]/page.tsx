@@ -10,6 +10,7 @@ import {
   CheckCircle,
   ExternalLink,
   FileSignature,
+  FileText,
   Pencil,
   ReceiptText,
   Save,
@@ -241,10 +242,17 @@ export default function ClientDetailPage() {
     setSaving(true);
     setNotice("");
 
-    const updateData =
-      status === "paid"
-        ? { status, paid_at: new Date().toISOString() }
-        : { status, sent_at: new Date().toISOString() };
+    const updateData: Record<string, string | null> = {
+      status,
+    };
+
+    if (status === "sent") {
+      updateData.sent_at = new Date().toISOString();
+    }
+
+    if (status === "paid") {
+      updateData.paid_at = new Date().toISOString();
+    }
 
     const { error } = await supabase
       .from("invoices")
@@ -258,35 +266,34 @@ export default function ClientDetailPage() {
       return;
     }
 
-    setNotice(`Invoice marked ${status}.`);
+    setNotice(`Invoice status updated to ${status}.`);
     await loadClientPage();
   }
 
   async function generateInvoicePdf(invoiceId: string) {
-  setSaving(true);
-  setNotice("");
+    setSaving(true);
+    setNotice("");
 
-  const response = await fetch("/api/invoices/pdf", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ invoiceId }),
-  });
+    const response = await fetch("/api/invoices/pdf", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ invoiceId }),
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  setSaving(false);
+    setSaving(false);
 
-  if (!response.ok) {
-    alert(result.error || "PDF could not be generated.");
-    return;
+    if (!response.ok) {
+      alert(result.error || "PDF could not be generated.");
+      return;
+    }
+
+    setNotice("Invoice PDF generated successfully.");
+    await loadClientPage();
   }
-
-  setNotice("Invoice PDF generated successfully.");
-  await loadClientPage();
-}
-
 
   async function deleteInvoice(invoiceId: string) {
     const confirmDelete = confirm("Delete this invoice?");
@@ -317,18 +324,19 @@ export default function ClientDetailPage() {
 
     const today = new Date().toISOString().slice(0, 10);
 
-    const updateData =
-      status === "signed"
-        ? {
-            status,
-            signed_date: today,
-            signed_at: new Date().toISOString(),
-          }
-        : {
-            status,
-            sent_date: today,
-            sent_at: new Date().toISOString(),
-          };
+    const updateData: Record<string, string | null> = {
+      status,
+    };
+
+    if (status === "sent") {
+      updateData.sent_date = today;
+      updateData.sent_at = new Date().toISOString();
+    }
+
+    if (status === "signed") {
+      updateData.signed_date = today;
+      updateData.signed_at = new Date().toISOString();
+    }
 
     const { error } = await supabase
       .from("contracts")
@@ -342,7 +350,7 @@ export default function ClientDetailPage() {
       return;
     }
 
-    setNotice(`Contract marked ${status}.`);
+    setNotice(`Contract status updated to ${status}.`);
     await loadClientPage();
   }
 
@@ -420,7 +428,9 @@ export default function ClientDetailPage() {
             backgroundImage: "url('/backgrounds/camvelle-background.png')",
           }}
         />
+
         <div className="absolute inset-0 bg-black/40" />
+
         <div
           className="absolute inset-0"
           style={{
@@ -498,6 +508,12 @@ export default function ClientDetailPage() {
           {loading && (
             <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
               Loading client file...
+            </div>
+          )}
+
+          {!loading && !client && (
+            <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
+              Client not found.
             </div>
           )}
 
@@ -724,10 +740,35 @@ export default function ClientDetailPage() {
                     </h3>
 
                     <div className="mt-5 grid gap-3 text-sm leading-7 text-white/55">
-                      <p>
-                        <span className="text-white/30">Status:</span>{" "}
-                        {contract.status || "draft"}
-                      </p>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
+                        <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          Status
+                        </label>
+
+                        <select
+                          value={contract.status || "draft"}
+                          onChange={(e) =>
+                            updateContractStatus(contract.id, e.target.value)
+                          }
+                          className="w-full bg-transparent text-white outline-none"
+                        >
+                          <option value="draft" className="bg-black">
+                            Draft
+                          </option>
+
+                          <option value="sent" className="bg-black">
+                            Sent
+                          </option>
+
+                          <option value="signed" className="bg-black">
+                            Signed
+                          </option>
+
+                          <option value="archived" className="bg-black">
+                            Archived
+                          </option>
+                        </select>
+                      </div>
 
                       <p>
                         <span className="text-white/30">Sent Date:</span>{" "}
@@ -751,25 +792,11 @@ export default function ClientDetailPage() {
                     </div>
 
                     <div className="mt-7 flex flex-wrap gap-3">
-                      <IconButton
-                        label="Mark Sent"
-                        icon={<FileSignature size={16} />}
-                        onClick={() => updateContractStatus(contract.id, "sent")}
-                        disabled={saving}
-                      />
-
-                      <IconButton
-                        label="Mark Signed"
-                        icon={<CheckCircle size={16} />}
-                        onClick={() => updateContractStatus(contract.id, "signed")}
-                        disabled={saving}
-                      />
-
                       {contract.contract_pdf_url && (
                         <IconExternalLink
                           label="View Contract PDF"
                           href={contract.contract_pdf_url}
-                          icon={<ExternalLink size={16} />}
+                          icon={<FileText size={16} />}
                         />
                       )}
 
@@ -819,10 +846,35 @@ export default function ClientDetailPage() {
                         {formatMoney(Number(invoice.amount || 0))}
                       </p>
 
-                      <p>
-                        <span className="text-white/30">Status:</span>{" "}
-                        {invoice.status || "draft"}
-                      </p>
+                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
+                        <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          Status
+                        </label>
+
+                        <select
+                          value={invoice.status || "draft"}
+                          onChange={(e) =>
+                            updateInvoiceStatus(invoice.id, e.target.value)
+                          }
+                          className="w-full bg-transparent text-white outline-none"
+                        >
+                          <option value="draft" className="bg-black">
+                            Draft
+                          </option>
+
+                          <option value="sent" className="bg-black">
+                            Sent
+                          </option>
+
+                          <option value="paid" className="bg-black">
+                            Paid
+                          </option>
+
+                          <option value="overdue" className="bg-black">
+                            Overdue
+                          </option>
+                        </select>
+                      </div>
 
                       <p>
                         <span className="text-white/30">Due Date:</span>{" "}
@@ -836,34 +888,20 @@ export default function ClientDetailPage() {
                     </div>
 
                     <div className="mt-7 flex flex-wrap gap-3">
-                      <IconButton
-                        label="Mark Sent"
-                        icon={<ReceiptText size={16} />}
-                        onClick={() => updateInvoiceStatus(invoice.id, "sent")}
-                        disabled={saving}
-                      />
-
-                      <IconButton
-                        label="Mark Paid"
-                        icon={<CheckCircle size={16} />}
-                        onClick={() => updateInvoiceStatus(invoice.id, "paid")}
-                        disabled={saving}
-                      />
-
                       {invoice.invoice_pdf_url ? (
-                      <IconExternalLink
-                        label="View Invoice PDF"
-                        href={invoice.invoice_pdf_url}
-                        icon={<ExternalLink size={16} />}
-                      />
-                          ) : (
-                      <IconButton
-                        label="Generate PDF"
-                        icon={<ReceiptText size={16} />}
-                        onClick={() => generateInvoicePdf(invoice.id)}
-                        disabled={saving}
-                     />
-                    )}
+                        <IconExternalLink
+                          label="View Invoice PDF"
+                          href={invoice.invoice_pdf_url}
+                          icon={<FileText size={16} />}
+                        />
+                      ) : (
+                        <IconButton
+                          label="Generate PDF"
+                          icon={<FileText size={16} />}
+                          onClick={() => generateInvoicePdf(invoice.id)}
+                          disabled={saving}
+                        />
+                      )}
 
                       <IconButton
                         label="Delete Invoice"
