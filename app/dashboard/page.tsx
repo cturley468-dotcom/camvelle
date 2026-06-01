@@ -8,14 +8,11 @@ import {
   ArrowUpRight,
   Calendar,
   CheckCircle,
-  Clock3,
   FileSignature,
   GalleryVerticalEnd,
   Inbox,
-  LayoutGrid,
   LogOut,
   ReceiptText,
-  Send,
   Users,
   Wallet,
 } from "lucide-react";
@@ -73,6 +70,8 @@ const sections = [
   { label: "Clients", value: "clients" },
   { label: "Bookings", value: "bookings" },
   { label: "Calendar", value: "calendar" },
+  { label: "Invoices", value: "invoices" },
+  { label: "Contracts", value: "contracts" },
   { label: "Galleries", value: "galleries" },
   { label: "Finance", value: "finance" },
 ];
@@ -83,7 +82,6 @@ export default function DashboardPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     loadDashboard();
@@ -91,57 +89,35 @@ export default function DashboardPage() {
 
   async function loadDashboard() {
     setLoading(true);
-    setNotice("");
 
-    const [
-      inquiryResult,
-      clientResult,
-      invoiceResult,
-      contractResult,
-    ] = await Promise.all([
-      supabase
-        .from("inquiries")
-        .select("id, full_name, email, created_at")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("clients")
-        .select("id, full_name, email, notes, created_at")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("invoices")
-        .select(
-          "id, invoice_number, amount, status, due_date, client_name, client_email, sent_at, paid_at, created_at"
-        )
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("contracts")
-        .select(
-          "id, contract_type, status, client_name, client_email, sent_at, signed_at, created_at"
-        )
-        .order("created_at", { ascending: false }),
-    ]);
-
-    if (inquiryResult.error) {
-      console.warn(inquiryResult.error.message);
-    }
-
-    if (clientResult.error) {
-      console.warn(clientResult.error.message);
-    }
-
-    if (invoiceResult.error) {
-      console.warn(invoiceResult.error.message);
-    }
-
-    if (contractResult.error) {
-      console.warn(contractResult.error.message);
-    }
+    const [inquiryResult, clientResult, invoiceResult, contractResult] =
+      await Promise.all([
+        supabase
+          .from("inquiries")
+          .select("id, full_name, email, created_at")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("clients")
+          .select("id, full_name, email, notes, created_at")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("invoices")
+          .select(
+            "id, invoice_number, amount, status, due_date, client_name, client_email, sent_at, paid_at, created_at"
+          )
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("contracts")
+          .select(
+            "id, contract_type, status, client_name, client_email, sent_at, signed_at, created_at"
+          )
+          .order("created_at", { ascending: false }),
+      ]);
 
     setInquiries(inquiryResult.data || []);
     setClients(clientResult.data || []);
     setInvoices(invoiceResult.data || []);
     setContracts(contractResult.data || []);
-
     setLoading(false);
   }
 
@@ -198,13 +174,13 @@ export default function DashboardPage() {
           }}
         />
 
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/45" />
 
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
+              "radial-gradient(circle at center, transparent 22%, rgba(0,0,0,0.5) 100%)",
           }}
         />
       </div>
@@ -225,7 +201,7 @@ export default function DashboardPage() {
         <button
           type="button"
           onClick={handleLogout}
-          className="group flex items-center gap-3 rounded-full border border-white/10 bg-[#f5f0e7] px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-black transition hover:scale-[1.02]"
+          className="flex items-center gap-3 rounded-full border border-white/10 bg-[#f5f0e7] px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-black transition hover:scale-[1.02]"
         >
           <LogOut size={15} />
           Logout
@@ -234,73 +210,61 @@ export default function DashboardPage() {
 
       <section className="relative z-10 px-4 pb-24 pt-4 md:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center shadow-[0_0_90px_rgba(255,255,255,.07)] backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+          <div className="rounded-[3rem] border border-white/10 bg-black/70 p-8 text-center shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm md:p-14">
+            <p className="text-[11px] uppercase tracking-[0.6em] text-white/35">
               Camvelle Studio HQ
             </p>
 
-            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
+            <h1 className="mx-auto mt-8 max-w-5xl text-6xl font-light leading-[0.88] tracking-[-0.09em] md:text-8xl">
               Studio
               <br />
-              Dashboard.
+              Dashboard
             </h1>
 
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-             
+            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/45">
+              Business operations overview.
             </p>
 
-            <div className="mx-auto mt-12 grid max-w-4xl gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
-              <div className="text-left">
-                <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
-                  Navigate
-                </label>
+            <div className="mx-auto mt-12 max-w-3xl">
+              <label className="mb-3 block text-left text-[11px] uppercase tracking-[0.35em] text-white/35">
+                Navigate
+              </label>
 
-                <select
-                  defaultValue=""
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      window.location.href = `/dashboard/${e.target.value}`;
-                    }
-                  }}
-                  className="w-full rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[11px] uppercase tracking-[0.3em] text-white outline-none backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
-                >
-                  <option value="" className="bg-black">
-                    Select Page
+              <select
+                defaultValue=""
+                onChange={(e) => {
+                  if (e.target.value) {
+                    window.location.href = `/dashboard/${e.target.value}`;
+                  }
+                }}
+                className="w-full rounded-full border border-white/10 bg-black/45 px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-white outline-none backdrop-blur-xl transition hover:border-white/20"
+              >
+                <option value="" className="bg-black">
+                  Select Page
+                </option>
+
+                {sections.map((section) => (
+                  <option
+                    key={section.value}
+                    value={section.value}
+                    className="bg-black"
+                  >
+                    {section.label}
                   </option>
+                ))}
+              </select>
 
-                  {sections.map((section) => (
-                    <option
-                      key={section.value}
-                      value={section.value}
-                      className="bg-black"
-                    >
-                      {section.label}
-                    </option>
-                  ))}
-                </select>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <Link
+                  href="/dashboard/clients"
+                  className="rounded-full border border-white/10 bg-black/45 px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
+                >
+                  Clients
+                </Link>
+
               </div>
-
-              <Link
-                href="/dashboard/clients"
-                className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-              >
-                Clients
-              </Link>
-
-              <Link
-                href="/dashboard/bookings"
-                className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-              >
-                Bookings
-              </Link>
             </div>
           </div>
-
-          {notice && (
-            <div className="mx-auto mt-6 w-full max-w-3xl rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
-              {notice}
-            </div>
-          )}
 
           <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
@@ -325,7 +289,7 @@ export default function DashboardPage() {
             />
 
             <StatCard
-              title="Signed Contracts"
+              title="Signed"
               value={loading ? "..." : String(signedContracts)}
               detail="Completed agreements"
               icon={<CheckCircle size={18} />}
@@ -337,7 +301,7 @@ export default function DashboardPage() {
               href="/dashboard/clients"
               title="Clients"
               value={String(clients.length)}
-              description="Manage client records, emails, session notes, invoices, contracts, and activity history."
+              description="Manage client records, session notes, invoices, and contracts."
               icon={<Users size={18} />}
             />
 
@@ -392,16 +356,16 @@ export default function DashboardPage() {
             />
 
             <DashboardCard
-              href="/dashboard"
-              title="Operations"
-              value="HQ"
-              description="A quick view of Camvelle’s business flow and recent movement."
-              icon={<LayoutGrid size={18} />}
+              href="/dashboard/calendar"
+              title="Schedule"
+              value="30 Days"
+              description="A clean look at upcoming calendar movement."
+              icon={<Calendar size={18} />}
             />
           </div>
 
           <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 shadow-[0_0_90px_rgba(255,255,255,.07)] backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+            <div className="rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm md:p-12">
               <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
@@ -415,7 +379,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/dashboard/calendar"
-                  className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/65 transition hover:bg-white hover:text-black"
+                  className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/45 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/65 transition hover:bg-white hover:text-black"
                 >
                   Open Calendar
                   <ArrowUpRight size={15} />
@@ -425,7 +389,7 @@ export default function DashboardPage() {
               <MiniCalendar upcomingDates={upcomingDates} />
             </div>
 
-            <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 shadow-[0_0_90px_rgba(255,255,255,.07)] backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+            <div className="rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm md:p-12">
               <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                 Activity
               </p>
@@ -447,36 +411,6 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-
-          <div className="mt-6 rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 shadow-[0_0_90px_rgba(255,255,255,.07)] backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-              System Status
-            </p>
-
-            <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-              Workflow health.
-            </h2>
-
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              <SystemStatusCard
-                title="Client Files"
-                status="Active"
-                detail="Client records are connected to invoices and contracts."
-              />
-
-              <SystemStatusCard
-                title="Email Flow"
-                status="Active"
-                detail="Invoices, contracts, and signed copies route through Camvelle email."
-              />
-
-              <SystemStatusCard
-                title="PDF Flow"
-                status="Active"
-                detail="Invoice and signed contract PDFs are generated through the app."
-              />
-            </div>
-          </div>
         </div>
       </section>
     </main>
@@ -495,20 +429,20 @@ function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 shadow-[0_0_90px_rgba(255,255,255,.07)] backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+    <div className="rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm transition hover:border-white/20">
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
           {title}
         </p>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white/55">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/50">
           {icon}
         </div>
       </div>
 
-      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
+      <h3 className="mt-7 text-5xl font-light tracking-[-0.07em]">{value}</h3>
 
-      <p className="mt-4 text-sm leading-6 text-white/40">{detail}</p>
+      <p className="mt-5 text-sm leading-6 text-white/40">{detail}</p>
     </div>
   );
 }
@@ -529,25 +463,25 @@ function DashboardCard({
   return (
     <Link
       href={href}
-      className="group rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 shadow-[0_0_90px_rgba(255,255,255,.07)] backdrop-blur-xl transition duration-500 hover:border-white/20 hover:bg-white hover:text-black"
+      className="group rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm transition hover:border-white/20 hover:bg-[#f5f0e7] hover:text-black"
     >
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] uppercase tracking-[0.35em] text-white/35 transition group-hover:text-black/45">
           {title}
         </p>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white/55 transition group-hover:border-black/10 group-hover:bg-black/5 group-hover:text-black">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/50 transition group-hover:border-black/10 group-hover:bg-black/5 group-hover:text-black">
           {icon}
         </div>
       </div>
 
-      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
+      <h3 className="mt-7 text-4xl font-light tracking-[-0.06em]">{value}</h3>
 
-      <p className="mt-5 leading-7 text-white/50 transition group-hover:text-black/55">
+      <p className="mt-5 leading-7 text-white/45 transition group-hover:text-black/55">
         {description}
       </p>
 
-      <div className="mt-7 inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/45 transition group-hover:text-black/50">
+      <div className="mt-7 inline-flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/40 transition group-hover:text-black/50">
         Open
         <ArrowUpRight size={14} />
       </div>
@@ -574,12 +508,12 @@ function MiniCalendar({ upcomingDates }: { upcomingDates: Set<string> }) {
         return (
           <div
             key={iso}
-            className={`rounded-2xl border p-4 text-center backdrop-blur-xl transition ${
+            className={`rounded-2xl border p-4 text-center backdrop-blur-sm transition ${
               hasEvent
                 ? "border-green-400/25 bg-green-500/10"
                 : isToday
                   ? "border-white/20 bg-white/[0.07]"
-                  : "border-white/10 bg-white/[0.035]"
+                  : "border-white/10 bg-black/45"
             }`}
           >
             <p className="text-xs text-white/40">
@@ -615,7 +549,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
   return (
     <div className="rounded-[2rem] border border-white/10 bg-black/55 p-5">
       <div className="flex items-start gap-4">
-        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/55">
+        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/55">
           {icon}
         </div>
 
@@ -643,32 +577,6 @@ function ActivityCard({ item }: { item: ActivityItem }) {
   );
 }
 
-function SystemStatusCard({
-  title,
-  status,
-  detail,
-}: {
-  title: string;
-  status: string;
-  detail: string;
-}) {
-  return (
-    <div className="rounded-[2rem] border border-white/10 bg-black/55 p-6">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
-          {title}
-        </p>
-
-        <span className="rounded-full border border-green-400/20 bg-green-500/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-green-100">
-          {status}
-        </span>
-      </div>
-
-      <p className="mt-5 text-sm leading-7 text-white/45">{detail}</p>
-    </div>
-  );
-}
-
 function buildActivity(
   inquiries: Inquiry[],
   clients: Client[],
@@ -684,7 +592,9 @@ function buildActivity(
       id: `inquiry-${inquiry.id}`,
       type: "inquiry",
       title: "New inquiry received",
-      detail: `${inquiry.full_name || inquiry.email || "A new lead"} submitted an inquiry.`,
+      detail: `${
+        inquiry.full_name || inquiry.email || "A new lead"
+      } submitted an inquiry.`,
       time: inquiry.created_at,
       sortTime: getSortTime(inquiry.created_at),
     });
@@ -709,7 +619,9 @@ function buildActivity(
         id: `invoice-created-${invoice.id}`,
         type: "invoice",
         title: `${invoice.invoice_number || "Invoice"} created`,
-        detail: `${formatMoney(Number(invoice.amount || 0))} invoice record created.`,
+        detail: `${formatMoney(
+          Number(invoice.amount || 0)
+        )} invoice record created.`,
         time: invoice.created_at,
         sortTime: getSortTime(invoice.created_at),
       });
@@ -720,7 +632,9 @@ function buildActivity(
         id: `invoice-sent-${invoice.id}`,
         type: "invoice",
         title: `${invoice.invoice_number || "Invoice"} sent`,
-        detail: `Invoice sent to ${invoice.client_email || invoice.client_name || "client"}.`,
+        detail: `Invoice sent to ${
+          invoice.client_email || invoice.client_name || "client"
+        }.`,
         time: invoice.sent_at,
         sortTime: getSortTime(invoice.sent_at),
       });
@@ -746,7 +660,9 @@ function buildActivity(
         id: `contract-created-${contract.id}`,
         type: "contract",
         title: `${title} created`,
-        detail: `Contract created for ${contract.client_name || contract.client_email || "client"}.`,
+        detail: `Contract created for ${
+          contract.client_name || contract.client_email || "client"
+        }.`,
         time: contract.created_at,
         sortTime: getSortTime(contract.created_at),
       });
@@ -757,7 +673,9 @@ function buildActivity(
         id: `contract-sent-${contract.id}`,
         type: "contract",
         title: `${title} sent`,
-        detail: `Signing link sent to ${contract.client_email || contract.client_name || "client"}.`,
+        detail: `Signing link sent to ${
+          contract.client_email || contract.client_name || "client"
+        }.`,
         time: contract.sent_at,
         sortTime: getSortTime(contract.sent_at),
       });
@@ -768,7 +686,9 @@ function buildActivity(
         id: `contract-signed-${contract.id}`,
         type: "contract",
         title: `${title} signed`,
-        detail: `Signed by ${contract.client_name || contract.client_email || "client"}.`,
+        detail: `Signed by ${
+          contract.client_name || contract.client_email || "client"
+        }.`,
         time: contract.signed_at,
         sortTime: getSortTime(contract.signed_at),
       });
