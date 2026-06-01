@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Calendar, FileSignature, Pencil, ReceiptText, Trash2, X, Save } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Client = {
@@ -29,6 +30,14 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const [editForm, setEditForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    notes: "",
+  });
 
   useEffect(() => {
     loadClients();
@@ -42,6 +51,50 @@ export default function ClientsPage() {
 
     if (!error) setClients(data || []);
     setLoading(false);
+  }
+
+  function startEdit(client: Client) {
+    setEditingId(client.id);
+    setEditForm({
+      full_name: client.full_name || "",
+      email: client.email || "",
+      phone: client.phone || "",
+      notes: client.notes || "",
+    });
+  }
+
+  async function saveClient(id: string) {
+    const { error } = await supabase
+      .from("clients")
+      .update({
+        full_name: editForm.full_name,
+        email: editForm.email,
+        phone: editForm.phone,
+        notes: editForm.notes,
+      })
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setEditingId(null);
+    await loadClients();
+  }
+
+  async function deleteClient(id: string) {
+    const confirmDelete = confirm("Delete this client?");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from("clients").delete().eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadClients();
   }
 
   async function handleLogout() {
@@ -180,9 +233,7 @@ export default function ClientsPage() {
               </div>
             </div>
 
-            {loading && (
-              <p className="mt-10 text-white/50">Loading clients...</p>
-            )}
+            {loading && <p className="mt-10 text-white/50">Loading clients...</p>}
 
             {!loading && filteredClients.length === 0 && (
               <div className="mt-10 rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-7 text-white/50">
@@ -193,13 +244,14 @@ export default function ClientsPage() {
             <div className="mt-10 grid gap-4">
               {filteredClients.map((client, index) => {
                 const isOpen = openId === client.id;
+                const isEditing = editingId === client.id;
 
                 return (
                   <div
                     key={client.id}
                     className="mx-auto w-full max-w-3xl rounded-[2.25rem] border border-white/10 bg-white/[0.035] p-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-6"
                   >
-                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-5">
                       <div>
                         <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
                           {String(index + 1).padStart(2, "0")} / Client
@@ -217,14 +269,17 @@ export default function ClientsPage() {
 
                       <button
                         type="button"
-                        onClick={() => setOpenId(isOpen ? null : client.id)}
+                        onClick={() => {
+                          setOpenId(isOpen ? null : client.id);
+                          setEditingId(null);
+                        }}
                         className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
                       >
                         {isOpen ? "Close" : "Open"}
                       </button>
                     </div>
 
-                    {isOpen && (
+                    {isOpen && !isEditing && (
                       <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
                         <div className="grid gap-4 text-sm leading-7 text-white/55">
                           <p>
@@ -259,6 +314,101 @@ export default function ClientsPage() {
                             </p>
                           </div>
                         </div>
+
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <IconButton
+                            label="Edit"
+                            icon={<Pencil size={16} />}
+                            onClick={() => startEdit(client)}
+                          />
+
+                          <IconLink
+                            label="Schedule"
+                            href="/dashboard/calendar"
+                            icon={<Calendar size={16} />}
+                          />
+
+                          <IconLink
+                            label="Contract"
+                            href="/dashboard/contracts"
+                            icon={<FileSignature size={16} />}
+                          />
+
+                          <IconLink
+                            label="Invoice"
+                            href="/dashboard/invoices"
+                            icon={<ReceiptText size={16} />}
+                          />
+
+                          <IconButton
+                            label="Delete"
+                            danger
+                            icon={<Trash2 size={16} />}
+                            onClick={() => deleteClient(client.id)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {isOpen && isEditing && (
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                        <div className="grid gap-4">
+                          <EditInput
+                            label="Full Name"
+                            value={editForm.full_name}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, full_name: value })
+                            }
+                          />
+
+                          <EditInput
+                            label="Email"
+                            value={editForm.email}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, email: value })
+                            }
+                          />
+
+                          <EditInput
+                            label="Phone"
+                            value={editForm.phone}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, phone: value })
+                            }
+                          />
+
+                          <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+                            <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                              Notes
+                            </label>
+
+                            <textarea
+                              rows={5}
+                              value={editForm.notes}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  notes: e.target.value,
+                                })
+                              }
+                              className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <IconButton
+                            label="Save"
+                            icon={<Save size={16} />}
+                            onClick={() => saveClient(client.id)}
+                          />
+
+                          <IconButton
+                            label="Cancel"
+                            icon={<X size={16} />}
+                            onClick={() => setEditingId(null)}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
@@ -279,9 +429,78 @@ function StatCard({ title, value }: { title: string; value: string }) {
         {title}
       </p>
 
-      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">
-        {value}
-      </h3>
+      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
     </div>
+  );
+}
+
+function EditInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+        {label}
+      </label>
+
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
+      />
+    </div>
+  );
+}
+
+function IconButton({
+  label,
+  icon,
+  onClick,
+  danger = false,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onClick: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      className={`flex h-12 w-12 items-center justify-center rounded-full border text-white/65 transition ${
+        danger
+          ? "border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+          : "border-white/10 bg-white/[0.035] hover:bg-white hover:text-black"
+      }`}
+    >
+      {icon}
+    </button>
+  );
+}
+
+function IconLink({
+  label,
+  icon,
+  href,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      title={label}
+      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/65 transition hover:bg-white hover:text-black"
+    >
+      {icon}
+    </Link>
   );
 }
