@@ -379,6 +379,31 @@ export default function ClientDetailPage() {
     setNotice(`Contract status updated to ${status}.`);
     await loadClientPage();
   }
+  async function sendContract(contractId: string) {
+  setSaving(true);
+  setNotice("");
+
+  const response = await fetch("/api/contracts/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ contractId }),
+  });
+
+  const result = await response.json();
+
+  setSaving(false);
+
+  if (!response.ok) {
+    alert(result.error || "Contract could not be sent.");
+    return;
+  }
+
+  setNotice("Contract sent successfully.");
+  await loadClientPage();
+}
+
 
   async function deleteContract(contractId: string) {
     const confirmDelete = confirm("Delete this contract?");
@@ -833,6 +858,13 @@ export default function ClientDetailPage() {
                           icon={<ExternalLink size={16} />}
                         />
                       )}
+
+                      <IconButton
+  label="Send Contract"
+  icon={<Send size={16} />}
+  onClick={() => sendContract(contract.id)}
+  disabled={saving}
+/>
 
                       <IconButton
                         label="Delete Contract"
