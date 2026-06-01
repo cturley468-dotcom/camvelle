@@ -18,12 +18,31 @@ function clean(value: unknown, fallback = "") {
   return text || fallback;
 }
 
+function escapeHtml(value: unknown) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function makeFileName(value: unknown) {
   return (
     clean(value, "client")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "client"
+  );
+}
+
+function uniqueEmails(emails: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(
+      emails
+        .map((email) => clean(email).toLowerCase())
+        .filter(Boolean)
+    )
   );
 }
 
@@ -37,31 +56,40 @@ async function sendSignedContractEmail({
   contract: any;
 }) {
   const resendApiKey = process.env.RESEND_API_KEY;
-  
 
-const contractFromEmail =
-      process.env.CONTRACT_FROM_EMAIL ||
-      "Camvelle Creative <contracts@camvelle.com>";
+  const contractFromEmail =
+    process.env.CONTRACT_FROM_EMAIL ||
+    "Camvelle Creative <contracts@camvelle.com>";
 
-      const replyToEmail =
-  process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
+  const replyToEmail =
+    process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
 
-const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
+  const ownerEmail = clean(process.env.CAMVELLE_OWNER_EMAIL);
 
   if (!resendApiKey) {
     throw new Error("Missing RESEND_API_KEY.");
   }
 
   const clientEmail = clean(contract.client_email);
+  const signedEmail = clean(contract.signed_email);
   const clientName = clean(contract.client_name, "there");
+  const signedName = clean(contract.signed_name, clientName);
+
   const contractTitle = clean(
     contract.title || contract.contract_type,
     "Photography Agreement"
   );
 
-  if (!clientEmail) {
+  const toEmails = uniqueEmails([clientEmail, signedEmail]);
+
+  if (toEmails.length === 0) {
     throw new Error("This contract does not have a client email.");
   }
+
+  const bcc =
+    ownerEmail && !toEmails.includes(ownerEmail.toLowerCase())
+      ? [ownerEmail]
+      : undefined;
 
   const signedPdfUrl = `${origin}/api/contracts/pdf?token=${encodeURIComponent(
     token
@@ -73,6 +101,7 @@ const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
 
   if (!pdfResponse.ok) {
     const text = await pdfResponse.text();
+
     throw new Error(
       `Signed PDF could not be generated: ${text.slice(0, 160)}`
     );
@@ -81,11 +110,9 @@ const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
   const pdfArrayBuffer = await pdfResponse.arrayBuffer();
   const pdfBase64 = Buffer.from(pdfArrayBuffer).toString("base64");
 
-  const recipients = ownerEmail
-    ? Array.from(new Set([clientEmail, ownerEmail]))
-    : [clientEmail];
-
   const fileName = `${makeFileName(contract.client_name)}-signed-contract.pdf`;
+
+  const signedDate = clean(contract.signed_date, "Not listed");
 
   const emailResponse = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -97,38 +124,87 @@ const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
     body: JSON.stringify({
       from: contractFromEmail,
       reply_to: replyToEmail,
-      to: recipients,
+      to: toEmails,
+      bcc,
       subject: `Signed ${contractTitle} - Camvelle Creative`,
       html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-          <h2>Camvelle Creative</h2>
+        <div style="margin:0;padding:0;background:#f7f4ef;">
+          <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+            Your signed Camvelle Creative contract is complete.
+          </div>
 
-          <p>Hi ${clientName},</p>
+          <div style="max-width:640px;margin:0 auto;padding:32px 18px;font-family:Arial,Helvetica,sans-serif;color:#151515;">
+            <div style="background:#ffffff;border:1px solid #e8e2d8;border-radius:28px;padding:34px;">
+              <p style="margin:0 0 10px 0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#777;">
+                Camvelle Creative
+              </p>
 
-          <p>Your signed contract has been completed and attached for your records.</p>
+              <h1 style="margin:0 0 26px 0;font-size:34px;line-height:1.05;font-weight:500;letter-spacing:-1px;">
+                Contract Signed
+              </h1>
 
-          <p>
-            <strong>Contract:</strong> ${contractTitle}<br />
-            <strong>Status:</strong> Signed<br />
-            <strong>Signed By:</strong> ${clean(contract.signed_name, clientName)}<br />
-            <strong>Signed Date:</strong> ${clean(contract.signed_date, "Not listed")}
-          </p>
+              <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;">
+                Hi ${escapeHtml(clientName)},
+              </p>
 
-          <p>
-            You can also view the signed PDF here:
-            <br />
-            <a href="${signedPdfUrl}" style="display:inline-block;margin-top:12px;padding:14px 22px;background:#111;color:#fff;text-decoration:none;border-radius:999px;">
-              View Signed Contract PDF
-            </a>
-          </p>
+              <p style="margin:0 0 24px 0;font-size:16px;line-height:1.7;color:#333;">
+                Your contract has been signed and completed. A signed PDF copy is attached for your records.
+              </p>
 
-          <p>Thank you for choosing Camvelle Creative.</p>
+              <div style="border:1px solid #eee6dc;border-radius:22px;padding:22px;margin:0 0 26px 0;background:#fbfaf8;">
+                <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
+                  <strong>Contract:</strong> ${escapeHtml(contractTitle)}
+                </p>
 
-          <p style="color:#666;font-size:13px;">
-            Camvelle.com
-          </p>
+                <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
+                  <strong>Status:</strong> Signed
+                </p>
+
+                <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
+                  <strong>Signed By:</strong> ${escapeHtml(signedName)}
+                </p>
+
+                <p style="margin:0;font-size:14px;line-height:1.6;">
+                  <strong>Signed Date:</strong> ${escapeHtml(signedDate)}
+                </p>
+              </div>
+
+              <p style="margin:0 0 28px 0;">
+                <a href="${escapeHtml(signedPdfUrl)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;border-radius:999px;padding:15px 24px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
+                  View Signed Contract PDF
+                </a>
+              </p>
+
+              <p style="margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#333;">
+                Thank you for choosing Camvelle Creative.
+              </p>
+
+              <p style="margin:0;font-size:13px;color:#777;">
+                Camvelle.com
+              </p>
+            </div>
+
+            <p style="margin:18px 0 0 0;text-align:center;font-size:12px;color:#999;">
+              Replies go directly to Camvelle Creative.
+            </p>
+          </div>
         </div>
       `,
+      text: `Hi ${clientName},
+
+Your contract has been signed and completed. A signed PDF copy is attached for your records.
+
+Contract: ${contractTitle}
+Status: Signed
+Signed By: ${signedName}
+Signed Date: ${signedDate}
+
+View Signed Contract PDF:
+${signedPdfUrl}
+
+Thank you for choosing Camvelle Creative.
+
+Camvelle.com`,
       attachments: [
         {
           filename: fileName,

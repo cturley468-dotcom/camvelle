@@ -25,6 +25,42 @@ function clean(value: unknown, fallback = "Not listed") {
   return text || fallback;
 }
 
+function formatStatus(value: string | null) {
+  const status = String(value || "draft").trim();
+
+  return status
+    .split("_")
+    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatDateTime(value: unknown) {
+  const text = String(value || "").trim();
+
+  if (!text) return "Not listed";
+
+  const date = new Date(text);
+
+  if (Number.isNaN(date.getTime())) return text;
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function makeFileName(value: unknown) {
+  return (
+    clean(value, "client")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "client"
+  );
+}
+
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
   const words = text.split(/\s+/);
   const lines: string[] = [];
@@ -61,23 +97,19 @@ export async function GET(request: Request) {
       );
     }
 
-    let result;
+    const query = token
+      ? supabaseAdmin
+          .from("contracts")
+          .select("*")
+          .eq("signing_token", token)
+          .single()
+      : supabaseAdmin
+          .from("contracts")
+          .select("*")
+          .eq("id", contractId)
+          .single();
 
-    if (token) {
-      result = await supabaseAdmin
-        .from("contracts")
-        .select("*")
-        .eq("signing_token", token)
-        .single();
-    } else {
-      result = await supabaseAdmin
-        .from("contracts")
-        .select("*")
-        .eq("id", contractId)
-        .single();
-    }
-
-    const { data: contract, error } = result;
+    const { data: contract, error } = await query;
 
     if (error || !contract) {
       return NextResponse.json(
@@ -93,16 +125,18 @@ export async function GET(request: Request) {
 
     const black = rgb(0.08, 0.08, 0.08);
     const gray = rgb(0.35, 0.35, 0.35);
-    const lightGray = rgb(0.78, 0.78, 0.78);
+    const softGray = rgb(0.72, 0.72, 0.72);
+    const lightGray = rgb(0.88, 0.88, 0.88);
+    const warmPanel = rgb(0.98, 0.97, 0.95);
     const veryLightGray = rgb(0.96, 0.96, 0.96);
 
     const pageWidth = 612;
     const pageHeight = 792;
-    const left = 64;
-    const right = 548;
+    const left = 58;
+    const right = 554;
     const contentWidth = right - left;
     const topY = 720;
-    const bottomSafeY = 110;
+    const bottomSafeY = 108;
 
     let page: PDFPage = pdfDoc.addPage([pageWidth, pageHeight]);
     let y = topY;
@@ -137,8 +171,8 @@ export async function GET(request: Request) {
       }
     }
 
-    function drawLineGap(gap = 34) {
-      ensureSpace(gap + 10);
+    function drawDivider(gap = 34) {
+      ensureSpace(gap + 12);
 
       y -= 8;
 
@@ -152,35 +186,13 @@ export async function GET(request: Request) {
       y -= gap;
     }
 
-    function drawLabel(label: string, value: string) {
-      ensureSpace(24);
-
-      page.drawText(label, {
-        x: left,
-        y,
-        size: 11,
-        font: bold,
-        color: black,
-      });
-
-      page.drawText(value, {
-        x: 190,
-        y,
-        size: 11,
-        font: regular,
-        color: black,
-      });
-
-      y -= 24;
-    }
-
     function drawSectionTitle(title: string) {
-      ensureSpace(36);
+      ensureSpace(38);
 
       page.drawText(title, {
         x: left,
         y,
-        size: 17,
+        size: 16,
         font: bold,
         color: black,
       });
@@ -188,24 +200,63 @@ export async function GET(request: Request) {
       y -= 30;
     }
 
+    function drawLabel(label: string, value: string) {
+      ensureSpace(24);
+
+      page.drawText(label, {
+        x: left,
+        y,
+        size: 10.5,
+        font: bold,
+        color: black,
+      });
+
+      page.drawText(value, {
+        x: 190,
+        y,
+        size: 10.5,
+        font: regular,
+        color: black,
+      });
+
+      y -= 24;
+    }
+
     function drawParagraph(text: string) {
-      const lines = wrapText(text, regular, 11, contentWidth);
-      ensureSpace(lines.length * 17 + 14);
+      const lines = wrapText(text, regular, 10.5, contentWidth);
+      ensureSpace(lines.length * 16 + 14);
 
       for (const line of lines) {
         page.drawText(line, {
           x: left,
           y,
-          size: 11,
+          size: 10.5,
           font: regular,
           color: black,
         });
 
-        y -= 17;
+        y -= 16;
       }
 
       y -= 12;
     }
+
+    const contractTitle = clean(
+      contract.title || contract.contract_type,
+      "Photography Agreement"
+    );
+
+    const clientName = clean(contract.client_name);
+    const clientEmail = clean(contract.client_email);
+    const status = formatStatus(contract.status);
+    const sentDate = clean(contract.sent_date);
+    const signedDate = clean(contract.signed_date);
+    const signedName = clean(contract.signed_name);
+    const signedEmail = clean(contract.signed_email);
+    const signedAt = formatDateTime(contract.signed_at);
+    const isSigned = Boolean(contract.signed_at || contract.status === "signed");
+
+    const documentTitle = isSigned ? "SIGNED CONTRACT" : "CONTRACT";
 
     // Header
     page.drawText("CAMVELLE CREATIVE", {
@@ -226,31 +277,117 @@ export async function GET(request: Request) {
       color: gray,
     });
 
-    y -= 48;
+    y -= 50;
 
-    page.drawText("SIGNED CONTRACT", {
+    page.drawText(documentTitle, {
       x: left,
       y,
-      size: 32,
+      size: 34,
       font: bold,
       color: black,
     });
 
-    y -= 50;
+    page.drawText(status, {
+      x: 430,
+      y: y + 8,
+      size: 12,
+      font: bold,
+      color: gray,
+    });
 
-    drawLabel(
-      "Contract:",
-      clean(contract.title || contract.contract_type, "Photography Agreement")
-    );
-    drawLabel("Client:", clean(contract.client_name));
-    drawLabel("Email:", clean(contract.client_email));
-    drawLabel("Status:", clean(contract.status, "signed"));
-    drawLabel("Sent Date:", clean(contract.sent_date));
-    drawLabel("Signed Date:", clean(contract.signed_date));
-    drawLabel("Signed By:", clean(contract.signed_name));
-    drawLabel("Signed Email:", clean(contract.signed_email));
+    y -= 54;
 
-    drawLineGap(36);
+    // Summary card
+    const cardHeight = 126;
+
+    page.drawRectangle({
+      x: left,
+      y: y - cardHeight,
+      width: contentWidth,
+      height: cardHeight,
+      color: warmPanel,
+      borderColor: lightGray,
+      borderWidth: 1,
+    });
+
+    page.drawText("Agreement", {
+      x: left + 24,
+      y: y - 34,
+      size: 10,
+      font: bold,
+      color: gray,
+    });
+
+    page.drawText(contractTitle, {
+      x: left + 24,
+      y: y - 62,
+      size: 18,
+      font: bold,
+      color: black,
+    });
+
+    page.drawText("Client", {
+      x: left + 24,
+      y: y - 92,
+      size: 10,
+      font: bold,
+      color: gray,
+    });
+
+    page.drawText(clientName, {
+      x: left + 76,
+      y: y - 92,
+      size: 10.5,
+      font: regular,
+      color: black,
+    });
+
+    page.drawText("Status", {
+      x: 390,
+      y: y - 34,
+      size: 10,
+      font: bold,
+      color: gray,
+    });
+
+    page.drawText(status, {
+      x: 390,
+      y: y - 58,
+      size: 13,
+      font: bold,
+      color: black,
+    });
+
+    page.drawText("Signed Date", {
+      x: 390,
+      y: y - 86,
+      size: 10,
+      font: bold,
+      color: gray,
+    });
+
+    page.drawText(signedDate, {
+      x: 390,
+      y: y - 108,
+      size: 10.5,
+      font: regular,
+      color: black,
+    });
+
+    y -= cardHeight + 44;
+
+    drawSectionTitle("Contract Details");
+
+    drawLabel("Contract:", contractTitle);
+    drawLabel("Client:", clientName);
+    drawLabel("Email:", clientEmail);
+    drawLabel("Status:", status);
+    drawLabel("Sent Date:", sentDate);
+    drawLabel("Signed Date:", signedDate);
+    drawLabel("Signed By:", signedName);
+    drawLabel("Signed Email:", signedEmail);
+
+    drawDivider(36);
 
     drawSectionTitle("Agreement Terms");
 
@@ -272,9 +409,8 @@ export async function GET(request: Request) {
       "This document records the client's electronic signature and agreement confirmation."
     );
 
-    drawLineGap(36);
+    drawDivider(36);
 
-    // Signature section
     const signatureDataUrl = String(
       contract.signed_signature_data_url || ""
     ).trim();
@@ -283,10 +419,10 @@ export async function GET(request: Request) {
       "data:image/png;base64,"
     );
 
-    const signatureBoxHeight = hasDrawnSignature ? 170 : 0;
-    const signatureDetailsHeight = 140;
+    const signatureBoxHeight = hasDrawnSignature ? 168 : 0;
+    const signatureDetailsHeight = 160;
 
-    ensureSpace(40 + signatureBoxHeight + signatureDetailsHeight);
+    ensureSpace(44 + signatureBoxHeight + signatureDetailsHeight);
 
     drawSectionTitle("Electronic Signature");
 
@@ -295,7 +431,7 @@ export async function GET(request: Request) {
       const signatureBytes = Buffer.from(base64, "base64");
       const signatureImage = await pdfDoc.embedPng(signatureBytes);
 
-      const boxHeight = 155;
+      const boxHeight = 150;
       const boxTop = y;
       const boxBottom = boxTop - boxHeight;
 
@@ -311,14 +447,14 @@ export async function GET(request: Request) {
 
       page.drawText("Drawn Signature", {
         x: left + 18,
-        y: boxTop - 28,
+        y: boxTop - 26,
         size: 10,
         font: bold,
         color: gray,
       });
 
-      const maxSignatureWidth = 250;
-      const maxSignatureHeight = 82;
+      const maxSignatureWidth = 260;
+      const maxSignatureHeight = 78;
 
       const scale = Math.min(
         maxSignatureWidth / signatureImage.width,
@@ -338,20 +474,25 @@ export async function GET(request: Request) {
       y -= boxHeight + 32;
     }
 
-    drawLabel("Signed Name:", clean(contract.signed_name));
-    drawLabel("Signed Email:", clean(contract.signed_email));
-    drawLabel("Signed At:", clean(contract.signed_at));
-    drawLabel("Signing Method:", clean(contract.signed_method, "electronic"));
+    drawLabel("Signed Name:", signedName);
+    drawLabel("Signed Email:", signedEmail);
+    drawLabel("Signed At:", signedAt);
+    drawLabel("Signing Method:", clean(contract.signed_method, "Electronic"));
     drawLabel("IP Record:", clean(contract.signed_ip));
     drawLabel("Record ID:", clean(contract.id));
+
+    page.drawLine({
+      start: { x: left, y: 124 },
+      end: { x: right, y: 124 },
+      thickness: 1,
+      color: softGray,
+    });
 
     drawFooter(page);
 
     const pdfBytes = await pdfDoc.save();
 
-    const filename = `${clean(contract.client_name, "client")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")}-signed-contract.pdf`;
+    const filename = `${makeFileName(contract.client_name)}-signed-contract.pdf`;
 
     return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
