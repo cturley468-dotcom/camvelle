@@ -209,12 +209,11 @@ export default function CalendarPage() {
             <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
               Studio
               <br />
-              schedule.
+              Schedule.
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              View upcoming sessions, schedule unscheduled clients, and manage
-              your next 30 days in a clean mobile-first calendar flow.
+              View upcoming sessions
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
