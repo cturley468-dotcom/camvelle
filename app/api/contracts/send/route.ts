@@ -4,6 +4,20 @@ import crypto from "crypto";
 
 export const runtime = "nodejs";
 
+function clean(value: unknown, fallback = "") {
+  const text = String(value || "").trim();
+  return text || fallback;
+}
+
+function escapeHtml(value: unknown) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export async function POST(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,10 +28,10 @@ export async function POST(request: Request) {
       process.env.CONTRACT_FROM_EMAIL ||
       "Camvelle Creative <contracts@camvelle.com>";
 
-      const replyToEmail =
-  process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
-      
+    const replyToEmail =
+      process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
 
+    const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
 
     if (!supabaseUrl) {
       return NextResponse.json(
@@ -40,8 +54,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
-
     const { contractId } = await request.json();
 
     if (!contractId) {
@@ -50,6 +62,8 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const { data: contract, error: contractError } = await supabaseAdmin
       .from("contracts")
@@ -76,13 +90,17 @@ export async function POST(request: Request) {
       client = clientData;
     }
 
-    const clientName =
-      contract.client_name ||
-      client?.full_name ||
-      client?.name ||
-      "there";
+    const clientName = clean(
+      contract.client_name || client?.full_name || client?.name,
+      "there"
+    );
 
-    const clientEmail = contract.client_email || client?.email;
+    const clientEmail = clean(contract.client_email || client?.email);
+
+    const contractType = clean(
+      contract.title || contract.contract_type || contract.type,
+      "Photography Agreement"
+    );
 
     if (!clientEmail) {
       return NextResponse.json(
@@ -99,8 +117,8 @@ export async function POST(request: Request) {
       "https://camvelle.vercel.app";
 
     const signingUrl = `${origin}/contract-sign/${token}`;
-
     const today = new Date().toISOString().slice(0, 10);
+    const now = new Date().toISOString();
 
     const { error: updateError } = await supabaseAdmin
       .from("contracts")
@@ -109,6 +127,7 @@ export async function POST(request: Request) {
         signing_url: signingUrl,
         status: "sent",
         sent_date: today,
+        sent_at: now,
       })
       .eq("id", contract.id);
 
@@ -119,8 +138,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const contractType =
-      contract.contract_type || contract.type || "Photography Agreement";
+    const bcc =
+      ownerEmail &&
+      ownerEmail.toLowerCase().trim() !== clientEmail.toLowerCase().trim()
+        ? [ownerEmail]
+        : undefined;
 
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -133,33 +155,87 @@ export async function POST(request: Request) {
         from: contractFromEmail,
         reply_to: replyToEmail,
         to: [clientEmail],
+        bcc,
         subject: `${contractType} from Camvelle Creative`,
         html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-            <h2>Camvelle Creative</h2>
+          <div style="margin:0;padding:0;background:#f7f4ef;">
+            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+              Your Camvelle Creative contract is ready for review and signature.
+            </div>
 
-            <p>Hi ${clientName},</p>
+            <div style="max-width:640px;margin:0 auto;padding:32px 18px;font-family:Arial,Helvetica,sans-serif;color:#151515;">
+              <div style="background:#ffffff;border:1px solid #e8e2d8;border-radius:28px;padding:34px;">
+                <p style="margin:0 0 10px 0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#777;">
+                  Camvelle Creative
+                </p>
 
-            <p>Your contract is ready for review and signature.</p>
+                <h1 style="margin:0 0 26px 0;font-size:34px;line-height:1.05;font-weight:500;letter-spacing:-1px;">
+                  Contract Ready
+                </h1>
 
-            <p>
-              <strong>Contract:</strong> ${contractType}<br />
-              <strong>Status:</strong> Sent
-            </p>
+                <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;">
+                  Hi ${escapeHtml(clientName)},
+                </p>
 
-            <p>
-              <a href="${signingUrl}" style="display:inline-block;padding:14px 22px;background:#111;color:#fff;text-decoration:none;border-radius:999px;">
-                Review & Sign Contract
-              </a>
-            </p>
+                <p style="margin:0 0 24px 0;font-size:16px;line-height:1.7;color:#333;">
+                  Your contract from Camvelle Creative is ready for review and signature.
+                </p>
 
-            <p>Thank you for choosing Camvelle Creative.</p>
+                <div style="border:1px solid #eee6dc;border-radius:22px;padding:22px;margin:0 0 26px 0;background:#fbfaf8;">
+                  <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
+                    <strong>Contract:</strong> ${escapeHtml(contractType)}
+                  </p>
 
-            <p style="color:#666;font-size:13px;">
-              Camvelle.com
-            </p>
+                  <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
+                    <strong>Client:</strong> ${escapeHtml(clientName)}
+                  </p>
+
+                  <p style="margin:0;font-size:14px;line-height:1.6;">
+                    <strong>Status:</strong> Ready to Sign
+                  </p>
+                </div>
+
+                <p style="margin:0 0 28px 0;">
+                  <a href="${escapeHtml(signingUrl)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;border-radius:999px;padding:15px 24px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
+                    Review & Sign Contract
+                  </a>
+                </p>
+
+                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#333;">
+                  After signing, a completed copy will be emailed for your records.
+                </p>
+
+                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#333;">
+                  Thank you for choosing Camvelle Creative.
+                </p>
+
+                <p style="margin:0;font-size:13px;color:#777;">
+                  Camvelle.com
+                </p>
+              </div>
+
+              <p style="margin:18px 0 0 0;text-align:center;font-size:12px;color:#999;">
+                Replies go directly to Camvelle Creative.
+              </p>
+            </div>
           </div>
         `,
+        text: `Hi ${clientName},
+
+Your contract from Camvelle Creative is ready for review and signature.
+
+Contract: ${contractType}
+Client: ${clientName}
+Status: Ready to Sign
+
+Review and sign your contract here:
+${signingUrl}
+
+After signing, a completed copy will be emailed for your records.
+
+Thank you for choosing Camvelle Creative.
+
+Camvelle.com`,
       }),
     });
 
