@@ -73,8 +73,6 @@ const sections = [
   { label: "Clients", value: "clients" },
   { label: "Bookings", value: "bookings" },
   { label: "Calendar", value: "calendar" },
-  { label: "Invoices", value: "invoices" },
-  { label: "Contracts", value: "contracts" },
   { label: "Galleries", value: "galleries" },
   { label: "Finance", value: "finance" },
 ];
@@ -248,8 +246,7 @@ export default function DashboardPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Business operations, client records, bookings, contracts, invoices,
-              galleries, and financial movement in one clean command center.
+             
             </p>
 
             <div className="mx-auto mt-12 grid max-w-4xl gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
