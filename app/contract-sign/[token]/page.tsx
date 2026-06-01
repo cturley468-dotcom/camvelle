@@ -221,7 +221,13 @@ export default function ContractSignPage() {
       }
 
       setContract(result.contract);
-      setNotice("Contract signed successfully.");
+      setNotice(
+  result.signedEmailSent
+    ? "Contract signed successfully. A signed copy has been emailed."
+    : result.signedEmailError
+      ? `Contract signed successfully, but email failed: ${result.signedEmailError}`
+      : "Contract signed successfully."
+);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Contract could not be signed.";
