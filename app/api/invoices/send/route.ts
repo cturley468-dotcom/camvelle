@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       headers: {
         Authorization: `Bearer ${resendApiKey}`,
         "Content-Type": "application/json",
+        "User-Agent":"camvelle-app/1.0,"
       },
       body: JSON.stringify({
         from: invoiceFromEmail,
