@@ -37,10 +37,16 @@ async function sendSignedContractEmail({
   contract: any;
 }) {
   const resendApiKey = process.env.RESEND_API_KEY;
-  const contractFromEmail =
-    process.env.CONTRACT_FROM_EMAIL ||
-    "Camvelle Creative <contracts@camvelle.com>";
-  const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
+  
+
+const contractFromEmail =
+      process.env.CONTRACT_FROM_EMAIL ||
+      "Camvelle Creative <contracts@camvelle.com>";
+
+      const replyToEmail =
+  process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
+
+const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
 
   if (!resendApiKey) {
     throw new Error("Missing RESEND_API_KEY.");
@@ -90,6 +96,7 @@ async function sendSignedContractEmail({
     },
     body: JSON.stringify({
       from: contractFromEmail,
+      reply_to: replyToEmail,
       to: recipients,
       subject: `Signed ${contractTitle} - Camvelle Creative`,
       html: `

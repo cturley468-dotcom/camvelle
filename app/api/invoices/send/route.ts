@@ -11,6 +11,13 @@ const invoiceFromEmail =
   process.env.INVOICE_FROM_EMAIL ||
   "Camvelle Creative <invoices@camvelle.com>";
 
+      const replyToEmail =
+  process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
+
+const ownerEmail = process.env.CAMVELLE_OWNER_EMAIL;
+
+  
+
 if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
 if (!serviceRoleKey) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
 if (!resendApiKey) throw new Error("Missing RESEND_API_KEY");
@@ -64,6 +71,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: invoiceFromEmail,
+        reply_to: replyToEmail,
         to: [invoice.client_email],
         subject: `Invoice ${invoiceNumber} from Camvelle Creative`,
         html: `

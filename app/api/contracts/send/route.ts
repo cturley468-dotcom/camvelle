@@ -12,8 +12,12 @@ export async function POST(request: Request) {
 
     const contractFromEmail =
       process.env.CONTRACT_FROM_EMAIL ||
-      process.env.INVOICE_FROM_EMAIL ||
       "Camvelle Creative <contracts@camvelle.com>";
+
+      const replyToEmail =
+  process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
+      
+
 
     if (!supabaseUrl) {
       return NextResponse.json(
@@ -127,6 +131,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: contractFromEmail,
+        reply_to: replyToEmail,
         to: [clientEmail],
         subject: `${contractType} from Camvelle Creative`,
         html: `
