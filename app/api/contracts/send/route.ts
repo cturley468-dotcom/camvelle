@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const contractFromEmail =
       process.env.CONTRACT_FROM_EMAIL ||
       process.env.INVOICE_FROM_EMAIL ||
-      "CamVelle Creative <contracts@camvelle.com>";
+      "Camvelle Creative <contracts@camvelle.com>";
 
     if (!supabaseUrl) {
       return NextResponse.json(
@@ -128,10 +128,10 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         from: contractFromEmail,
         to: [clientEmail],
-        subject: `${contractType} from CamVelle Creative`,
+        subject: `${contractType} from Camvelle Creative`,
         html: `
           <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-            <h2>CamVelle Creative</h2>
+            <h2>Camvelle Creative</h2>
 
             <p>Hi ${clientName},</p>
 
@@ -148,10 +148,10 @@ export async function POST(request: Request) {
               </a>
             </p>
 
-            <p>Thank you for choosing CamVelle Creative.</p>
+            <p>Thank you for choosing Camvelle Creative.</p>
 
             <p style="color:#666;font-size:13px;">
-              CamVelle.com
+              Camvelle.com
             </p>
           </div>
         `,
