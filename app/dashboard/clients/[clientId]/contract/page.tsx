@@ -69,16 +69,22 @@ export default function CreateClientContractPage() {
     setCreating(true);
     setNotice("");
 
-    const { error } = await supabase.from("contracts").insert({
-      client_id: client.id,
-      client_name: client.full_name,
-      client_email: client.email,
-      contract_type: form.contract_type || "Photography Agreement",
-      status: form.status || "draft",
-      sent_date: form.sent_date || null,
-      signed_date: form.signed_date || null,
-      notes: form.notes || null,
-    });
+   const contractTitle = `${client.full_name || "Client"} - ${
+  form.contract_type || "Photography Agreement"
+}`;
+
+const { error } = await supabase.from("contracts").insert({
+  client_id: client.id,
+  client_name: client.full_name,
+  client_email: client.email,
+  title: contractTitle,
+  contract_type: form.contract_type || "Photography Agreement",
+  status: form.status || "draft",
+  sent_date: form.sent_date || null,
+  signed_date: form.signed_date || null,
+  notes: form.notes || null,
+});
+
 
     setCreating(false);
 
