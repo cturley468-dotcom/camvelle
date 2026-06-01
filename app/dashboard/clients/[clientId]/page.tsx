@@ -262,6 +262,32 @@ export default function ClientDetailPage() {
     await loadClientPage();
   }
 
+  async function generateInvoicePdf(invoiceId: string) {
+  setSaving(true);
+  setNotice("");
+
+  const response = await fetch("/api/invoices/pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ invoiceId }),
+  });
+
+  const result = await response.json();
+
+  setSaving(false);
+
+  if (!response.ok) {
+    alert(result.error || "PDF could not be generated.");
+    return;
+  }
+
+  setNotice("Invoice PDF generated successfully.");
+  await loadClientPage();
+}
+
+
   async function deleteInvoice(invoiceId: string) {
     const confirmDelete = confirm("Delete this invoice?");
     if (!confirmDelete) return;
@@ -824,13 +850,20 @@ export default function ClientDetailPage() {
                         disabled={saving}
                       />
 
-                      {invoice.invoice_pdf_url && (
-                        <IconExternalLink
-                          label="View Invoice PDF"
-                          href={invoice.invoice_pdf_url}
-                          icon={<ExternalLink size={16} />}
-                        />
-                      )}
+                      {invoice.invoice_pdf_url ? (
+                      <IconExternalLink
+                        label="View Invoice PDF"
+                        href={invoice.invoice_pdf_url}
+                        icon={<ExternalLink size={16} />}
+                      />
+                          ) : (
+                      <IconButton
+                        label="Generate PDF"
+                        icon={<ReceiptText size={16} />}
+                        onClick={() => generateInvoicePdf(invoice.id)}
+                        disabled={saving}
+                     />
+                    )}
 
                       <IconButton
                         label="Delete Invoice"
