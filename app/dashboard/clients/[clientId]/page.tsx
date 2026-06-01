@@ -14,6 +14,7 @@ import {
   Pencil,
   ReceiptText,
   Save,
+  Send,
   Trash2,
   X,
 } from "lucide-react";
@@ -294,6 +295,31 @@ export default function ClientDetailPage() {
     setNotice("Invoice PDF generated successfully.");
     await loadClientPage();
   }
+  async function sendInvoice(invoiceId: string) {
+  setSaving(true);
+  setNotice("");
+
+  const response = await fetch("/api/invoices/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ invoiceId }),
+  });
+
+  const result = await response.json();
+
+  setSaving(false);
+
+  if (!response.ok) {
+    alert(result.error || "Invoice could not be sent.");
+    return;
+  }
+
+  setNotice("Invoice sent successfully.");
+  await loadClientPage();
+}
+
 
   async function deleteInvoice(invoiceId: string) {
     const confirmDelete = confirm("Delete this invoice?");
@@ -902,6 +928,14 @@ export default function ClientDetailPage() {
                           disabled={saving}
                         />
                       )}
+                      {invoice.invoice_pdf_url && (
+  <IconButton
+    label="Send Invoice"
+    icon={<Send size={16} />}
+    onClick={() => sendInvoice(invoice.id)}
+    disabled={saving}
+  />
+)}
 
                       <IconButton
                         label="Delete Invoice"

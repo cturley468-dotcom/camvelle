@@ -6,20 +6,14 @@ export const runtime = "nodejs";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const resendApiKey = process.env.RESEND_API_KEY;
+
 const invoiceFromEmail =
-  process.env.INVOICE_FROM_EMAIL || "CamVelle Creative <invoices@camvelle.com>";
+  process.env.INVOICE_FROM_EMAIL ||
+  "CamVelle Creative <onboarding@resend.dev>";
 
-if (!supabaseUrl) {
-  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
-}
-
-if (!serviceRoleKey) {
-  throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
-}
-
-if (!resendApiKey) {
-  throw new Error("Missing RESEND_API_KEY");
-}
+if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+if (!serviceRoleKey) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+if (!resendApiKey) throw new Error("Missing RESEND_API_KEY");
 
 const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
@@ -28,10 +22,7 @@ export async function POST(request: Request) {
     const { invoiceId } = await request.json();
 
     if (!invoiceId) {
-      return NextResponse.json(
-        { error: "Missing invoiceId." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing invoiceId." }, { status: 400 });
     }
 
     const { data: invoice, error: invoiceError } = await supabaseAdmin
@@ -96,9 +87,7 @@ export async function POST(request: Request) {
 
             <p>Thank you for choosing CamVelle Creative.</p>
 
-            <p style="color:#666;font-size:13px;">
-              CamVelle.com
-            </p>
+            <p style="color:#666;font-size:13px;">CamVelle.com</p>
           </div>
         `,
       }),
@@ -122,15 +111,12 @@ export async function POST(request: Request) {
       .eq("id", invoice.id);
 
     if (updateError) {
-      return NextResponse.json(
-        { error: updateError.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      message: "Invoice email sent successfully.",
+      message: "Invoice sent successfully.",
     });
   } catch (error) {
     const message =
