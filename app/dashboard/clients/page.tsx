@@ -24,6 +24,19 @@ type Client = {
   created_at: string | null;
 };
 
+type Invoice = {
+  id: string;
+  client_id: string | null;
+  client_name: string | null;
+  client_email: string | null;
+  invoice_number: string | null;
+  amount: number | null;
+  status: string | null;
+  due_date: string | null;
+  notes: string | null;
+  created_at: string | null;
+};
+
 const sections = [
   "overview",
   "bookings",
@@ -36,6 +49,7 @@ const sections = [
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -52,24 +66,36 @@ export default function ClientsPage() {
   });
 
   useEffect(() => {
-    loadClients();
+    loadData();
   }, []);
 
-  async function loadClients() {
+  async function loadData() {
     setLoading(true);
 
-    const { data, error } = await supabase
+    const { data: clientData, error: clientError } = await supabase
       .from("clients")
       .select("id, full_name, email, phone, notes, created_at")
       .order("created_at", { ascending: false });
 
-    if (error) {
-      alert(error.message);
+    if (clientError) {
+      alert(clientError.message);
       setLoading(false);
       return;
     }
 
-    setClients(data || []);
+    const { data: invoiceData, error: invoiceError } = await supabase
+      .from("invoices")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (invoiceError) {
+      alert(invoiceError.message);
+      setLoading(false);
+      return;
+    }
+
+    setClients(clientData || []);
+    setInvoices(invoiceData || []);
     setLoading(false);
   }
 
@@ -109,7 +135,7 @@ export default function ClientsPage() {
 
     setEditingId(null);
     setNotice("Client updated successfully.");
-    await loadClients();
+    await loadData();
   }
 
   async function deleteClient(id: string) {
@@ -131,12 +157,25 @@ export default function ClientsPage() {
     setOpenId(null);
     setEditingId(null);
     setNotice("Client deleted successfully.");
-    await loadClients();
+    await loadData();
   }
 
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = "/login";
+  }
+
+  function getClientInvoices(client: Client) {
+    return invoices.filter((invoice) => {
+      const idMatch = invoice.client_id && invoice.client_id === client.id;
+
+      const emailMatch =
+        client.email &&
+        invoice.client_email &&
+        invoice.client_email.toLowerCase() === client.email.toLowerCase();
+
+      return idMatch || emailMatch;
+    });
   }
 
   const filteredClients = useMemo(() => {
@@ -201,13 +240,14 @@ export default function ClientsPage() {
             </p>
 
             <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
-              Clients
+              Client
               <br />
-              HQ
+              Creative HQ
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Client Documents
+              View client records, contact information, notes, invoices, and
+              creative workflow details.
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
@@ -290,6 +330,16 @@ export default function ClientsPage() {
               {filteredClients.map((client, index) => {
                 const isOpen = openId === client.id;
                 const isEditing = editingId === client.id;
+                const clientInvoices = getClientInvoices(client);
+
+                const invoiceTotal = clientInvoices.reduce(
+                  (sum, invoice) => sum + Number(invoice.amount || 0),
+                  0
+                );
+
+                const unpaidTotal = clientInvoices
+                  .filter((invoice) => invoice.status !== "paid")
+                  .reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
 
                 return (
                   <div
@@ -309,6 +359,14 @@ export default function ClientsPage() {
                         <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
                           <p>{client.email || "No email"}</p>
                           <p>{client.phone || "No phone"}</p>
+
+                          {clientInvoices.length > 0 && (
+                            <p>
+                              {clientInvoices.length} invoice
+                              {clientInvoices.length === 1 ? "" : "s"} •{" "}
+                              {formatMoney(invoiceTotal)}
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -358,6 +416,59 @@ export default function ClientsPage() {
                             <p className="mt-3 whitespace-pre-wrap text-white/55">
                               {client.notes || "No notes saved."}
                             </p>
+                          </div>
+
+                          <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-5">
+                            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                              Invoice Records
+                            </p>
+
+                            {clientInvoices.length === 0 && (
+                              <p className="mt-4 text-white/45">
+                                No invoices created for this client yet.
+                              </p>
+                            )}
+
+                            {clientInvoices.length > 0 && (
+                              <div className="mt-4 grid gap-3">
+                                <div className="grid gap-2 text-white/55">
+                                  <p>
+                                    <span className="text-white/30">
+                                      Total Billed:
+                                    </span>{" "}
+                                    {formatMoney(invoiceTotal)}
+                                  </p>
+
+                                  <p>
+                                    <span className="text-white/30">
+                                      Outstanding:
+                                    </span>{" "}
+                                    {formatMoney(unpaidTotal)}
+                                  </p>
+                                </div>
+
+                                {clientInvoices.map((invoice) => (
+                                  <div
+                                    key={invoice.id}
+                                    className="rounded-[1.25rem] border border-white/10 bg-black/35 p-4"
+                                  >
+                                    <p className="text-white/65">
+                                      {invoice.invoice_number ||
+                                        "No invoice number"}
+                                    </p>
+
+                                    <p className="mt-1 text-white/45">
+                                      {formatMoney(Number(invoice.amount || 0))} •{" "}
+                                      {invoice.status || "draft"}
+                                    </p>
+
+                                    <p className="mt-1 text-white/35">
+                                      Due: {invoice.due_date || "Not set"}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -470,6 +581,13 @@ export default function ClientsPage() {
       </section>
     </main>
   );
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(value || 0);
 }
 
 function StatCard({ title, value }: { title: string; value: string }) {
