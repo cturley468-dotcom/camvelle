@@ -66,6 +66,15 @@ type Contract = {
   created_at: string | null;
 };
 
+type ActivityItem = {
+  id: string;
+  title: string;
+  detail: string;
+  time: string | null;
+  sortTime: number;
+  type: "invoice" | "contract" | "client";
+};
+
 export default function ClientDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -96,9 +105,12 @@ export default function ClientDetailPage() {
 
   useEffect(() => {
     if (clientId) loadClientPage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
   async function loadClientPage() {
+    if (!clientId) return;
+
     setLoading(true);
 
     const { data: clientData, error: clientError } = await supabase
@@ -267,7 +279,7 @@ export default function ClientDetailPage() {
       return;
     }
 
-    setNotice(`Invoice status updated to ${status}.`);
+    setNotice(`Invoice status updated to ${formatStatus(status)}.`);
     await loadClientPage();
   }
 
@@ -295,31 +307,31 @@ export default function ClientDetailPage() {
     setNotice("Invoice PDF generated successfully.");
     await loadClientPage();
   }
+
   async function sendInvoice(invoiceId: string) {
-  setSaving(true);
-  setNotice("");
+    setSaving(true);
+    setNotice("");
 
-  const response = await fetch("/api/invoices/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ invoiceId }),
-  });
+    const response = await fetch("/api/invoices/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ invoiceId }),
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  setSaving(false);
+    setSaving(false);
 
-  if (!response.ok) {
-    alert(result.error || "Invoice could not be sent.");
-    return;
+    if (!response.ok) {
+      alert(result.error || "Invoice could not be sent.");
+      return;
+    }
+
+    setNotice("Invoice sent successfully.");
+    await loadClientPage();
   }
-
-  setNotice("Invoice sent successfully.");
-  await loadClientPage();
-}
-
 
   async function deleteInvoice(invoiceId: string) {
     const confirmDelete = confirm("Delete this invoice?");
@@ -376,34 +388,34 @@ export default function ClientDetailPage() {
       return;
     }
 
-    setNotice(`Contract status updated to ${status}.`);
+    setNotice(`Contract status updated to ${formatStatus(status)}.`);
     await loadClientPage();
   }
+
   async function sendContract(contractId: string) {
-  setSaving(true);
-  setNotice("");
+    setSaving(true);
+    setNotice("");
 
-  const response = await fetch("/api/contracts/send", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ contractId }),
-  });
+    const response = await fetch("/api/contracts/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ contractId }),
+    });
 
-  const result = await response.json();
+    const result = await response.json();
 
-  setSaving(false);
+    setSaving(false);
 
-  if (!response.ok) {
-    alert(result.error || "Contract could not be sent.");
-    return;
+    if (!response.ok) {
+      alert(result.error || "Contract could not be sent.");
+      return;
+    }
+
+    setNotice("Contract sent successfully.");
+    await loadClientPage();
   }
-
-  setNotice("Contract sent successfully.");
-  await loadClientPage();
-}
-
 
   async function deleteContract(contractId: string) {
     const confirmDelete = confirm("Delete this contract?");
@@ -468,6 +480,10 @@ export default function ClientDetailPage() {
     return contracts.filter((contract) => contract.status === "signed").length;
   }, [contracts]);
 
+  const activity = useMemo(() => {
+    return buildActivity(client, invoices, contracts);
+  }, [client, invoices, contracts]);
+
   const scheduledDate = getScheduledDate(client?.notes || null);
 
   return (
@@ -527,11 +543,11 @@ export default function ClientDetailPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage client details, schedule, contracts, invoices, and session
-              notes in one dedicated client page.
+              Manage details, schedule, contracts, invoices, PDFs, email status,
+              and session notes from one dedicated client page.
             </p>
 
-            <div className="mx-auto mt-12 flex max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
+            <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
               <Link
                 href="/dashboard/clients"
                 className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
@@ -540,12 +556,21 @@ export default function ClientDetailPage() {
               </Link>
 
               {client && (
-                <Link
-                  href={`/dashboard/clients/${client.id}/invoice`}
-                  className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-                >
-                  Create Invoice
-                </Link>
+                <>
+                  <Link
+                    href={`/dashboard/clients/${client.id}/contract`}
+                    className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
+                  >
+                    Create Contract
+                  </Link>
+
+                  <Link
+                    href={`/dashboard/clients/${client.id}/invoice`}
+                    className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
+                  >
+                    Create Invoice
+                  </Link>
+                </>
               )}
             </div>
           </div>
@@ -570,10 +595,11 @@ export default function ClientDetailPage() {
 
           {client && (
             <>
-              <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-4">
+              <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-5">
                 <StatCard title="Invoices" value={String(invoices.length)} />
                 <StatCard title="Contracts" value={String(contracts.length)} />
                 <StatCard title="Signed" value={String(signedContracts)} />
+                <StatCard title="Total Billed" value={formatMoney(invoiceTotal)} />
                 <StatCard
                   title="Outstanding"
                   value={formatMoney(outstandingTotal)}
@@ -591,35 +617,21 @@ export default function ClientDetailPage() {
 
                 {!editing && !scheduling && (
                   <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7">
-                    <div className="grid gap-4 text-sm leading-7 text-white/55">
-                      <p>
-                        <span className="text-white/30">Name:</span>{" "}
-                        {client.full_name || "Not provided"}
-                      </p>
+                    <div className="grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
+                      <DetailLine label="Name" value={client.full_name} />
+                      <DetailLine label="Email" value={client.email} />
+                      <DetailLine label="Phone" value={client.phone} />
+                      <DetailLine label="Scheduled" value={scheduledDate} />
+                      <DetailLine
+                        label="Created"
+                        value={
+                          client.created_at
+                            ? new Date(client.created_at).toLocaleDateString()
+                            : null
+                        }
+                      />
 
-                      <p>
-                        <span className="text-white/30">Email:</span>{" "}
-                        {client.email || "Not provided"}
-                      </p>
-
-                      <p>
-                        <span className="text-white/30">Phone:</span>{" "}
-                        {client.phone || "Not provided"}
-                      </p>
-
-                      <p>
-                        <span className="text-white/30">Scheduled:</span>{" "}
-                        {scheduledDate || "Not scheduled"}
-                      </p>
-
-                      <p>
-                        <span className="text-white/30">Created:</span>{" "}
-                        {client.created_at
-                          ? new Date(client.created_at).toLocaleDateString()
-                          : "Not provided"}
-                      </p>
-
-                      <div>
+                      <div className="md:col-span-2">
                         <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
                           Notes
                         </p>
@@ -631,8 +643,8 @@ export default function ClientDetailPage() {
                     </div>
 
                     <div className="mt-7 flex flex-wrap gap-3">
-                      <IconButton
-                        label="Edit"
+                      <ActionButton
+                        label="Edit Client"
                         icon={<Pencil size={16} />}
                         onClick={() => {
                           setEditing(true);
@@ -640,7 +652,7 @@ export default function ClientDetailPage() {
                         }}
                       />
 
-                      <IconButton
+                      <ActionButton
                         label="Schedule"
                         icon={<Calendar size={16} />}
                         onClick={() => {
@@ -649,20 +661,20 @@ export default function ClientDetailPage() {
                         }}
                       />
 
-                      <IconLink
-                        label="Create Contract"
+                      <ActionLink
+                        label="New Contract"
                         href={`/dashboard/clients/${client.id}/contract`}
                         icon={<FileSignature size={16} />}
                       />
 
-                      <IconLink
-                        label="Create Invoice"
+                      <ActionLink
+                        label="New Invoice"
                         href={`/dashboard/clients/${client.id}/invoice`}
                         icon={<ReceiptText size={16} />}
                       />
 
-                      <IconButton
-                        label="Delete"
+                      <ActionButton
+                        label="Delete Client"
                         danger
                         icon={<Trash2 size={16} />}
                         onClick={deleteClient}
@@ -719,14 +731,14 @@ export default function ClientDetailPage() {
                     </div>
 
                     <div className="mt-7 flex flex-wrap gap-3">
-                      <IconButton
-                        label="Save"
+                      <ActionButton
+                        label="Save Client"
                         icon={<Save size={16} />}
                         onClick={saveClient}
                         disabled={saving}
                       />
 
-                      <IconButton
+                      <ActionButton
                         label="Cancel"
                         icon={<X size={16} />}
                         onClick={() => setEditing(false)}
@@ -745,14 +757,14 @@ export default function ClientDetailPage() {
                     />
 
                     <div className="mt-7 flex flex-wrap gap-3">
-                      <IconButton
+                      <ActionButton
                         label="Save Schedule"
                         icon={<Save size={16} />}
                         onClick={saveSchedule}
                         disabled={saving}
                       />
 
-                      <IconButton
+                      <ActionButton
                         label="Remove Schedule"
                         icon={<X size={16} />}
                         onClick={removeSchedule}
@@ -760,7 +772,7 @@ export default function ClientDetailPage() {
                         danger
                       />
 
-                      <IconButton
+                      <ActionButton
                         label="Cancel"
                         icon={<X size={16} />}
                         onClick={() => setScheduling(false)}
@@ -780,20 +792,26 @@ export default function ClientDetailPage() {
                 {contracts.map((contract, index) => (
                   <div
                     key={contract.id}
-                    className="mx-auto w-full max-w-3xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]"
+                    className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7"
                   >
-                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                      {String(index + 1).padStart(2, "0")} / Contract
-                    </p>
+                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          {String(index + 1).padStart(2, "0")} / Contract
+                        </p>
 
-                    <h3 className="mt-3 text-3xl font-light tracking-[-0.06em]">
-                      {contract.contract_type || "Photography Agreement"}
-                    </h3>
+                        <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] md:text-4xl">
+                          {contract.contract_type || "Photography Agreement"}
+                        </h3>
+                      </div>
 
-                    <div className="mt-5 grid gap-3 text-sm leading-7 text-white/55">
-                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
+                      <StatusBadge status={contract.status || "draft"} />
+                    </div>
+
+                    <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
+                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4 md:col-span-2">
                         <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          Status
+                          Update Status
                         </label>
 
                         <select
@@ -821,30 +839,57 @@ export default function ClientDetailPage() {
                         </select>
                       </div>
 
-                      <p>
-                        <span className="text-white/30">Sent Date:</span>{" "}
-                        {contract.sent_date || "Not sent"}
-                      </p>
+                      <DetailLine label="Sent To" value={contract.client_email} />
+                      <DetailLine label="Sent Date" value={contract.sent_date} />
+                      <DetailLine
+                        label="Sent Time"
+                        value={formatDateTime(contract.sent_at)}
+                      />
+                      <DetailLine label="Signed Date" value={contract.signed_date} />
+                      <DetailLine label="Signed By" value={contract.signed_name} />
+                      <DetailLine label="Signed Email" value={contract.signed_email} />
+                      <DetailLine
+                        label="Contract PDF"
+                        value={contract.contract_pdf_url ? "Ready" : "Not generated"}
+                      />
+                      <DetailLine
+                        label="Signed PDF"
+                        value={contract.signed_pdf_url ? "Ready" : "Not signed yet"}
+                      />
 
-                      <p>
-                        <span className="text-white/30">Signed Date:</span>{" "}
-                        {contract.signed_date || "Not signed"}
-                      </p>
+                      <div className="md:col-span-2">
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                          Notes
+                        </p>
 
-                      <p>
-                        <span className="text-white/30">Signed By:</span>{" "}
-                        {contract.signed_name || "Not signed"}
-                      </p>
-
-                      <p>
-                        <span className="text-white/30">Notes:</span>{" "}
-                        {contract.notes || "No notes saved."}
-                      </p>
+                        <p className="mt-3 whitespace-pre-wrap text-white/55">
+                          {contract.notes || "No notes saved."}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="mt-7 flex flex-wrap gap-3">
+                      <ActionButton
+                        label={
+                          contract.status === "sent" || contract.sent_at
+                            ? "Resend Contract"
+                            : "Send Contract"
+                        }
+                        icon={<Send size={16} />}
+                        onClick={() => sendContract(contract.id)}
+                        disabled={saving}
+                      />
+
+                      {contract.signing_token && (
+                        <ActionLink
+                          label="Open Signing Page"
+                          href={`/contract-sign/${contract.signing_token}`}
+                          icon={<ExternalLink size={16} />}
+                        />
+                      )}
+
                       {contract.contract_pdf_url && (
-                        <IconExternalLink
+                        <ActionExternalLink
                           label="View Contract PDF"
                           href={contract.contract_pdf_url}
                           icon={<FileText size={16} />}
@@ -852,21 +897,14 @@ export default function ClientDetailPage() {
                       )}
 
                       {contract.signed_pdf_url && (
-                        <IconExternalLink
+                        <ActionExternalLink
                           label="View Signed PDF"
                           href={contract.signed_pdf_url}
-                          icon={<ExternalLink size={16} />}
+                          icon={<CheckCircle size={16} />}
                         />
                       )}
 
-                      <IconButton
-  label="Send Contract"
-  icon={<Send size={16} />}
-  onClick={() => sendContract(contract.id)}
-  disabled={saving}
-/>
-
-                      <IconButton
+                      <ActionButton
                         label="Delete Contract"
                         icon={<Trash2 size={16} />}
                         onClick={() => deleteContract(contract.id)}
@@ -888,25 +926,33 @@ export default function ClientDetailPage() {
                 {invoices.map((invoice, index) => (
                   <div
                     key={invoice.id}
-                    className="mx-auto w-full max-w-3xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]"
+                    className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7"
                   >
-                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                      {String(index + 1).padStart(2, "0")} / Invoice
-                    </p>
+                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          {String(index + 1).padStart(2, "0")} / Invoice
+                        </p>
 
-                    <h3 className="mt-3 text-3xl font-light tracking-[-0.06em]">
-                      {invoice.invoice_number || "No invoice number"}
-                    </h3>
+                        <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] md:text-4xl">
+                          {invoice.invoice_number || "No invoice number"}
+                        </h3>
+                      </div>
 
-                    <div className="mt-5 grid gap-3 text-sm leading-7 text-white/55">
-                      <p>
-                        <span className="text-white/30">Amount:</span>{" "}
-                        {formatMoney(Number(invoice.amount || 0))}
-                      </p>
+                      <StatusBadge status={invoice.status || "draft"} />
+                    </div>
 
-                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4">
+                    <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
+                      <DetailLine
+                        label="Amount"
+                        value={formatMoney(Number(invoice.amount || 0))}
+                      />
+
+                      <DetailLine label="Sent To" value={invoice.client_email} />
+
+                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4 md:col-span-2">
                         <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          Status
+                          Update Status
                         </label>
 
                         <select
@@ -934,42 +980,59 @@ export default function ClientDetailPage() {
                         </select>
                       </div>
 
-                      <p>
-                        <span className="text-white/30">Due Date:</span>{" "}
-                        {invoice.due_date || "Not set"}
-                      </p>
+                      <DetailLine label="Due Date" value={invoice.due_date} />
+                      <DetailLine
+                        label="Sent Time"
+                        value={formatDateTime(invoice.sent_at)}
+                      />
+                      <DetailLine
+                        label="Paid Time"
+                        value={formatDateTime(invoice.paid_at)}
+                      />
+                      <DetailLine
+                        label="Invoice PDF"
+                        value={invoice.invoice_pdf_url ? "Ready" : "Not generated"}
+                      />
 
-                      <p>
-                        <span className="text-white/30">Notes:</span>{" "}
-                        {invoice.notes || "No notes saved."}
-                      </p>
+                      <div className="md:col-span-2">
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                          Notes
+                        </p>
+
+                        <p className="mt-3 whitespace-pre-wrap text-white/55">
+                          {invoice.notes || "No notes saved."}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="mt-7 flex flex-wrap gap-3">
                       {invoice.invoice_pdf_url ? (
-                        <IconExternalLink
+                        <ActionExternalLink
                           label="View Invoice PDF"
                           href={invoice.invoice_pdf_url}
                           icon={<FileText size={16} />}
                         />
                       ) : (
-                        <IconButton
+                        <ActionButton
                           label="Generate PDF"
                           icon={<FileText size={16} />}
                           onClick={() => generateInvoicePdf(invoice.id)}
                           disabled={saving}
                         />
                       )}
-                      {invoice.invoice_pdf_url && (
-  <IconButton
-    label="Send Invoice"
-    icon={<Send size={16} />}
-    onClick={() => sendInvoice(invoice.id)}
-    disabled={saving}
-  />
-)}
 
-                      <IconButton
+                      <ActionButton
+                        label={
+                          invoice.status === "sent" || invoice.sent_at
+                            ? "Resend Invoice"
+                            : "Send Invoice"
+                        }
+                        icon={<Send size={16} />}
+                        onClick={() => sendInvoice(invoice.id)}
+                        disabled={saving || !invoice.invoice_pdf_url}
+                      />
+
+                      <ActionButton
                         label="Delete Invoice"
                         icon={<Trash2 size={16} />}
                         onClick={() => deleteInvoice(invoice.id)}
@@ -977,9 +1040,60 @@ export default function ClientDetailPage() {
                         danger
                       />
                     </div>
+
+                    {!invoice.invoice_pdf_url && (
+                      <p className="mt-4 text-xs leading-6 text-white/35">
+                        Generate the invoice PDF before sending this invoice.
+                      </p>
+                    )}
                   </div>
                 ))}
               </RecordSection>
+
+              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Activity
+                </p>
+
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Client timeline.
+                </h2>
+
+                {activity.length === 0 ? (
+                  <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/55 p-6 text-white/50">
+                    No activity recorded yet.
+                  </div>
+                ) : (
+                  <div className="mt-10 grid gap-3">
+                    {activity.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-[2rem] border border-white/10 bg-black/55 p-5"
+                      >
+                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                              {item.type}
+                            </p>
+
+                            <h3 className="mt-2 text-xl font-light tracking-[-0.04em]">
+                              {item.title}
+                            </h3>
+
+                            <p className="mt-2 text-sm leading-6 text-white/45">
+                              {item.detail}
+                            </p>
+                          </div>
+
+                          <p className="text-sm text-white/35">
+                            {formatDateTime(item.time) || "Date not listed"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -1012,6 +1126,138 @@ function formatMoney(value: number) {
     style: "currency",
     currency: "USD",
   }).format(value || 0);
+}
+
+function formatStatus(status: string | null) {
+  const value = String(status || "draft").trim();
+
+  return value
+    .split("_")
+    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function getSortTime(value: string | null | undefined) {
+  if (!value) return 0;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return 0;
+
+  return date.getTime();
+}
+
+function buildActivity(
+  client: Client | null,
+  invoices: Invoice[],
+  contracts: Contract[]
+): ActivityItem[] {
+  const items: ActivityItem[] = [];
+
+  if (client?.created_at) {
+    items.push({
+      id: `client-created-${client.id}`,
+      title: "Client file created",
+      detail: `${client.full_name || "Client"} was added to Camvelle.`,
+      time: client.created_at,
+      sortTime: getSortTime(client.created_at),
+      type: "client",
+    });
+  }
+
+  invoices.forEach((invoice) => {
+    const number = invoice.invoice_number || "Invoice";
+
+    if (invoice.created_at) {
+      items.push({
+        id: `invoice-created-${invoice.id}`,
+        title: `${number} created`,
+        detail: `${formatMoney(Number(invoice.amount || 0))} invoice record created.`,
+        time: invoice.created_at,
+        sortTime: getSortTime(invoice.created_at),
+        type: "invoice",
+      });
+    }
+
+    if (invoice.sent_at) {
+      items.push({
+        id: `invoice-sent-${invoice.id}`,
+        title: `${number} sent`,
+        detail: `Invoice emailed to ${invoice.client_email || "client"}.`,
+        time: invoice.sent_at,
+        sortTime: getSortTime(invoice.sent_at),
+        type: "invoice",
+      });
+    }
+
+    if (invoice.paid_at) {
+      items.push({
+        id: `invoice-paid-${invoice.id}`,
+        title: `${number} paid`,
+        detail: `${formatMoney(Number(invoice.amount || 0))} marked paid.`,
+        time: invoice.paid_at,
+        sortTime: getSortTime(invoice.paid_at),
+        type: "invoice",
+      });
+    }
+  });
+
+  contracts.forEach((contract) => {
+    const title = contract.contract_type || "Photography Agreement";
+
+    if (contract.created_at) {
+      items.push({
+        id: `contract-created-${contract.id}`,
+        title: `${title} created`,
+        detail: "Contract record added to the client file.",
+        time: contract.created_at,
+        sortTime: getSortTime(contract.created_at),
+        type: "contract",
+      });
+    }
+
+    if (contract.sent_at || contract.sent_date) {
+      items.push({
+        id: `contract-sent-${contract.id}`,
+        title: `${title} sent`,
+        detail: `Signing email sent to ${contract.client_email || "client"}.`,
+        time: contract.sent_at || contract.sent_date,
+        sortTime: getSortTime(contract.sent_at || contract.sent_date),
+        type: "contract",
+      });
+    }
+
+    if (contract.signed_at || contract.signed_date) {
+      items.push({
+        id: `contract-signed-${contract.id}`,
+        title: `${title} signed`,
+        detail: `Signed by ${contract.signed_name || "client"}.`,
+        time: contract.signed_at || contract.signed_date,
+        sortTime: getSortTime(contract.signed_at || contract.signed_date),
+        type: "contract",
+      });
+    }
+  });
+
+  return items.sort((a, b) => b.sortTime - a.sortTime).slice(0, 12);
 }
 
 function StatCard({ title, value }: { title: string; value: string }) {
@@ -1103,7 +1349,50 @@ function InputBubble({
   );
 }
 
-function IconButton({
+function DetailLine({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number | null | undefined;
+}) {
+  return (
+    <p>
+      <span className="text-white/30">{label}:</span>{" "}
+      {value || "Not provided"}
+    </p>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const normalized = String(status || "draft").toLowerCase();
+
+  const isGood = normalized === "paid" || normalized === "signed";
+  const isWarning = normalized === "sent";
+  const isDanger = normalized === "overdue";
+  const isArchived = normalized === "archived";
+
+  const className = isGood
+    ? "border-green-400/20 bg-green-500/10 text-green-100"
+    : isWarning
+      ? "border-yellow-400/20 bg-yellow-500/10 text-yellow-100"
+      : isDanger
+        ? "border-red-400/20 bg-red-500/10 text-red-100"
+        : isArchived
+          ? "border-white/10 bg-white/[0.04] text-white/40"
+          : "border-white/10 bg-white/[0.04] text-white/60";
+
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.28em] ${className}`}
+    >
+      {isGood && <CheckCircle size={13} />}
+      {formatStatus(normalized)}
+    </div>
+  );
+}
+
+function ActionButton({
   label,
   icon,
   onClick,
@@ -1122,18 +1411,28 @@ function IconButton({
       onClick={onClick}
       title={label}
       disabled={disabled}
-      className={`flex h-12 w-12 items-center justify-center rounded-full border text-white/65 transition disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`group flex min-h-12 items-center gap-3 rounded-full border py-2 pl-2 pr-5 text-[10px] font-semibold uppercase tracking-[0.22em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
         danger
-          ? "border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-          : "border-white/10 bg-white/[0.035] hover:bg-white hover:text-black"
+          ? "border-red-400/20 bg-red-500/10 text-red-100 hover:bg-red-500/20"
+          : "border-white/10 bg-white/[0.035] text-white/65 hover:bg-white hover:text-black"
       }`}
     >
-      {icon}
+      <span
+        className={`flex h-9 w-9 items-center justify-center rounded-full border ${
+          danger
+            ? "border-red-400/20 bg-red-500/10"
+            : "border-white/10 bg-black/30 group-hover:border-black/10 group-hover:bg-black/5"
+        }`}
+      >
+        {icon}
+      </span>
+
+      <span>{label}</span>
     </button>
   );
 }
 
-function IconLink({
+function ActionLink({
   label,
   icon,
   href,
@@ -1146,14 +1445,18 @@ function IconLink({
     <Link
       href={href}
       title={label}
-      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/65 transition hover:bg-white hover:text-black"
+      className="group flex min-h-12 items-center gap-3 rounded-full border border-white/10 bg-white/[0.035] py-2 pl-2 pr-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/65 transition hover:bg-white hover:text-black"
     >
-      {icon}
+      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 group-hover:border-black/10 group-hover:bg-black/5">
+        {icon}
+      </span>
+
+      <span>{label}</span>
     </Link>
   );
 }
 
-function IconExternalLink({
+function ActionExternalLink({
   label,
   icon,
   href,
@@ -1168,9 +1471,13 @@ function IconExternalLink({
       target="_blank"
       rel="noreferrer"
       title={label}
-      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/65 transition hover:bg-white hover:text-black"
+      className="group flex min-h-12 items-center gap-3 rounded-full border border-white/10 bg-white/[0.035] py-2 pl-2 pr-5 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/65 transition hover:bg-white hover:text-black"
     >
-      {icon}
+      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/30 group-hover:border-black/10 group-hover:bg-black/5">
+        {icon}
+      </span>
+
+      <span>{label}</span>
     </a>
   );
 }
