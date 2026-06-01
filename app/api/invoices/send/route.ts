@@ -9,7 +9,7 @@ const resendApiKey = process.env.RESEND_API_KEY;
 
 const invoiceFromEmail =
   process.env.INVOICE_FROM_EMAIL ||
-  "Camvelle Creative <onboarding@resend.dev>";
+  "Camvelle Creative <invoices@camvelle.com>";
 
 if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
 if (!serviceRoleKey) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
