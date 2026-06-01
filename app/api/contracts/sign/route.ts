@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     const signedName = String(body.signedName || "").trim();
     const signedEmail = String(body.signedEmail || "").trim();
     const agreed = Boolean(body.agreed);
+    const signatureDataUrl = String(body.signatureDataUrl || "").trim();
 
     if (!token) {
       return NextResponse.json(
@@ -49,6 +50,14 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
+    if (!signatureDataUrl.startsWith("data:image/png;base64,")) {
+  return NextResponse.json(
+    { error: "Please draw your signature before submitting." },
+    { status: 400 }
+  );
+}
+
 
     const supabaseAdmin = getSupabaseAdmin();
 
@@ -106,6 +115,8 @@ export async function POST(request: Request) {
         signed_ip: ip,
         signed_user_agent: userAgent,
         signed_pdf_url: signedPdfUrl,
+        signed_signature_data_url: signatureDataUrl,
+        signed_method: "drawn",
       })
       .eq("id", contract.id)
       .select("*")

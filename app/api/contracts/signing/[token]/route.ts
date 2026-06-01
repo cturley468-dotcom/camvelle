@@ -59,6 +59,8 @@ export async function GET(_request: Request, context: any) {
         signed_email: contract.signed_email || null,
         signed_at: contract.signed_at || null,
         signed_pdf_url: contract.signed_pdf_url || null,
+        signed_signature_data_url: contract.signed_signature_data_url || null,
+        signed_method: contract.signed_method || null,
       },
     });
   } catch (error) {

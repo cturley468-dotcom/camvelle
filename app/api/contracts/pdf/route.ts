@@ -222,6 +222,39 @@ export async function GET(request: Request) {
       color: black,
     });
 
+    const signatureDataUrl = clean(contract.signed_signature_data_url, "");
+
+if (signatureDataUrl.startsWith("data:image/png;base64,")) {
+  const base64 = signatureDataUrl.split(",")[1];
+  const signatureBytes = Buffer.from(base64, "base64");
+  const signatureImage = await pdfDoc.embedPng(signatureBytes);
+
+  y -= 30;
+
+  page.drawText("Drawn Signature:", {
+    x: 64,
+    y,
+    size: 11,
+    font: bold,
+    color: black,
+  });
+
+  const maxWidth = 220;
+  const scale = maxWidth / signatureImage.width;
+  const signatureWidth = signatureImage.width * scale;
+  const signatureHeight = signatureImage.height * scale;
+
+  page.drawImage(signatureImage, {
+    x: 190,
+    y: y - signatureHeight + 18,
+    width: signatureWidth,
+    height: signatureHeight,
+  });
+
+  y -= signatureHeight + 24;
+}
+
+
     y -= 30;
 
     drawLabel("Signed Name:", clean(contract.signed_name));

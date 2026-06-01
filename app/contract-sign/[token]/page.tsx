@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CheckCircle, Loader2, PenLine } from "lucide-react";
+import {
+  CheckCircle,
+  Eraser,
+  Loader2,
+  PenLine,
+} from "lucide-react";
 
 type SigningContract = {
   id: string;
@@ -17,11 +28,15 @@ type SigningContract = {
   signed_name: string | null;
   signed_email: string | null;
   signed_at: string | null;
+  signed_pdf_url?: string | null;
+  signed_signature_data_url?: string | null;
+  signed_method?: string | null;
 };
 
 export default function ContractSignPage() {
   const params = useParams();
   const router = useRouter();
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const token = useMemo(() => String(params?.token || ""), [params]);
 
@@ -32,13 +47,24 @@ export default function ContractSignPage() {
 
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
+  const [drawing, setDrawing] = useState(false);
+  const [hasSignature, setHasSignature] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+
+  const alreadySigned = Boolean(contract?.signed_at);
 
   useEffect(() => {
     loadContract();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
+
+  useEffect(() => {
+    if (!loading && contract && !alreadySigned) {
+      setTimeout(prepareCanvas, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, contract?.id, alreadySigned]);
 
   async function loadContract() {
     if (!token) return;
@@ -76,12 +102,104 @@ export default function ContractSignPage() {
     }
   }
 
+  function prepareCanvas() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+
+    canvas.width = Math.floor(rect.width * ratio);
+    canvas.height = Math.floor(rect.height * ratio);
+
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, rect.width, rect.height);
+
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.strokeStyle = "#111111";
+    context.lineWidth = 2.6;
+  }
+
+  function getPoint(event: PointerEvent<HTMLCanvasElement>) {
+    const rect = event.currentTarget.getBoundingClientRect();
+
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+  }
+
+  function startDrawing(event: PointerEvent<HTMLCanvasElement>) {
+    if (alreadySigned) return;
+
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!context) return;
+
+    const point = getPoint(event);
+
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+
+    setDrawing(true);
+    setHasSignature(true);
+  }
+
+  function draw(event: PointerEvent<HTMLCanvasElement>) {
+    if (!drawing || alreadySigned) return;
+
+    event.preventDefault();
+
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!context) return;
+
+    const point = getPoint(event);
+
+    context.lineTo(point.x, point.y);
+    context.stroke();
+  }
+
+  function stopDrawing(event: PointerEvent<HTMLCanvasElement>) {
+    if (!drawing) return;
+
+    event.preventDefault();
+
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!context) return;
+
+    context.closePath();
+    setDrawing(false);
+  }
+
+  function clearSignature() {
+    setHasSignature(false);
+    prepareCanvas();
+  }
+
   async function signContract() {
     setSigning(true);
     setError("");
     setNotice("");
 
     try {
+      if (!hasSignature) {
+        throw new Error("Please draw your signature before submitting.");
+      }
+
+      const signatureDataUrl =
+        canvasRef.current?.toDataURL("image/png") || "";
+
       const response = await fetch("/api/contracts/sign", {
         method: "POST",
         headers: {
@@ -92,6 +210,7 @@ export default function ContractSignPage() {
           signedName,
           signedEmail,
           agreed,
+          signatureDataUrl,
         }),
       });
 
@@ -111,8 +230,6 @@ export default function ContractSignPage() {
       setSigning(false);
     }
   }
-
-  const alreadySigned = Boolean(contract?.signed_at);
 
   return (
     <main className="min-h-screen bg-black px-5 py-8 text-white">
@@ -224,6 +341,19 @@ export default function ContractSignPage() {
                   <p>Signed Email: {contract.signed_email || "Not listed"}</p>
                   <p>Signed Date: {contract.signed_date || "Not listed"}</p>
                 </div>
+
+                {contract.signed_signature_data_url && (
+                  <div className="mt-7 rounded-[1.5rem] bg-white p-4">
+                    <p className="mb-3 text-[11px] uppercase tracking-[0.35em] text-black/40">
+                      Signature
+                    </p>
+                    <img
+                      src={contract.signed_signature_data_url}
+                      alt="Client signature"
+                      className="max-h-[130px] w-full object-contain"
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="mt-6 rounded-[2.5rem] border border-white/10 bg-black/70 px-7 py-8">
@@ -254,6 +384,41 @@ export default function ContractSignPage() {
                     className="mt-3 w-full rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-5 py-4 text-white outline-none placeholder:text-white/25 focus:border-white/30"
                   />
                 </label>
+
+                <div className="mt-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-[11px] uppercase tracking-[0.35em] text-white/30">
+                      Draw Signature
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={clearSignature}
+                      className="flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-white/50"
+                    >
+                      <Eraser size={14} />
+                      Clear
+                    </button>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-white/10 bg-white p-3">
+                    <canvas
+                      ref={canvasRef}
+                      onPointerDown={startDrawing}
+                      onPointerMove={draw}
+                      onPointerUp={stopDrawing}
+                      onPointerLeave={stopDrawing}
+                      onPointerCancel={stopDrawing}
+                      className="h-[170px] w-full rounded-[1rem] bg-white"
+                      style={{ touchAction: "none" }}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-white/35">
+                    Use your finger, stylus, or mouse to sign inside the white
+                    box.
+                  </p>
+                </div>
 
                 <label className="mt-6 flex gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.03] px-5 py-5 text-sm leading-7 text-white/55">
                   <input
