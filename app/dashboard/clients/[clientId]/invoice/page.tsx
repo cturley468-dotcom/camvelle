@@ -61,20 +61,22 @@ export default function CreateClientInvoicePage() {
   }
 
   async function createInvoice() {
-    if (!client) {
-      alert("Client not found.");
-      return;
-    }
+  if (!client) {
+    alert("Client not found.");
+    return;
+  }
 
-    if (!form.amount) {
-      alert("Enter an invoice amount.");
-      return;
-    }
+  if (!form.amount) {
+    alert("Enter an invoice amount.");
+    return;
+  }
 
-    setCreating(true);
-    setNotice("");
+  setCreating(true);
+  setNotice("");
 
-    const { error } = await supabase.from("invoices").insert({
+  const { data: newInvoice, error } = await supabase
+    .from("invoices")
+    .insert({
       client_id: client.id,
       client_name: client.full_name,
       client_email: client.email,
@@ -84,19 +86,40 @@ export default function CreateClientInvoicePage() {
       status: form.status || "draft",
       due_date: form.due_date || null,
       notes: form.notes || null,
-    });
+    })
+    .select("id")
+    .single();
 
+  if (error || !newInvoice) {
     setCreating(false);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    setNotice("Invoice created successfully.");
-
-    router.push(`/dashboard/clients/${client.id}`);
+    alert(error?.message || "Invoice could not be created.");
+    return;
   }
+
+  const pdfResponse = await fetch("/api/invoices/pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      invoiceId: newInvoice.id,
+    }),
+  });
+
+  const pdfResult = await pdfResponse.json();
+
+  setCreating(false);
+
+  if (!pdfResponse.ok) {
+    alert(pdfResult.error || "Invoice created, but PDF could not be generated.");
+    router.push(`/dashboard/clients/${client.id}`);
+    return;
+  }
+
+  setNotice("Invoice created and PDF generated successfully.");
+  router.push(`/dashboard/clients/${client.id}`);
+}
+
 
   async function handleLogout() {
     await supabase.auth.signOut();

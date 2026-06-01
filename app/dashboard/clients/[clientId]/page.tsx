@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Calendar,
   CheckCircle,
+  ExternalLink,
   FileSignature,
   Pencil,
   ReceiptText,
@@ -37,6 +37,30 @@ type Invoice = {
   status: string | null;
   due_date: string | null;
   notes: string | null;
+  invoice_pdf_url: string | null;
+  sent_at: string | null;
+  paid_at: string | null;
+  created_at: string | null;
+};
+
+type Contract = {
+  id: string;
+  client_id: string | null;
+  client_name: string | null;
+  client_email: string | null;
+  contract_type: string | null;
+  status: string | null;
+  sent_date: string | null;
+  signed_date: string | null;
+  notes: string | null;
+  contract_pdf_url: string | null;
+  signed_pdf_url: string | null;
+  signature_image_url: string | null;
+  signing_token: string | null;
+  signed_name: string | null;
+  signed_email: string | null;
+  signed_at: string | null;
+  sent_at: string | null;
   created_at: string | null;
 };
 
@@ -50,6 +74,7 @@ export default function ClientDetailPage() {
 
   const [client, setClient] = useState<Client | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
@@ -89,9 +114,7 @@ export default function ClientDetailPage() {
     const { data: invoiceData, error: invoiceError } = await supabase
       .from("invoices")
       .select("*")
-      .or(
-        `client_id.eq.${clientId},client_email.eq.${clientData.email || ""}`
-      )
+      .eq("client_id", clientId)
       .order("created_at", { ascending: false });
 
     if (invoiceError) {
@@ -100,14 +123,29 @@ export default function ClientDetailPage() {
       return;
     }
 
+    const { data: contractData, error: contractError } = await supabase
+      .from("contracts")
+      .select("*")
+      .eq("client_id", clientId)
+      .order("created_at", { ascending: false });
+
+    if (contractError) {
+      alert(contractError.message);
+      setLoading(false);
+      return;
+    }
+
     setClient(clientData);
     setInvoices(invoiceData || []);
+    setContracts(contractData || []);
+
     setEditForm({
       full_name: clientData.full_name || "",
       email: clientData.email || "",
       phone: clientData.phone || "",
       notes: clientData.notes || "",
     });
+
     setScheduleDate(getScheduledDate(clientData.notes) || "");
     setLoading(false);
   }
@@ -203,9 +241,14 @@ export default function ClientDetailPage() {
     setSaving(true);
     setNotice("");
 
+    const updateData =
+      status === "paid"
+        ? { status, paid_at: new Date().toISOString() }
+        : { status, sent_at: new Date().toISOString() };
+
     const { error } = await supabase
       .from("invoices")
-      .update({ status })
+      .update(updateData)
       .eq("id", invoiceId);
 
     setSaving(false);
@@ -239,6 +282,64 @@ export default function ClientDetailPage() {
     }
 
     setNotice("Invoice deleted.");
+    await loadClientPage();
+  }
+
+  async function updateContractStatus(contractId: string, status: string) {
+    setSaving(true);
+    setNotice("");
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const updateData =
+      status === "signed"
+        ? {
+            status,
+            signed_date: today,
+            signed_at: new Date().toISOString(),
+          }
+        : {
+            status,
+            sent_date: today,
+            sent_at: new Date().toISOString(),
+          };
+
+    const { error } = await supabase
+      .from("contracts")
+      .update(updateData)
+      .eq("id", contractId);
+
+    setSaving(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNotice(`Contract marked ${status}.`);
+    await loadClientPage();
+  }
+
+  async function deleteContract(contractId: string) {
+    const confirmDelete = confirm("Delete this contract?");
+    if (!confirmDelete) return;
+
+    setDeleting(true);
+    setNotice("");
+
+    const { error } = await supabase
+      .from("contracts")
+      .delete()
+      .eq("id", contractId);
+
+    setDeleting(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNotice("Contract deleted.");
     await loadClientPage();
   }
 
@@ -277,6 +378,10 @@ export default function ClientDetailPage() {
       .filter((invoice) => invoice.status !== "paid")
       .reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
   }, [invoices]);
+
+  const signedContracts = useMemo(() => {
+    return contracts.filter((contract) => contract.status === "signed").length;
+  }, [contracts]);
 
   const scheduledDate = getScheduledDate(client?.notes || null);
 
@@ -335,7 +440,8 @@ export default function ClientDetailPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage client details, schedule, contracts, and invoices.
+              Manage client details, schedule, contracts, invoices, and session
+              notes in one dedicated client page.
             </p>
 
             <div className="mx-auto mt-12 flex max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
@@ -369,17 +475,12 @@ export default function ClientDetailPage() {
             </div>
           )}
 
-          {!loading && !client && (
-            <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-              Client not found.
-            </div>
-          )}
-
           {client && (
             <>
-              <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-3">
+              <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-4">
                 <StatCard title="Invoices" value={String(invoices.length)} />
-                <StatCard title="Total Billed" value={formatMoney(invoiceTotal)} />
+                <StatCard title="Contracts" value={String(contracts.length)} />
+                <StatCard title="Signed" value={String(signedContracts)} />
                 <StatCard
                   title="Outstanding"
                   value={formatMoney(outstandingTotal)}
@@ -576,95 +677,172 @@ export default function ClientDetailPage() {
                 )}
               </div>
 
-              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                      Invoice Records
+              <RecordSection
+                title="Contract Records"
+                heading="Agreement history."
+                emptyText="No contracts created for this client yet."
+                actionHref={`/dashboard/clients/${client.id}/contract`}
+                actionText="New Contract"
+              >
+                {contracts.map((contract, index) => (
+                  <div
+                    key={contract.id}
+                    className="mx-auto w-full max-w-3xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]"
+                  >
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Contract
                     </p>
 
-                    <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                      Billing history.
-                    </h2>
-                  </div>
+                    <h3 className="mt-3 text-3xl font-light tracking-[-0.06em]">
+                      {contract.contract_type || "Photography Agreement"}
+                    </h3>
 
-                  <Link
-                    href={`/dashboard/clients/${client.id}/invoice`}
-                    className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-                  >
-                    New Invoice
-                  </Link>
-                </div>
-
-                {invoices.length === 0 && (
-                  <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/55 p-6 text-white/50">
-                    No invoices created for this client yet.
-                  </div>
-                )}
-
-                <div className="mt-10 grid gap-4">
-                  {invoices.map((invoice, index) => (
-                    <div
-                      key={invoice.id}
-                      className="mx-auto w-full max-w-3xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]"
-                    >
-                      <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                        {String(index + 1).padStart(2, "0")} / Invoice
+                    <div className="mt-5 grid gap-3 text-sm leading-7 text-white/55">
+                      <p>
+                        <span className="text-white/30">Status:</span>{" "}
+                        {contract.status || "draft"}
                       </p>
 
-                      <h3 className="mt-3 text-3xl font-light tracking-[-0.06em]">
-                        {invoice.invoice_number || "No invoice number"}
-                      </h3>
+                      <p>
+                        <span className="text-white/30">Sent Date:</span>{" "}
+                        {contract.sent_date || "Not sent"}
+                      </p>
 
-                      <div className="mt-5 grid gap-3 text-sm leading-7 text-white/55">
-                        <p>
-                          <span className="text-white/30">Amount:</span>{" "}
-                          {formatMoney(Number(invoice.amount || 0))}
-                        </p>
+                      <p>
+                        <span className="text-white/30">Signed Date:</span>{" "}
+                        {contract.signed_date || "Not signed"}
+                      </p>
 
-                        <p>
-                          <span className="text-white/30">Status:</span>{" "}
-                          {invoice.status || "draft"}
-                        </p>
+                      <p>
+                        <span className="text-white/30">Signed By:</span>{" "}
+                        {contract.signed_name || "Not signed"}
+                      </p>
 
-                        <p>
-                          <span className="text-white/30">Due Date:</span>{" "}
-                          {invoice.due_date || "Not set"}
-                        </p>
-
-                        <p>
-                          <span className="text-white/30">Notes:</span>{" "}
-                          {invoice.notes || "No notes saved."}
-                        </p>
-                      </div>
-
-                      <div className="mt-7 flex flex-wrap gap-3">
-                        <IconButton
-                          label="Mark Sent"
-                          icon={<ReceiptText size={16} />}
-                          onClick={() => updateInvoiceStatus(invoice.id, "sent")}
-                          disabled={saving}
-                        />
-
-                        <IconButton
-                          label="Mark Paid"
-                          icon={<CheckCircle size={16} />}
-                          onClick={() => updateInvoiceStatus(invoice.id, "paid")}
-                          disabled={saving}
-                        />
-
-                        <IconButton
-                          label="Delete Invoice"
-                          icon={<Trash2 size={16} />}
-                          onClick={() => deleteInvoice(invoice.id)}
-                          disabled={deleting}
-                          danger
-                        />
-                      </div>
+                      <p>
+                        <span className="text-white/30">Notes:</span>{" "}
+                        {contract.notes || "No notes saved."}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              </div>
+
+                    <div className="mt-7 flex flex-wrap gap-3">
+                      <IconButton
+                        label="Mark Sent"
+                        icon={<FileSignature size={16} />}
+                        onClick={() => updateContractStatus(contract.id, "sent")}
+                        disabled={saving}
+                      />
+
+                      <IconButton
+                        label="Mark Signed"
+                        icon={<CheckCircle size={16} />}
+                        onClick={() => updateContractStatus(contract.id, "signed")}
+                        disabled={saving}
+                      />
+
+                      {contract.contract_pdf_url && (
+                        <IconExternalLink
+                          label="View Contract PDF"
+                          href={contract.contract_pdf_url}
+                          icon={<ExternalLink size={16} />}
+                        />
+                      )}
+
+                      {contract.signed_pdf_url && (
+                        <IconExternalLink
+                          label="View Signed PDF"
+                          href={contract.signed_pdf_url}
+                          icon={<ExternalLink size={16} />}
+                        />
+                      )}
+
+                      <IconButton
+                        label="Delete Contract"
+                        icon={<Trash2 size={16} />}
+                        onClick={() => deleteContract(contract.id)}
+                        disabled={deleting}
+                        danger
+                      />
+                    </div>
+                  </div>
+                ))}
+              </RecordSection>
+
+              <RecordSection
+                title="Invoice Records"
+                heading="Billing history."
+                emptyText="No invoices created for this client yet."
+                actionHref={`/dashboard/clients/${client.id}/invoice`}
+                actionText="New Invoice"
+              >
+                {invoices.map((invoice, index) => (
+                  <div
+                    key={invoice.id}
+                    className="mx-auto w-full max-w-3xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]"
+                  >
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Invoice
+                    </p>
+
+                    <h3 className="mt-3 text-3xl font-light tracking-[-0.06em]">
+                      {invoice.invoice_number || "No invoice number"}
+                    </h3>
+
+                    <div className="mt-5 grid gap-3 text-sm leading-7 text-white/55">
+                      <p>
+                        <span className="text-white/30">Amount:</span>{" "}
+                        {formatMoney(Number(invoice.amount || 0))}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Status:</span>{" "}
+                        {invoice.status || "draft"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Due Date:</span>{" "}
+                        {invoice.due_date || "Not set"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Notes:</span>{" "}
+                        {invoice.notes || "No notes saved."}
+                      </p>
+                    </div>
+
+                    <div className="mt-7 flex flex-wrap gap-3">
+                      <IconButton
+                        label="Mark Sent"
+                        icon={<ReceiptText size={16} />}
+                        onClick={() => updateInvoiceStatus(invoice.id, "sent")}
+                        disabled={saving}
+                      />
+
+                      <IconButton
+                        label="Mark Paid"
+                        icon={<CheckCircle size={16} />}
+                        onClick={() => updateInvoiceStatus(invoice.id, "paid")}
+                        disabled={saving}
+                      />
+
+                      {invoice.invoice_pdf_url && (
+                        <IconExternalLink
+                          label="View Invoice PDF"
+                          href={invoice.invoice_pdf_url}
+                          icon={<ExternalLink size={16} />}
+                        />
+                      )}
+
+                      <IconButton
+                        label="Delete Invoice"
+                        icon={<Trash2 size={16} />}
+                        onClick={() => deleteInvoice(invoice.id)}
+                        disabled={deleting}
+                        danger
+                      />
+                    </div>
+                  </div>
+                ))}
+              </RecordSection>
             </>
           )}
         </div>
@@ -707,6 +885,56 @@ function StatCard({ title, value }: { title: string; value: string }) {
       </p>
 
       <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
+    </div>
+  );
+}
+
+function RecordSection({
+  title,
+  heading,
+  emptyText,
+  actionHref,
+  actionText,
+  children,
+}: {
+  title: string;
+  heading: string;
+  emptyText: string;
+  actionHref: string;
+  actionText: string;
+  children: ReactNode;
+}) {
+  const hasChildren =
+    Array.isArray(children) ? children.length > 0 : Boolean(children);
+
+  return (
+    <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+            {title}
+          </p>
+
+          <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+            {heading}
+          </h2>
+        </div>
+
+        <Link
+          href={actionHref}
+          className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
+        >
+          {actionText}
+        </Link>
+      </div>
+
+      {!hasChildren && (
+        <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/55 p-6 text-white/50">
+          {emptyText}
+        </div>
+      )}
+
+      <div className="mt-10 grid gap-4">{children}</div>
     </div>
   );
 }
@@ -785,5 +1013,27 @@ function IconLink({
     >
       {icon}
     </Link>
+  );
+}
+
+function IconExternalLink({
+  label,
+  icon,
+  href,
+}: {
+  label: string;
+  icon: ReactNode;
+  href: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      title={label}
+      className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/65 transition hover:bg-white hover:text-black"
+    >
+      {icon}
+    </a>
   );
 }
