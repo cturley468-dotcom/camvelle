@@ -3,6 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import {
+  Pencil,
+  Save,
+  Trash2,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Booking = {
@@ -30,8 +38,13 @@ const sections = [
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
 
   const [editForm, setEditForm] = useState({
     full_name: "",
@@ -47,20 +60,29 @@ export default function BookingsPage() {
     loadBookings();
   }, []);
 
-  const newBookings = useMemo(() => bookings.length, [bookings]);
-
   async function loadBookings() {
+    setLoading(true);
+
     const { data, error } = await supabase
       .from("inquiries")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error) setBookings(data || []);
+    if (error) {
+      alert(error.message);
+      setLoading(false);
+      return;
+    }
+
+    setBookings(data || []);
     setLoading(false);
   }
 
   function startEdit(booking: Booking) {
+    setNotice("");
+    setOpenId(booking.id);
     setEditingId(booking.id);
+
     setEditForm({
       full_name: booking.full_name || "",
       email: booking.email || "",
@@ -72,19 +94,24 @@ export default function BookingsPage() {
     });
   }
 
-  async function saveBookingEdit(id: string) {
+  async function saveBooking(id: string) {
+    setSavingId(id);
+    setNotice("");
+
     const { error } = await supabase
       .from("inquiries")
       .update({
-        full_name: editForm.full_name,
-        email: editForm.email,
-        phone: editForm.phone,
-        service_type: editForm.service_type,
+        full_name: editForm.full_name || null,
+        email: editForm.email || null,
+        phone: editForm.phone || null,
+        service_type: editForm.service_type || null,
         preferred_date: editForm.preferred_date || null,
-        message: editForm.message,
-        status: editForm.status,
+        message: editForm.message || null,
+        status: editForm.status || "new",
       })
       .eq("id", id);
+
+    setSavingId(null);
 
     if (error) {
       alert(error.message);
@@ -92,6 +119,7 @@ export default function BookingsPage() {
     }
 
     setEditingId(null);
+    setNotice("Booking updated successfully.");
     await loadBookings();
   }
 
@@ -99,41 +127,88 @@ export default function BookingsPage() {
     const confirmDelete = confirm("Delete this booking request?");
     if (!confirmDelete) return;
 
+    setDeletingId(id);
+    setNotice("");
+
     const { error } = await supabase.from("inquiries").delete().eq("id", id);
+
+    setDeletingId(null);
 
     if (error) {
       alert(error.message);
       return;
     }
 
+    setOpenId(null);
+    setEditingId(null);
+    setNotice("Booking deleted successfully.");
     await loadBookings();
   }
 
   async function createClientFromBooking(booking: Booking) {
     setCreatingId(booking.id);
+    setNotice("");
 
-    const { error } = await supabase.from("clients").insert({
+    const clientNotes = [
+      booking.service_type ? `Session Type: ${booking.service_type}` : "",
+      booking.preferred_date ? `Preferred Date: ${booking.preferred_date}` : "",
+      booking.message ? booking.message : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    const { error: clientError } = await supabase.from("clients").insert({
       full_name: booking.full_name,
       email: booking.email,
       phone: booking.phone,
-      notes: booking.message,
+      notes: clientNotes || null,
     });
 
-    setCreatingId(null);
-
-    if (error) {
-      alert(error.message);
+    if (clientError) {
+      setCreatingId(null);
+      alert(clientError.message);
       return;
     }
 
-    alert("Client created.");
-    window.location.href = "/dashboard/clients";
+    const { error: deleteError } = await supabase
+      .from("inquiries")
+      .delete()
+      .eq("id", booking.id);
+
+    setCreatingId(null);
+
+    if (deleteError) {
+      alert(deleteError.message);
+      await loadBookings();
+      return;
+    }
+
+    setOpenId(null);
+    setEditingId(null);
+    setNotice("Client created and booking removed from queue.");
+    await loadBookings();
   }
 
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = "/login";
   }
+
+  const filteredBookings = useMemo(() => {
+    const term = search.toLowerCase();
+
+    return bookings.filter((booking) => {
+      return (
+        booking.full_name?.toLowerCase().includes(term) ||
+        booking.email?.toLowerCase().includes(term) ||
+        booking.phone?.toLowerCase().includes(term) ||
+        booking.service_type?.toLowerCase().includes(term) ||
+        booking.preferred_date?.toLowerCase().includes(term) ||
+        booking.message?.toLowerCase().includes(term) ||
+        booking.status?.toLowerCase().includes(term)
+      );
+    });
+  }, [bookings, search]);
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
@@ -200,7 +275,7 @@ export default function BookingsPage() {
               </label>
 
               <select
-                defaultValue=""
+                defaultValue="bookings"
                 onChange={(e) => {
                   if (e.target.value === "overview") {
                     window.location.href = "/dashboard";
@@ -213,7 +288,9 @@ export default function BookingsPage() {
                 }}
                 className="w-full rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[11px] uppercase tracking-[0.35em] text-white outline-none transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
               >
-                <option value="">Bookings</option>
+                <option value="bookings" className="bg-black">
+                  Bookings
+                </option>
 
                 {sections.map((section) => (
                   <option key={section} value={section} className="bg-black">
@@ -224,139 +301,100 @@ export default function BookingsPage() {
             </div>
           </div>
 
-          <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard title="New Requests" value={loading ? "..." : String(newBookings)} />
-            <StatCard title="Needs Reply" value={String(newBookings)} />
-            <StatCard title="Scheduled" value="0" />
-            <StatCard title="Converted Clients" value="0" />
+          <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-2">
+            <StatCard title="New Requests" value={String(bookings.length)} />
+            <StatCard
+              title="Visible Results"
+              value={String(filteredBookings.length)}
+            />
           </div>
 
           <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-              Booking Requests
-            </p>
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                  Booking Requests
+                </p>
 
-            <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-              Inquiry queue.
-            </h2>
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                  Inquiry queue.
+                </h2>
+              </div>
 
-            {loading && (
-              <p className="mt-10 text-white/50">Loading booking requests...</p>
-            )}
+              <div className="w-full max-w-md rounded-full border border-white/10 bg-white/[0.025] px-6 py-4">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search bookings..."
+                  className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
+                />
+              </div>
+            </div>
 
-            {!loading && bookings.length === 0 && (
-              <div className="mt-10 rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-                No booking requests yet.
+            {notice && (
+              <div className="mt-8 rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
+                {notice}
               </div>
             )}
 
-            <div className="mt-10 grid gap-5">
-              {bookings.map((booking, index) => (
-                <div
-                  key={booking.id}
-                  className="mx-auto w-full max-w-3xl rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-6 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-7"
-                >
-                  {editingId === booking.id ? (
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
-                        Edit Request
-                      </p>
+            {loading && (
+              <p className="mt-10 text-white/50">Loading bookings...</p>
+            )}
 
-                      <div className="mt-6 grid gap-4">
-                        <EditInput
-                          label="Full Name"
-                          value={editForm.full_name}
-                          onChange={(value) =>
-                            setEditForm({ ...editForm, full_name: value })
-                          }
-                        />
+            {!loading && filteredBookings.length === 0 && (
+              <div className="mt-10 rounded-[2.5rem] border border-white/10 bg-white/[0.035] p-7 text-white/50">
+                No booking requests found.
+              </div>
+            )}
 
-                        <EditInput
-                          label="Email"
-                          value={editForm.email}
-                          onChange={(value) =>
-                            setEditForm({ ...editForm, email: value })
-                          }
-                        />
+            <div className="mt-10 grid gap-4">
+              {filteredBookings.map((booking, index) => {
+                const isOpen = openId === booking.id;
+                const isEditing = editingId === booking.id;
 
-                        <EditInput
-                          label="Phone"
-                          value={editForm.phone}
-                          onChange={(value) =>
-                            setEditForm({ ...editForm, phone: value })
-                          }
-                        />
+                return (
+                  <div
+                    key={booking.id}
+                    className="mx-auto w-full max-w-3xl rounded-[2.25rem] border border-white/10 bg-white/[0.035] p-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-6"
+                  >
+                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          {String(index + 1).padStart(2, "0")} / Request
+                        </p>
 
-                        <EditInput
-                          label="Service Type"
-                          value={editForm.service_type}
-                          onChange={(value) =>
-                            setEditForm({ ...editForm, service_type: value })
-                          }
-                        />
+                        <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] md:text-4xl">
+                          {booking.full_name || "Unnamed Request"}
+                        </h3>
 
-                        <EditInput
-                          label="Preferred Date"
-                          type="date"
-                          value={editForm.preferred_date}
-                          onChange={(value) =>
-                            setEditForm({ ...editForm, preferred_date: value })
-                          }
-                        />
-
-                        <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-                          <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                            Message
-                          </label>
-
-                          <textarea
-                            value={editForm.message}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                message: e.target.value,
-                              })
-                            }
-                            rows={5}
-                            className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
-                          />
+                        <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
+                          <p>{booking.service_type || "Session type not selected"}</p>
+                          <p>{booking.email || "No email"}</p>
+                          <p>{booking.phone || "No phone"}</p>
                         </div>
                       </div>
 
-                      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => saveBookingEdit(booking.id)}
-                          className="rounded-full bg-[#f5f0e7] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-                        >
-                          Save Changes
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(null)}
-                          className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenId(isOpen ? null : booking.id);
+                          setEditingId(null);
+                          setNotice("");
+                        }}
+                        className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
+                      >
+                        {isOpen ? "Close" : "Open"}
+                      </button>
                     </div>
-                  ) : (
-                    <>
-                      <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
-                        {String(index + 1).padStart(2, "0")} / Request
-                      </p>
 
-                      <h3 className="mt-5 text-4xl font-light tracking-[-0.06em] md:text-5xl">
-                        {booking.full_name || "Unnamed Inquiry"}
-                      </h3>
+                    {isOpen && !isEditing && (
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]">
+                        <div className="grid gap-4 text-sm leading-7 text-white/55">
+                          <p>
+                            <span className="text-white/30">Name:</span>{" "}
+                            {booking.full_name || "Not provided"}
+                          </p>
 
-                      <p className="mt-4 text-lg text-white/45">
-                        {booking.service_type || "Session type not selected"}
-                      </p>
-
-                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-                        <div className="grid gap-3 text-sm leading-6 text-white/55">
                           <p>
                             <span className="text-white/30">Email:</span>{" "}
                             {booking.email || "Not provided"}
@@ -368,61 +406,162 @@ export default function BookingsPage() {
                           </p>
 
                           <p>
-                            <span className="text-white/30">Date:</span>{" "}
+                            <span className="text-white/30">Session:</span>{" "}
+                            {booking.service_type || "Not provided"}
+                          </p>
+
+                          <p>
+                            <span className="text-white/30">Preferred Date:</span>{" "}
                             {booking.preferred_date || "Not provided"}
                           </p>
 
                           <p>
                             <span className="text-white/30">Status:</span>{" "}
-                            {booking.status || "New Inquiry"}
+                            {booking.status || "new"}
                           </p>
+
+                          <p>
+                            <span className="text-white/30">Created:</span>{" "}
+                            {booking.created_at
+                              ? new Date(booking.created_at).toLocaleDateString()
+                              : "Not provided"}
+                          </p>
+
+                          <div>
+                            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                              Details
+                            </p>
+
+                            <p className="mt-3 whitespace-pre-wrap text-white/55">
+                              {booking.message || "No details saved."}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <IconButton
+                            label={
+                              creatingId === booking.id
+                                ? "Creating"
+                                : "Create Client"
+                            }
+                            icon={<UserPlus size={16} />}
+                            onClick={() => createClientFromBooking(booking)}
+                            disabled={creatingId === booking.id}
+                          />
+
+                          <IconButton
+                            label="Edit"
+                            icon={<Pencil size={16} />}
+                            onClick={() => startEdit(booking)}
+                          />
+
+                          <IconButton
+                            label={
+                              deletingId === booking.id ? "Deleting" : "Delete"
+                            }
+                            danger
+                            icon={<Trash2 size={16} />}
+                            onClick={() => deleteBooking(booking.id)}
+                            disabled={deletingId === booking.id}
+                          />
                         </div>
                       </div>
+                    )}
 
-                      {booking.message && (
-                        <div className="mt-5 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-                          <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-                            Details
-                          </p>
+                    {isOpen && isEditing && (
+                      <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)]">
+                        <div className="grid gap-4">
+                          <EditInput
+                            label="Full Name"
+                            value={editForm.full_name}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, full_name: value })
+                            }
+                          />
 
-                          <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-white/50">
-                            {booking.message}
-                          </p>
+                          <EditInput
+                            label="Email"
+                            value={editForm.email}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, email: value })
+                            }
+                          />
+
+                          <EditInput
+                            label="Phone"
+                            value={editForm.phone}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, phone: value })
+                            }
+                          />
+
+                          <EditInput
+                            label="Session Type"
+                            value={editForm.service_type}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, service_type: value })
+                            }
+                          />
+
+                          <EditInput
+                            label="Preferred Date"
+                            type="date"
+                            value={editForm.preferred_date}
+                            onChange={(value) =>
+                              setEditForm({
+                                ...editForm,
+                                preferred_date: value,
+                              })
+                            }
+                          />
+
+                          <EditInput
+                            label="Status"
+                            value={editForm.status}
+                            onChange={(value) =>
+                              setEditForm({ ...editForm, status: value })
+                            }
+                          />
+
+                          <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
+                            <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                              Details
+                            </label>
+
+                            <textarea
+                              rows={5}
+                              value={editForm.message}
+                              onChange={(e) =>
+                                setEditForm({
+                                  ...editForm,
+                                  message: e.target.value,
+                                })
+                              }
+                              className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+                            />
+                          </div>
                         </div>
-                      )}
 
-                      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                        <button
-                          type="button"
-                          onClick={() => createClientFromBooking(booking)}
-                          disabled={creatingId === booking.id}
-                          className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {creatingId === booking.id
-                            ? "Creating..."
-                            : "Create Client"}
-                        </button>
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <IconButton
+                            label={savingId === booking.id ? "Saving" : "Save"}
+                            icon={<Save size={16} />}
+                            onClick={() => saveBooking(booking.id)}
+                            disabled={savingId === booking.id}
+                          />
 
-                        <button
-                          type="button"
-                          onClick={() => startEdit(booking)}
-                          className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black"
-                        >
-                          Edit
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => deleteBooking(booking.id)}
-                          className="rounded-full border border-red-400/20 bg-red-500/10 px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] text-red-200 transition hover:bg-red-500/20"
-                        >
-                          Delete
-                        </button>
+                          <IconButton
+                            label="Cancel"
+                            icon={<X size={16} />}
+                            onClick={() => setEditingId(null)}
+                          />
+                        </div>
                       </div>
-                    </>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -438,7 +577,9 @@ function StatCard({ title, value }: { title: string; value: string }) {
         {title}
       </p>
 
-      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
+      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">
+        {value}
+      </h3>
     </div>
   );
 }
@@ -455,7 +596,7 @@ function EditInput({
   type?: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
       <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
         {label}
       </label>
@@ -467,5 +608,35 @@ function EditInput({
         className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
       />
     </div>
+  );
+}
+
+function IconButton({
+  label,
+  icon,
+  onClick,
+  danger = false,
+  disabled = false,
+}: {
+  label: string;
+  icon: ReactNode;
+  onClick: () => void;
+  danger?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      disabled={disabled}
+      className={`flex h-12 w-12 items-center justify-center rounded-full border text-white/65 transition disabled:cursor-not-allowed disabled:opacity-50 ${
+        danger
+          ? "border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+          : "border-white/10 bg-white/[0.035] hover:bg-white hover:text-black"
+      }`}
+    >
+      {icon}
+    </button>
   );
 }
