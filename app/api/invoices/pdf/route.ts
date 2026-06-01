@@ -302,7 +302,7 @@ async function createInvoicePdf(invoice: Invoice) {
     });
   }
 
-  page.drawText("Thank you for choosing CamVelle Creative.", {
+  page.drawText("Thank you for choosing Camvelle Creative.", {
     x: margin,
     y: 72,
     size: 11,
