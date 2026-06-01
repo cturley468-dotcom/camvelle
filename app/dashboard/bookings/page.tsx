@@ -29,7 +29,6 @@ const sections = [
   "overview",
   "clients",
   "calendar",
-  "invoices",
   "contracts",
   "galleries",
   "finance",
@@ -259,9 +258,9 @@ export default function BookingsPage() {
             </p>
 
             <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
-              Bookings
+              Booking
               <br />
-              HQ
+              Inquiries
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">

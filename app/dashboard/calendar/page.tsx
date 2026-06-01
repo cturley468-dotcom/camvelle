@@ -20,7 +20,6 @@ const sections = [
   "overview",
   "clients",
   "bookings",
-  "invoices",
   "contracts",
   "galleries",
   "finance",
