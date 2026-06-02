@@ -543,8 +543,7 @@ export default function ClientDetailPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage details, schedule, contracts, invoices, PDFs, email status,
-              and session notes from one dedicated client page.
+              Manage details, schedule, contracts, invoices, and PDFs.
             </p>
 
             <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">

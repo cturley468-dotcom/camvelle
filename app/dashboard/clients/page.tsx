@@ -128,7 +128,7 @@ export default function ClientsPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage Client Details.
+              Manage Your Clients.
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
