@@ -26,7 +26,7 @@ import {
   camvelleGhostButton,
 } from "@/app/components/CamvelleUI";
 
-const GALLERY_BUCKET = "gallery-photos";
+const GALLERY_BUCKET = "camvelle-galleries";
 
 type GalleryType = {
   label: string;
