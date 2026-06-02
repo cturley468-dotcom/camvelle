@@ -33,12 +33,34 @@ export default function BookPage() {
     setSending(false);
 
     if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
+  setErrorMessage(error.message);
+  return;
+}
 
-    formElement.reset();
-    setSuccess("Booking request submitted. I’ll follow up soon.");
+try {
+  await fetch("/api/bookings/notify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      clientName: formData.get("full_name"),
+      clientEmail: formData.get("email"),
+      clientPhone: formData.get("phone"),
+      sessionType: formData.get("service_type"),
+      preferredDate: formData.get("preferred_date"),
+      preferredTime: "",
+      location: "",
+      details: formData.get("message"),
+    }),
+  });
+} catch (notifyError) {
+  console.error("Booking notification email failed:", notifyError);
+}
+
+formElement.reset();
+setSuccess("Booking request submitted. I’ll follow up soon.");
+
   }
 
   return (
