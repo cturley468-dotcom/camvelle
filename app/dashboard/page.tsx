@@ -239,13 +239,7 @@ export default function DashboardPage() {
           </select>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Link href="/dashboard/clients" className={camvelleGhostButton}>
-              Clients
-            </Link>
-
-            <Link href="/dashboard/bookings" className={camvelleGhostButton}>
-              Bookings
-            </Link>
+          
           </div>
         </div>
       </CamvellePanel>
