@@ -40,6 +40,13 @@ function statusClass(status: string | undefined) {
   return "border-white/10 bg-white/5 text-white/45";
 }
 
+const crystalBubble =
+  "rounded-[2.8rem] border border-white/15 bg-gradient-to-br from-white/[0.14] via-white/[0.045] to-black/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_30px_100px_rgba(0,0,0,0.75)] backdrop-blur-3xl";
+
+const crystalCard =
+  "rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/[0.10] via-white/[0.035] to-black/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-2xl";
+
+
 export default function ClientStatusPage() {
   const [email, setEmail] = useState("");
   const [result, setResult] = useState<StatusResult | null>(null);
@@ -101,7 +108,7 @@ export default function ClientStatusPage() {
           </Link>
         </header>
 
-        <section className="rounded-[2.8rem] border border-white/15 bg-white/[0.07] p-7 shadow-[0_24px_90px_rgba(0,0,0,.55)] backdrop-blur-3xl sm:p-10">
+        <section className={`mt-6 ${crystalBubble} p-7 sm:p-10`}>
           <p className="mb-5 text-xs uppercase tracking-[0.45em] text-white/40">
             Camvelle Creative
           </p>
@@ -148,7 +155,7 @@ export default function ClientStatusPage() {
         </section>
 
         {result && (
-          <section className="mt-6 rounded-[2.8rem] border border-white/15 bg-black/45 p-7 shadow-[0_24px_90px_rgba(0,0,0,.55)] backdrop-blur-3xl sm:p-10">
+          <section className={`${crystalBubble} p-7 sm:p-10`}>
             {!result.found ? (
               <div>
                 <p className="text-xl font-semibold text-white">
@@ -217,7 +224,7 @@ export default function ClientStatusPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-2xl">
+                <div className={`mt-6 ${crystalCard} p-6`}>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-[0.35em] text-white/35">

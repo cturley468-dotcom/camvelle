@@ -29,6 +29,14 @@ type Client = {
   created_at: string | null;
 };
 
+type PhotoProgressForm = {
+  status: string;
+  progress: number;
+  estimated_delivery_date: string;
+  gallery_url: string;
+  notes: string;
+};
+
 type Invoice = {
   id: string;
   client_id: string | null;
@@ -89,6 +97,17 @@ export default function ClientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
+  const [photoProgress, setPhotoProgress] = useState<PhotoProgressForm>({
+    status: "Not Started",
+    progress: 0,
+    estimated_delivery_date: "",
+    gallery_url: "",
+    notes: "",
+  });
+
+  const [savingPhotoProgress, setSavingPhotoProgress] = useState(false);
+  const [photoProgressNotice, setPhotoProgressNotice] = useState("");
+
   const [editing, setEditing] = useState(false);
   const [scheduling, setScheduling] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -107,6 +126,13 @@ export default function ClientDetailPage() {
     if (clientId) loadClientPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
+
+  useEffect(() => {
+    if (client?.email) {
+      loadPhotoProgress(client.email);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [client?.email]);
 
   async function loadClientPage() {
     if (!clientId) return;
@@ -162,6 +188,88 @@ export default function ClientDetailPage() {
 
     setScheduleDate(getScheduledDate(clientData.notes) || "");
     setLoading(false);
+  }
+
+  async function loadPhotoProgress(clientEmail: string) {
+    const email = String(clientEmail || "").trim().toLowerCase();
+
+    if (!email) return;
+
+    const { data, error } = await supabase
+      .from("photo_progress")
+      .select("*")
+      .eq("client_email", email)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Photo progress load error:", error);
+      return;
+    }
+
+    if (!data) {
+      setPhotoProgress({
+        status: "Not Started",
+        progress: 0,
+        estimated_delivery_date: "",
+        gallery_url: "",
+        notes: "",
+      });
+
+      return;
+    }
+
+    setPhotoProgress({
+      status: data.status || "Not Started",
+      progress: Number(data.progress || 0),
+      estimated_delivery_date: data.estimated_delivery_date || "",
+      gallery_url: data.gallery_url || "",
+      notes: data.notes || "",
+    });
+  }
+
+  async function savePhotoProgress() {
+    if (!client?.email) {
+      alert("Client email is required before saving photo progress.");
+      return;
+    }
+
+    setSavingPhotoProgress(true);
+    setPhotoProgressNotice("");
+
+    const email = String(client.email).trim().toLowerCase();
+
+    const sessionType =
+      contracts[0]?.contract_type ||
+      invoices[0]?.invoice_number ||
+      "Photography Session";
+
+    const { error } = await supabase.from("photo_progress").upsert(
+      {
+        client_email: email,
+        client_name: client.full_name || "",
+        session_type: sessionType,
+        status: photoProgress.status,
+        progress: Math.max(0, Math.min(100, Number(photoProgress.progress || 0))),
+        estimated_delivery_date: photoProgress.estimated_delivery_date || null,
+        gallery_url: photoProgress.gallery_url || null,
+        notes: photoProgress.notes || null,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "client_email",
+      }
+    );
+
+    setSavingPhotoProgress(false);
+
+    if (error) {
+      console.error("Photo progress save error:", error);
+      alert(error.message);
+      return;
+    }
+
+    setPhotoProgressNotice("Photo delivery progress updated.");
+    setNotice("Client photo delivery progress updated.");
   }
 
   async function saveClient() {
@@ -543,7 +651,7 @@ export default function ClientDetailPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage details, schedule, contracts, invoices, and PDFs.
+              Manage details, schedule, contracts, invoices, photo progress, and PDFs.
             </p>
 
             <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
@@ -779,6 +887,154 @@ export default function ClientDetailPage() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
+                      Photo Delivery
+                    </p>
+
+                    <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                      Client progress.
+                    </h2>
+
+                    <p className="mt-5 max-w-3xl text-sm leading-7 text-white/45">
+                      Update the photo delivery status shown on the public client
+                      booking status page.
+                    </p>
+                  </div>
+
+                  <div className="rounded-full border border-white/10 bg-black/45 px-5 py-3 text-sm text-white/60">
+                    {Math.max(
+                      0,
+                      Math.min(100, Number(photoProgress.progress || 0))
+                    )}
+                    %
+                  </div>
+                </div>
+
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  <div className="rounded-[2rem] border border-white/10 bg-black/55 p-5">
+                    <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Photo Status
+                    </label>
+
+                    <select
+                      value={photoProgress.status}
+                      onChange={(e) =>
+                        setPhotoProgress((current) => ({
+                          ...current,
+                          status: e.target.value,
+                        }))
+                      }
+                      className="w-full bg-transparent text-white outline-none"
+                    >
+                      <option value="Not Started" className="bg-black">
+                        Not Started
+                      </option>
+                      <option value="Photos Received" className="bg-black">
+                        Photos Received
+                      </option>
+                      <option value="Editing" className="bg-black">
+                        Editing
+                      </option>
+                      <option value="Uploading" className="bg-black">
+                        Uploading
+                      </option>
+                      <option value="Gallery Ready" className="bg-black">
+                        Gallery Ready
+                      </option>
+                    </select>
+                  </div>
+
+                  <InputBubble
+                    label="Completion Percentage"
+                    type="number"
+                    value={String(photoProgress.progress)}
+                    onChange={(value) =>
+                      setPhotoProgress((current) => ({
+                        ...current,
+                        progress: Number(value),
+                      }))
+                    }
+                  />
+
+                  <InputBubble
+                    label="Estimated Delivery Date"
+                    type="date"
+                    value={photoProgress.estimated_delivery_date}
+                    onChange={(value) =>
+                      setPhotoProgress((current) => ({
+                        ...current,
+                        estimated_delivery_date: value,
+                      }))
+                    }
+                  />
+
+                  <InputBubble
+                    label="Gallery URL"
+                    type="url"
+                    value={photoProgress.gallery_url}
+                    onChange={(value) =>
+                      setPhotoProgress((current) => ({
+                        ...current,
+                        gallery_url: value,
+                      }))
+                    }
+                  />
+                </div>
+
+                <div className="mt-4 rounded-[2rem] border border-white/10 bg-black/55 p-5">
+                  <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                    Client-Facing Notes
+                  </label>
+
+                  <textarea
+                    rows={5}
+                    value={photoProgress.notes}
+                    onChange={(e) =>
+                      setPhotoProgress((current) => ({
+                        ...current,
+                        notes: e.target.value,
+                      }))
+                    }
+                    placeholder="Example: Your images are currently being edited and prepared for delivery."
+                    className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+                  />
+                </div>
+
+                <div className="mt-6 h-3 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-[#f5f0e7] transition-all"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(100, Number(photoProgress.progress || 0))
+                      )}%`,
+                    }}
+                  />
+                </div>
+
+                <div className="mt-7 flex flex-wrap items-center gap-3">
+                  <ActionButton
+                    label={
+                      savingPhotoProgress
+                        ? "Saving Progress"
+                        : "Save Photo Progress"
+                    }
+                    icon={<Save size={16} />}
+                    onClick={savePhotoProgress}
+                    disabled={savingPhotoProgress}
+                  />
+
+                  {photoProgressNotice && (
+                    <p className="text-sm text-green-200">
+                      {photoProgressNotice}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <RecordSection
