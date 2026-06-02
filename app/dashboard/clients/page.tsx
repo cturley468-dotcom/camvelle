@@ -128,8 +128,7 @@ export default function ClientsPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Search client records and open individual client pages for
-              scheduling, contracts, invoices, notes, and full session details.
+              Manage Client Details.
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
