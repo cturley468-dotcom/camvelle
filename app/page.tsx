@@ -185,33 +185,34 @@ export default function HomePage() {
         </details>
       </header>
 
-      <section className="grid gap-10 lg:grid-cols-[1.15fr_.85fr] lg:items-center">
-        <CamvellePanel className="p-8 sm:p-10 md:p-14">
-          <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
+      <section className="w-full overflow-hidden">
+  <CamvellePanel className="mx-auto w-full max-w-full overflow-hidden p-8 sm:p-10 md:p-14">
+    <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
-          <h1 className="mt-8 max-w-6xl text-[4.5rem] font-light leading-[0.82] tracking-[-0.1em] text-white md:text-[8rem] lg:text-[9.5rem]">
-            Elevated
-            <br />
-            Photography
-          </h1>
+    <h1 className="mt-8 max-w-full text-[4rem] font-light leading-[0.86] tracking-[-0.09em] text-white sm:text-[5.5rem] md:text-[7rem] lg:text-[9rem]">
+      Elevated
+      <br />
+      Photography
+    </h1>
 
-          <CamvelleBody>
-            Timeless photography services for proposals, couples, families,
-            portraits, brands, real estate, automotive, and cinematic emotional
-            storytelling.
-          </CamvelleBody>
+    <CamvelleBody>
+      Timeless photography services for proposals, couples, families,
+      portraits, brands, real estate, automotive, and cinematic emotional
+      storytelling.
+    </CamvelleBody>
 
-          <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-            <Link href="/galleries" className={camvelleGhostButton}>
-              Enter Gallery
-            </Link>
+    <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+      <Link href="/galleries" className={camvelleGhostButton}>
+        Enter Gallery
+      </Link>
 
-            <a href="#book" className={camvelleCreamButton}>
-              Book Session
-            </a>
-          </div>
-        </CamvellePanel>
-      </section>
+      <a href="#book" className={camvelleCreamButton}>
+        Book Session
+      </a>
+    </div>
+  </CamvellePanel>
+</section>
+
 
       <section id="galleries" className="mt-10">
         <CamvellePanel className="p-8 sm:p-10 md:p-14">
