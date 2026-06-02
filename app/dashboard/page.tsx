@@ -174,13 +174,13 @@ export default function DashboardPage() {
           }}
         />
 
-        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-black/35" />
 
         <div
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at center, transparent 22%, rgba(0,0,0,0.5) 100%)",
+              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
           }}
         />
       </div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
 
       <section className="relative z-10 px-4 pb-24 pt-4 md:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <div className="rounded-[3rem] border border-white/10 bg-black/70 p-8 text-center shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm md:p-14">
+          <div className="rounded-[3rem] border border-white/10 bg-white/[0.015] p-8 text-center shadow-[inset_0_0_60px_rgba(255,255,255,0.02)] backdrop-blur-[1px] md:p-14">
             <p className="text-[11px] uppercase tracking-[0.6em] text-white/35">
               Camvelle Studio HQ
             </p>
