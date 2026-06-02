@@ -203,97 +203,83 @@ console.log("Matched:", contractType);
         reply_to: replyToEmail,
         to: [clientEmail],
         bcc,
-        subject: `${builtContract.title} from Camvelle Creative`,
+        subject: `Review and Sign: ${builtContract.title}`,
         html: `
-          <div style="margin:0;padding:0;background:#f7f4ef;">
-            <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-              Your Camvelle Creative contract is ready for review and signature.
-            </div>
+  <div style="margin:0;padding:0;background:#050505;font-family:Arial,Helvetica,sans-serif;color:#ffffff;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+      Your Camvelle Creative contract is ready for review and signature.
+    </div>
 
-            <div style="margin:24px 0;padding:20px;border:1px solid #e5e7eb;border-radius:16px;background:#fafafa;">
-             <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">
-             ${builtContract.title}
-             </h2>
-            <pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.7;color:#374151;margin:0;">
-             ${builtContract.body}
-             </pre>
-            </div>
+    <div style="max-width:640px;margin:0 auto;padding:32px 18px;">
+      <div style="background:#0b0b0b;border:1px solid #252525;border-radius:32px;padding:38px 32px;">
+        <p style="margin:0 0 24px 0;font-size:11px;letter-spacing:8px;text-transform:uppercase;color:#777;">
+          Camvelle Creative
+        </p>
 
-            <div style="max-width:640px;margin:0 auto;padding:32px 18px;font-family:Arial,Helvetica,sans-serif;color:#151515;">
-              <div style="background:#ffffff;border:1px solid #e8e2d8;border-radius:28px;padding:34px;">
-                <p style="margin:0 0 10px 0;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#777;">
-                  Camvelle Creative
-                </p>
+        <h1 style="margin:0 0 26px 0;font-size:42px;line-height:1.05;font-weight:600;color:#ffffff;">
+          Contract Ready
+        </h1>
 
-                <h1 style="margin:0 0 26px 0;font-size:34px;line-height:1.05;font-weight:500;letter-spacing:-1px;">
-                  Contract Ready
-                </h1>
+        <p style="margin:0 0 24px 0;font-size:18px;line-height:1.8;color:#cfcfcf;">
+          Hi ${clientName},
+        </p>
 
-                <p style="margin:0 0 18px 0;font-size:16px;line-height:1.7;">
-                  Hi ${escapeHtml(clientName)},
-                </p>
+        <p style="margin:0 0 28px 0;font-size:18px;line-height:1.8;color:#cfcfcf;">
+          Your Camvelle Creative contract is ready for review and electronic signature.
+        </p>
 
-                <p style="margin:0 0 24px 0;font-size:16px;line-height:1.7;color:#333;">
-                  Your contract from Camvelle Creative is ready for review and signature.
-                </p>
+        <div style="margin:30px 0;padding:24px;border:1px solid #2f2f2f;border-radius:22px;background:#111;">
+          <p style="margin:0 0 10px 0;font-size:13px;line-height:1.6;color:#8f8f8f;text-transform:uppercase;letter-spacing:3px;">
+            Agreement
+          </p>
 
-                <div style="border:1px solid #eee6dc;border-radius:22px;padding:22px;margin:0 0 26px 0;background:#fbfaf8;">
-                  <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
-                    <strong>Contract:</strong> ${escapeHtml(contractType)}
-                  </p>
+          <p style="margin:0;font-size:20px;line-height:1.5;font-weight:700;color:#ffffff;">
+            ${builtContract.title}
+          </p>
+        </div>
 
-                  <p style="margin:0 0 10px 0;font-size:14px;line-height:1.6;">
-                    <strong>Client:</strong> ${escapeHtml(clientName)}
-                  </p>
+        <a
+          href="${signingUrl}"
+          style="display:inline-block;margin:8px 0 30px 0;padding:16px 26px;border-radius:999px;background:#ffffff;color:#050505;text-decoration:none;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;"
+        >
+          Review & Sign Contract
+        </a>
 
-                  <p style="margin:0;font-size:14px;line-height:1.6;">
-                    <strong>Status:</strong> Ready to Sign
-                  </p>
-                </div>
+        <p style="margin:0 0 16px 0;font-size:14px;line-height:1.8;color:#9a9a9a;">
+          Please review the contract PDF on the signing page before signing. After signing, a completed copy will be available for your records.
+        </p>
 
+        <p style="margin:24px 0 0 0;font-size:14px;line-height:1.8;color:#777;">
+          Thank you for choosing Camvelle Creative.
+        </p>
 
-                <p style="margin:0 0 28px 0;">
-                  <a href="${escapeHtml(signingUrl)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;border-radius:999px;padding:15px 24px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
-                    Review & Sign Contract
-                  </a>
-                </p>
+        <p style="margin:8px 0 0 0;font-size:14px;line-height:1.8;color:#777;">
+          Camvelle.com
+        </p>
+      </div>
 
-                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#333;">
-                  After signing, a completed copy will be emailed for your records.
-                </p>
+      <p style="margin:18px 0 0 0;text-align:center;font-size:12px;line-height:1.7;color:#666;">
+        Replies go directly to Camvelle Creative.
+      </p>
+    </div>
+  </div>
+`,
 
-                <p style="margin:0 0 12px 0;font-size:15px;line-height:1.7;color:#333;">
-                  Thank you for choosing Camvelle Creative.
-                </p>
-
-                <p style="margin:0;font-size:13px;color:#777;">
-                  Camvelle.com
-                </p>
-              </div>
-
-              <p style="margin:18px 0 0 0;text-align:center;font-size:12px;color:#999;">
-                Replies go directly to Camvelle Creative.
-              </p>
-            </div>
-          </div>
-        `,
         text: `Hi ${clientName},
 
-Your contract from Camvelle Creative is ready for review and signature.
+Your Camvelle Creative contract is ready for review and electronic signature.
 
-
-Contract: ${contractType}
-Client: ${clientName}
-Status: Ready to Sign
+Agreement: ${builtContract.title}
 
 Review and sign your contract here:
 ${signingUrl}
 
-After signing, a completed copy will be emailed for your records.
+Please review the contract PDF on the signing page before signing.
 
 Thank you for choosing Camvelle Creative.
 
 Camvelle.com`,
+
       }),
     });
 
