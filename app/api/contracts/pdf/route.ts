@@ -354,81 +354,86 @@ const contractTerms = builtContract.body;
     y -= 54;
 
     // Summary card
-    const cardHeight = 126;
+const cardHeight = 156;
 
-    page.drawRectangle({
-      x: left,
-      y: y - cardHeight,
-      width: contentWidth,
-      height: cardHeight,
-      color: warmPanel,
-      borderColor: lightGray,
-      borderWidth: 1,
-    });
+page.drawRectangle({
+  x: left,
+  y: y - cardHeight,
+  width: contentWidth,
+  height: cardHeight,
+  color: warmPanel,
+  borderColor: lightGray,
+  borderWidth: 1,
+});
 
-    page.drawText("Agreement", {
-      x: left + 24,
-      y: y - 34,
-      size: 10,
-      font: bold,
-      color: gray,
-    });
+page.drawText("Agreement", {
+  x: left + 24,
+  y: y - 34,
+  size: 10,
+  font: bold,
+  color: gray,
+});
 
-    page.drawText(contractTitle, {
-      x: left + 24,
-      y: y - 62,
-      size: 18,
-      font: bold,
-      color: black,
-    });
+const contractTitleLines = wrapText(contractTitle, bold, 15, 300).slice(0, 3);
 
-    page.drawText("Client", {
-      x: left + 24,
-      y: y - 92,
-      size: 10,
-      font: bold,
-      color: gray,
-    });
+contractTitleLines.forEach((line, index) => {
+  page.drawText(line, {
+    x: left + 24,
+    y: y - 62 - index * 19,
+    size: 15,
+    font: bold,
+    color: black,
+  });
+});
 
-    page.drawText(clientName, {
-      x: left + 76,
-      y: y - 92,
-      size: 10.5,
-      font: regular,
-      color: black,
-    });
+page.drawText("Client", {
+  x: left + 24,
+  y: y - 126,
+  size: 10,
+  font: bold,
+  color: gray,
+});
 
-    page.drawText("Status", {
-      x: 390,
-      y: y - 34,
-      size: 10,
-      font: bold,
-      color: gray,
-    });
+page.drawText(clientName, {
+  x: left + 76,
+  y: y - 126,
+  size: 10.5,
+  font: regular,
+  color: black,
+});
 
-    page.drawText(status, {
-      x: 390,
-      y: y - 58,
-      size: 13,
-      font: bold,
-      color: black,
-    });
+page.drawText("Status", {
+  x: 420,
+  y: y - 34,
+  size: 10,
+  font: bold,
+  color: gray,
+});
 
-    page.drawText("Signed Date", {
-      x: 390,
-      y: y - 86,
-      size: 10,
-      font: bold,
-      color: gray,
-    });
+page.drawText(status, {
+  x: 420,
+  y: y - 58,
+  size: 13,
+  font: bold,
+  color: black,
+});
 
-    page.drawText(signedDate, {
-      x: 390,
-      y: y - 108,
-      size: 10.5,
-      font: regular,
-      color: black,
-    });
+page.drawText("Signed Date", {
+  x: 420,
+  y: y - 92,
+  size: 10,
+  font: bold,
+  color: gray,
+});
+
+page.drawText(signedDate, {
+  x: 420,
+  y: y - 114,
+  size: 10.5,
+  font: regular,
+  color: black,
+});
+
 
     y -= cardHeight + 44;
 

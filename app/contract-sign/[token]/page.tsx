@@ -40,6 +40,8 @@ export default function ContractSignPage() {
 
   const token = useMemo(() => String(params?.token || ""), [params]);
 
+  const pdfPreviewUrl = `/api/contracts/pdf?token=${encodeURIComponent(String(token))}`;
+
   const [contract, setContract] = useState<SigningContract | null>(null);
   const [signedName, setSignedName] = useState("");
   const [signedEmail, setSignedEmail] = useState("");
@@ -305,35 +307,38 @@ export default function ContractSignPage() {
               </div>
             </div>
 
-            <div className="mt-5 rounded-[2.5rem] border border-white/10 bg-black/70 px-7 py-8">
-              <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
-                Contract Terms
-              </p>
+            <div className="mt-5 rounded-[2.5rem] border border-white/10 bg-black/70 p-6 sm:p-8">
+  <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
+    Contract Preview
+  </p>
 
-              <div className="mt-6 space-y-5 text-base leading-8 text-white/55">
-                <p>
-                  This agreement confirms photography services provided by
-                  Camvelle Creative. The client agrees to the session details,
-                  payment expectations, delivery terms, and usage rights
-                  connected to this booking.
-                </p>
+  <div className="mt-6 space-y-5 text-base leading-8 text-white/55">
+    <p>
+      Please review the full contract PDF below before signing. Your
+      electronic signature confirms that you have reviewed and accepted this
+      agreement.
+    </p>
+  </div>
 
-                {contract.notes ? (
-                  <p>{contract.notes}</p>
-                ) : (
-                  <p>
-                    Final images, delivery timing, payment terms, cancellation
-                    expectations, and project details are agreed upon between the
-                    client and Camvelle Creative.
-                  </p>
-                )}
+  <div className="mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white">
+    <iframe
+      src={pdfPreviewUrl}
+      title="Camvelle Creative Contract PDF"
+      className="h-[720px] w-full bg-white"
+    />
+  </div>
 
-                <p>
-                  By signing below, the client confirms they have reviewed this
-                  agreement and approve the terms for this photography service.
-                </p>
-              </div>
-            </div>
+  <a
+    href={pdfPreviewUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-5 inline-flex w-full items-center justify-center rounded-full border border-white/15 px-5 py-3 text-center text-xs font-semibold uppercase tracking-[0.3em] text-white hover:bg-white/10 sm:w-auto"
+  >
+    Open Contract PDF
+  </a>
+</div>
+
+            
 
             {alreadySigned ? (
               <div className="mt-6 rounded-[2.5rem] border border-emerald-400/20 bg-emerald-500/10 px-7 py-8">
