@@ -18,20 +18,14 @@ type Client = {
 
 const sections = ["overview", "clients", "bookings", "galleries", "finance"];
 
-const pagePanel =
-  "rounded-[3rem] border border-white/10 bg-white/[0.035] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_30px_90px_rgba(0,0,0,0.25)] backdrop-blur-[2px] transition duration-500 hover:border-white/20 hover:bg-white/[0.05]";
+const crystalPanel =
+  "rounded-[3rem] border border-white/10 bg-white/[0.035] shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-[1px] transition duration-500 hover:border-white/20 hover:bg-white/[0.05]";
 
-const innerPanel =
-  "rounded-[2.25rem] border border-white/10 bg-white/[0.025] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[2px]";
-
-const softPanel =
-  "rounded-[2rem] border border-white/10 bg-white/[0.025] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-[2px]";
+const crystalInner =
+  "rounded-[2rem] border border-white/10 bg-white/[0.025] shadow-[inset_0_0_40px_rgba(255,255,255,0.025)] backdrop-blur-[1px]";
 
 const creamButton =
   "rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02] hover:bg-white";
-
-const ghostButton =
-  "rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:border-white/25 hover:bg-white hover:text-black";
 
 export default function CalendarPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -206,12 +200,12 @@ export default function CalendarPage() {
 
       <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <div className={`mx-auto w-full p-8 text-center md:p-14 ${pagePanel}`}>
+          <div className={`mx-auto w-full p-8 text-center md:p-14 ${crystalPanel}`}>
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Calendar Management
             </p>
 
-            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
+            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-semibold leading-[0.9] tracking-[-0.08em] md:text-7xl">
               Studio
               <br />
               Schedule.
@@ -253,19 +247,19 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${pagePanel}`}>
+          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${crystalPanel}`}>
             <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                   30 Day Calendar
                 </p>
 
-                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                <h2 className="mt-6 text-5xl font-semibold tracking-[-0.07em] md:text-6xl">
                   Upcoming dates.
                 </h2>
               </div>
 
-              <div className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-white/50">
+              <div className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-white/45">
                 {scheduledClients.length} scheduled
               </div>
             </div>
@@ -276,7 +270,7 @@ export default function CalendarPage() {
               </div>
             )}
 
-            <div className={`mt-8 p-5 ${innerPanel}`}>
+            <div className={`mt-8 p-5 ${crystalInner}`}>
               <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-10">
                 {calendarDays.map((day) => {
                   const isSelected = selectedDate === day.key;
@@ -329,12 +323,12 @@ export default function CalendarPage() {
                 })}
               </div>
 
-              <div className={`mt-7 p-5 ${softPanel}`}>
+              <div className={`mt-7 p-5 ${crystalInner}`}>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
                   Selected Date
                 </p>
 
-                <h3 className="mt-3 text-3xl font-light tracking-[-0.05em]">
+                <h3 className="mt-3 text-3xl font-semibold tracking-[-0.05em]">
                   {formatDate(selectedDate)}
                 </h3>
 
@@ -346,7 +340,7 @@ export default function CalendarPage() {
                   )}
 
                   {selectedDateClients.map((client) => (
-                    <div key={client.id} className={`p-4 ${softPanel}`}>
+                    <div key={client.id} className={`p-4 ${crystalInner}`}>
                       <div className="flex items-start gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/60">
                           <UserRound size={16} />
@@ -355,7 +349,7 @@ export default function CalendarPage() {
                         <div className="min-w-0 flex-1">
                           <Link
                             href={`/dashboard/clients/${client.id}`}
-                            className="block text-xl font-light tracking-[-0.04em] text-white transition hover:text-white/75"
+                            className="block text-xl font-semibold tracking-[-0.04em] text-white transition hover:text-white/75"
                           >
                             {client.full_name || "Unnamed Client"}
                           </Link>
@@ -384,13 +378,13 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${pagePanel}`}>
+          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${crystalPanel}`}>
             <div>
               <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                 Unscheduled Clients
               </p>
 
-              <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+              <h2 className="mt-6 text-5xl font-semibold tracking-[-0.07em] md:text-6xl">
                 Add to calendar.
               </h2>
             </div>
@@ -398,7 +392,7 @@ export default function CalendarPage() {
             {loading && <p className="mt-10 text-white/50">Loading clients...</p>}
 
             {!loading && unscheduledClients.length === 0 && (
-              <div className={`mt-10 p-7 text-white/50 ${innerPanel}`}>
+              <div className={`mt-10 p-7 text-white/50 ${crystalInner}`}>
                 All clients have a scheduled date.
               </div>
             )}
@@ -410,7 +404,7 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={client.id}
-                    className={`mx-auto w-full max-w-3xl p-5 md:p-6 ${innerPanel}`}
+                    className={`mx-auto w-full max-w-3xl p-5 md:p-6 ${crystalInner}`}
                   >
                     <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
                       {String(index + 1).padStart(2, "0")} / Client
@@ -418,7 +412,7 @@ export default function CalendarPage() {
 
                     <Link
                       href={`/dashboard/clients/${client.id}`}
-                      className="mt-3 block text-3xl font-light tracking-[-0.06em] text-white transition hover:text-white/75 md:text-4xl"
+                      className="mt-3 block text-3xl font-semibold tracking-[-0.06em] text-white transition hover:text-white/75 md:text-4xl"
                     >
                       {client.full_name || "Unnamed Client"}
                     </Link>
@@ -428,7 +422,7 @@ export default function CalendarPage() {
                       <p>{client.phone || "No phone"}</p>
                     </div>
 
-                    <div className={`mt-6 p-5 ${softPanel}`}>
+                    <div className={`mt-6 p-5 ${crystalInner}`}>
                       <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
                         Schedule Date
                       </label>
