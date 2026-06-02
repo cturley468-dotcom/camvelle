@@ -1,7 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import {
+  CamvelleBody,
+  CamvelleEyebrow,
+  CamvelleHeading,
+  CamvelleInnerPanel,
+  CamvelleInput,
+  CamvellePageShell,
+  CamvellePanel,
+  CamvelleProgressBar,
+  CamvelleStatusPill,
+  camvelleCreamButton,
+} from "../components/CamvelleUI";
 
 type StatusResult = {
   found: boolean;
@@ -18,34 +31,6 @@ type StatusResult = {
   galleryUrl?: string;
   photoNotes?: string;
 };
-
-function statusClass(status: string | undefined) {
-  if (
-    status === "Signed" ||
-    status === "Paid" ||
-    status === "Received" ||
-    status === "Gallery Ready"
-  ) {
-    return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200";
-  }
-
-  if (status === "Sent" || status === "Editing" || status === "Uploading") {
-    return "border-sky-400/30 bg-sky-400/10 text-sky-200";
-  }
-
-  if (status === "Draft" || status === "Photos Received") {
-    return "border-amber-400/30 bg-amber-400/10 text-amber-200";
-  }
-
-  return "border-white/10 bg-white/5 text-white/45";
-}
-
-const crystalBubble =
-  "rounded-[2.8rem] border border-white/15 bg-gradient-to-br from-white/[0.14] via-white/[0.045] to-black/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_30px_100px_rgba(0,0,0,0.75)] backdrop-blur-3xl";
-
-const crystalCard =
-  "rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/[0.10] via-white/[0.035] to-black/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-2xl";
-
 
 export default function ClientStatusPage() {
   const [email, setEmail] = useState("");
@@ -87,223 +72,198 @@ export default function ClientStatusPage() {
   const progress = Math.max(0, Math.min(100, Number(result?.photoProgress || 0)));
 
   return (
-    <main
-      className="min-h-screen bg-[#020202] bg-cover bg-center bg-fixed px-5 py-7 text-white sm:px-8"
-      style={{
-        backgroundImage:
-          "linear-gradient(to bottom, rgba(0,0,0,.15), rgba(0,0,0,.92)), url('/backgrounds/camvelle-background.png')",
-      }}
-    >
-      <div className="mx-auto max-w-4xl">
-        <header className="mb-8 flex items-center justify-between gap-4">
-          <Link href="/" className="text-xs uppercase tracking-[0.45em] text-white/50">
-            Camvelle Creative
-          </Link>
+    <CamvellePageShell>
+      <header className="mb-10 flex items-center justify-between gap-4">
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/branding/camvelle-logo.png"
+            alt="Camvelle Creative"
+            width={420}
+            height={120}
+            priority
+            unoptimized
+            className="h-14 w-auto object-contain sm:h-16 md:h-20"
+          />
+        </Link>
 
-          <Link
-            href="/"
-            className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.3em] text-white backdrop-blur-2xl"
+        <Link href="/" className={camvelleCreamButton}>
+          Home
+        </Link>
+      </header>
+
+      <CamvellePanel className="p-8 sm:p-10 md:p-14">
+        <CamvelleEyebrow>Camvelle Creative</CamvelleEyebrow>
+
+        <CamvelleHeading>
+          Booking
+          <br />
+          Status
+        </CamvelleHeading>
+
+        <CamvelleBody>
+          Enter the email used on your booking request to view your current
+          project status, contract progress, invoice status, and photo delivery
+          update.
+        </CamvelleBody>
+
+        <form onSubmit={handleSubmit} className="mt-10 space-y-5">
+          <label className="block">
+            <span className="mb-3 block text-[11px] uppercase tracking-[0.45em] text-white/35">
+              Email Address
+            </span>
+
+            <CamvelleInput
+              type="email"
+              required
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className={`${camvelleCreamButton} w-full disabled:cursor-not-allowed disabled:opacity-60`}
           >
-            Home
-          </Link>
-        </header>
+            {loading ? "Checking..." : "Check Status"}
+          </button>
+        </form>
 
-        <section className={`mt-6 ${crystalBubble} p-7 sm:p-10`}>
-          <p className="mb-5 text-xs uppercase tracking-[0.45em] text-white/40">
-            Camvelle Creative
-          </p>
+        {notice && (
+          <div className="mt-6 rounded-[2rem] border border-red-400/20 bg-red-400/10 p-5 text-sm leading-7 text-red-100">
+            {notice}
+          </div>
+        )}
+      </CamvellePanel>
 
-          <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-            Booking Status
-          </h1>
+      {result && (
+        <CamvellePanel className="mt-8 p-8 sm:p-10 md:p-14">
+          {!result.found ? (
+            <div>
+              <CamvelleEyebrow>Status</CamvelleEyebrow>
 
-          <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
-            Enter the email used on your booking request to view your current
-            status, contract progress, invoice status, and photo delivery update.
-          </p>
+              <h2 className="mt-6 text-4xl font-light tracking-[-0.06em] text-white">
+                No status found.
+              </h2>
 
-          <form onSubmit={handleSubmit} className="mt-9 space-y-4">
-            <label className="block">
-              <span className="mb-2 block text-xs uppercase tracking-[0.3em] text-white/40">
-                Email Address
-              </span>
+              <p className="mt-5 text-base leading-8 text-white/55">
+                {result.message}
+              </p>
+            </div>
+          ) : (
+            <div>
+              <CamvelleEyebrow>Status Found</CamvelleEyebrow>
 
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-[1.4rem] border border-white/20 bg-white/90 px-5 py-4 text-black outline-none placeholder:text-black/35 focus:border-white"
-              />
-            </label>
+              <h2 className="mt-6 text-5xl font-light leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
+                {result.clientName}
+              </h2>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-full bg-white px-6 py-4 text-sm font-bold uppercase tracking-[0.35em] text-black transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Checking..." : "Check Status"}
-            </button>
-          </form>
+              <p className="mt-5 text-base leading-8 text-white/50">
+                {result.sessionType}
+              </p>
 
-          {notice && (
-            <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-200">
-              {notice}
+              <div className="mt-10 grid gap-5 md:grid-cols-3">
+                <CamvelleInnerPanel className="p-6">
+                  <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
+                    Booking
+                  </p>
+
+                  <div className="mt-5">
+                    <CamvelleStatusPill status={result.bookingStatus} />
+                  </div>
+                </CamvelleInnerPanel>
+
+                <CamvelleInnerPanel className="p-6">
+                  <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
+                    Contract
+                  </p>
+
+                  <div className="mt-5">
+                    <CamvelleStatusPill status={result.contractStatus} />
+                  </div>
+                </CamvelleInnerPanel>
+
+                <CamvelleInnerPanel className="p-6">
+                  <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
+                    Invoice
+                  </p>
+
+                  <div className="mt-5">
+                    <CamvelleStatusPill status={result.invoiceStatus} />
+                  </div>
+                </CamvelleInnerPanel>
+              </div>
+
+              <CamvelleInnerPanel className="mt-6 p-7 sm:p-8">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
+                      Photo Delivery
+                    </p>
+
+                    <h3 className="mt-5 text-4xl font-light tracking-[-0.06em] text-white">
+                      {result.photoStatus || "Not Started"}
+                    </h3>
+                  </div>
+
+                  <CamvelleStatusPill status={`${progress}%`} />
+                </div>
+
+                <CamvelleProgressBar progress={progress} />
+
+                <div className="mt-8 grid gap-6 md:grid-cols-2">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
+                      Estimated Delivery
+                    </p>
+
+                    <p className="mt-3 text-base leading-7 text-white/55">
+                      {result.estimatedDelivery || "Not listed"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.4em] text-white/30">
+                      Gallery
+                    </p>
+
+                    {result.galleryUrl ? (
+                      <a
+                        href={result.galleryUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex text-base font-semibold text-white underline underline-offset-4"
+                      >
+                        Open Gallery
+                      </a>
+                    ) : (
+                      <p className="mt-3 text-base leading-7 text-white/55">
+                        Not available yet
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {result.photoNotes && (
+                  <p className="mt-8 text-base leading-8 text-white/50">
+                    {result.photoNotes}
+                  </p>
+                )}
+              </CamvelleInnerPanel>
+
+              <p className="mt-8 text-sm leading-7 text-white/40">
+                Last updated: {result.lastUpdated}
+              </p>
+
+              <p className="mt-4 text-sm leading-7 text-white/45">
+                For questions or updates, reply to your Camvelle Creative email
+                thread.
+              </p>
             </div>
           )}
-        </section>
-
-        {result && (
-          <section className={`${crystalBubble} p-7 sm:p-10`}>
-            {!result.found ? (
-              <div>
-                <p className="text-xl font-semibold text-white">
-                  No status found
-                </p>
-
-                <p className="mt-4 text-sm leading-7 text-white/55">
-                  {result.message}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-xs uppercase tracking-[0.45em] text-white/40">
-                  Status Found
-                </p>
-
-                <h2 className="mt-5 text-4xl font-semibold text-white">
-                  {result.clientName}
-                </h2>
-
-                <p className="mt-3 text-sm leading-7 text-white/50">
-                  {result.sessionType}
-                </p>
-
-                <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/35">
-                      Booking
-                    </p>
-
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
-                        result.bookingStatus
-                      )}`}
-                    >
-                      {result.bookingStatus}
-                    </span>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/35">
-                      Contract
-                    </p>
-
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
-                        result.contractStatus
-                      )}`}
-                    >
-                      {result.contractStatus}
-                    </span>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/35">
-                      Invoice
-                    </p>
-
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
-                        result.invoiceStatus
-                      )}`}
-                    >
-                      {result.invoiceStatus}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={`mt-6 ${crystalCard} p-6`}>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.35em] text-white/35">
-                        Photo Delivery
-                      </p>
-
-                      <h3 className="mt-3 text-2xl font-semibold text-white">
-                        {result.photoStatus || "Not Started"}
-                      </h3>
-                    </div>
-
-                    <span
-                      className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
-                        result.photoStatus
-                      )}`}
-                    >
-                      {progress}%
-                    </span>
-                  </div>
-
-                  <div className="mt-6 h-3 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-white transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-
-                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-white/30">
-                        Estimated Delivery
-                      </p>
-                      <p className="mt-2 text-sm text-white/60">
-                        {result.estimatedDelivery || "Not listed"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-white/30">
-                        Gallery
-                      </p>
-
-                      {result.galleryUrl ? (
-                        <a
-                          href={result.galleryUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex text-sm font-semibold text-white underline underline-offset-4"
-                        >
-                          Open Gallery
-                        </a>
-                      ) : (
-                        <p className="mt-2 text-sm text-white/60">
-                          Not available yet
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {result.photoNotes && (
-                    <p className="mt-5 text-sm leading-7 text-white/50">
-                      {result.photoNotes}
-                    </p>
-                  )}
-                </div>
-
-                <p className="mt-8 text-sm leading-7 text-white/40">
-                  Last updated: {result.lastUpdated}
-                </p>
-
-                <p className="mt-4 text-sm leading-7 text-white/45">
-                  For questions or updates, reply to your Camvelle Creative
-                  email thread.
-                </p>
-              </div>
-            )}
-          </section>
-        )}
-      </div>
-    </main>
+        </CamvellePanel>
+      )}
+    </CamvellePageShell>
   );
 }
