@@ -104,37 +104,47 @@ export async function POST(request: Request) {
   "portrait"
 );
 
-const contractTypeMap: Record<string, ContractType> = {
-  proposal: "proposal",
-  proposals: "proposal",
-  engagement: "engagement",
-  couples: "couples",
-  couple: "couples",
-  family: "family",
-  families: "family",
-  portrait: "portrait",
-  portraits: "portrait",
-  business: "business",
-  branding: "business",
-  "business branding": "business",
-  realestate: "real-estate",
-  "real estate": "real-estate",
-  "real-estate": "real-estate",
-  automotive: "automotive",
-  auto: "automotive",
-  events: "events",
-  event: "events",
-  wedding: "wedding",
-  weddings: "wedding",
-};
+const normalizedContractType = rawContractType
+  .toLowerCase()
+  .trim()
+  .replace(/_/g, "-");
 
-const normalizedContractType =
-  rawContractType.toLowerCase().trim().replace(/_/g, "-");
+let contractType: ContractType = "portrait";
 
-const contractType =
-  contractTypeMap[normalizedContractType] ||
-  contractTypeMap[normalizedContractType.replace(/-/g, " ")] ||
-  "portrait";
+if (normalizedContractType.includes("proposal")) {
+  contractType = "proposal";
+} else if (normalizedContractType.includes("engagement")) {
+  contractType = "engagement";
+} else if (normalizedContractType.includes("couple")) {
+  contractType = "couples";
+} else if (normalizedContractType.includes("family")) {
+  contractType = "family";
+} else if (normalizedContractType.includes("portrait")) {
+  contractType = "portrait";
+} else if (
+  normalizedContractType.includes("business") ||
+  normalizedContractType.includes("branding")
+) {
+  contractType = "business";
+} else if (
+  normalizedContractType.includes("real-estate") ||
+  normalizedContractType.includes("real estate") ||
+  normalizedContractType.includes("realestate")
+) {
+  contractType = "real-estate";
+} else if (
+  normalizedContractType.includes("automotive") ||
+  normalizedContractType.includes("auto")
+) {
+  contractType = "automotive";
+} else if (normalizedContractType.includes("event")) {
+  contractType = "events";
+} else if (normalizedContractType.includes("wedding")) {
+  contractType = "wedding";
+}
+console.log("Contract Type:", rawContractType);
+console.log("Normalized:", normalizedContractType);
+console.log("Matched:", contractType);
 
 
     if (!clientEmail) {
