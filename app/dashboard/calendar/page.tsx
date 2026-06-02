@@ -6,6 +6,17 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { CalendarPlus, Save, UserRound, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import {
+  CamvellePageShell,
+  CamvellePanel,
+  CamvelleInnerPanel,
+  CamvelleEyebrow,
+  CamvelleHeading,
+  CamvelleBody,
+  CamvelleStatusPill,
+  camvelleCreamButton,
+  camvelleGhostButton,
+} from "@/app/components/CamvelleUI";
 
 type Client = {
   id: string;
@@ -17,15 +28,6 @@ type Client = {
 };
 
 const sections = ["overview", "clients", "bookings", "galleries", "finance"];
-
-const crystalPanel =
-  "rounded-[3rem] border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_0_70px_rgba(255,255,255,0.025),0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-[1px] transition duration-500 hover:border-white/20 hover:bg-black/30";
-
-const crystalInner =
-  "rounded-[2rem] border border-white/10 bg-black/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_40px_rgba(255,255,255,0.02)] backdrop-blur-[1px]";
-
-  const creamButton =
-  "rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02] hover:bg-white";
 
 export default function CalendarPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -160,27 +162,8 @@ export default function CalendarPage() {
   }, [scheduledClients]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      <div className="pointer-events-none fixed inset-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{
-            backgroundImage: "url('/backgrounds/camvelle-background.png')",
-          }}
-        />
-
-        <div className="absolute inset-0 bg-black/40"/>
-
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
-          }}
-        />
-      </div>
-
-      <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
+    <CamvellePageShell>
+      <header className="mb-10 flex items-center justify-between gap-4">
         <Link href="/dashboard" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
@@ -193,281 +176,273 @@ export default function CalendarPage() {
           />
         </Link>
 
-        <button type="button" onClick={handleLogout} className={creamButton}>
+        <button type="button" onClick={handleLogout} className={camvelleCreamButton}>
           Logout
         </button>
       </header>
 
-      <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
-        <div className="mx-auto w-full max-w-7xl">
-          <div className={`mx-auto w-full p-8 text-center md:p-14 ${crystalPanel}`}>
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-              Calendar Management
-            </p>
+      <CamvellePanel className="p-7 text-center sm:p-10 md:p-14">
+        <CamvelleEyebrow>Calendar Management</CamvelleEyebrow>
 
-            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-semibold leading-[0.9] tracking-[-0.08em] md:text-7xl">
-              Studio
+        <CamvelleHeading>
+          Studio
+          <br />
+          Schedule.
+        </CamvelleHeading>
+
+        <CamvelleBody>View upcoming sessions.</CamvelleBody>
+
+        <div className="mx-auto mt-12 w-full max-w-xl text-left">
+          <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
+            Navigate
+          </label>
+
+          <select
+            defaultValue="calendar"
+            onChange={(e) => {
+              if (e.target.value === "overview") {
+                window.location.href = "/dashboard";
+                return;
+              }
+
+              if (e.target.value) {
+                window.location.href = `/dashboard/${e.target.value}`;
+              }
+            }}
+            className="w-full rounded-full border border-white/10 bg-black/20 px-7 py-5 text-[11px] font-bold uppercase tracking-[0.35em] text-white outline-none transition hover:border-white/20 hover:bg-black/30"
+          >
+            <option value="calendar" className="bg-black">
+              Calendar
+            </option>
+
+            {sections.map((section) => (
+              <option key={section} value={section} className="bg-black">
+                {section}
+              </option>
+            ))}
+          </select>
+        </div>
+      </CamvellePanel>
+
+      <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <CamvelleEyebrow>30 Day Calendar</CamvelleEyebrow>
+
+            <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
+              Upcoming
               <br />
-              Schedule.
-            </h1>
+              dates.
+            </h2>
 
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              View upcoming sessions.
+            <p className="mt-6 max-w-2xl text-base leading-8 text-white/55">
+              Click a date to view scheduled clients. Add unscheduled clients
+              below.
             </p>
-
-            <div className="mx-auto mt-14 w-full max-w-sm">
-              <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
-                Navigate
-              </label>
-
-              <select
-                defaultValue="calendar"
-                onChange={(e) => {
-                  if (e.target.value === "overview") {
-                    window.location.href = "/dashboard";
-                    return;
-                  }
-
-                  if (e.target.value) {
-                    window.location.href = `/dashboard/${e.target.value}`;
-                  }
-                }}
-                className="w-full rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[11px] uppercase tracking-[0.35em] text-white outline-none transition duration-500 hover:border-white/20 hover:bg-white/[0.05]"
-              >
-                <option value="calendar" className="bg-black">
-                  Calendar
-                </option>
-
-                {sections.map((section) => (
-                  <option key={section} value={section} className="bg-black">
-                    {section}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
-          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${crystalPanel}`}>
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  30 Day Calendar
-                </p>
+          <CamvelleStatusPill status={`${scheduledClients.length} Scheduled`} />
+        </div>
 
-                <h2 className="mt-6 text-5xl font-semibold tracking-[-0.07em] md:text-6xl">
-                  Upcoming dates.
-                </h2>
-              </div>
+        {notice && (
+          <div className="mt-8 rounded-[2rem] border border-emerald-400/20 bg-emerald-400/10 p-5 text-center text-sm text-emerald-100">
+            {notice}
+          </div>
+        )}
 
-              <div className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-white/45">
-                {scheduledClients.length} scheduled
-              </div>
-            </div>
+        <CamvelleInnerPanel className="mt-8 p-5 sm:p-6">
+          <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-10">
+            {calendarDays.map((day) => {
+              const isSelected = selectedDate === day.key;
+              const count = clientCountByDate[day.key] || 0;
 
-            {notice && (
-              <div className="mt-8 rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
-                {notice}
-              </div>
-            )}
+              return (
+                <button
+                  key={day.key}
+                  type="button"
+                  onClick={() => setSelectedDate(day.key)}
+                  className={`min-h-[82px] rounded-[1.5rem] border p-3 text-left transition ${
+                    isSelected
+                      ? "border-white bg-[#f5f0e7] text-black"
+                      : "border-white/10 bg-black/20 text-white/65 hover:border-white/25 hover:bg-black/30"
+                  }`}
+                >
+                  <p
+                    className={`text-[9px] uppercase tracking-[0.22em] ${
+                      isSelected ? "text-black/50" : "text-white/35"
+                    }`}
+                  >
+                    {day.weekday}
+                  </p>
 
-            <div className={`mt-8 p-5 ${crystalInner}`}>
-              <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-10">
-                {calendarDays.map((day) => {
-                  const isSelected = selectedDate === day.key;
-                  const count = clientCountByDate[day.key] || 0;
+                  <p className="mt-2 text-2xl font-light leading-none">
+                    {day.dayNumber}
+                  </p>
 
-                  return (
-                    <button
-                      key={day.key}
-                      type="button"
-                      onClick={() => setSelectedDate(day.key)}
-                      className={`min-h-[82px] rounded-[1.5rem] border p-3 text-left transition ${
-                        isSelected
-                          ? "border-white bg-[#f5f0e7] text-black"
-                          : "border-white/10 bg-white/[0.025] text-white/65 hover:border-white/25 hover:bg-white/[0.06]"
+                  <p
+                    className={`mt-1 text-[9px] uppercase tracking-[0.2em] ${
+                      isSelected ? "text-black/50" : "text-white/30"
+                    }`}
+                  >
+                    {day.month}
+                  </p>
+
+                  {count > 0 && (
+                    <span
+                      className={`mt-3 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${
+                        isSelected ? "bg-black text-white" : "bg-[#f5f0e7] text-black"
                       }`}
                     >
-                      <p
-                        className={`text-[9px] uppercase tracking-[0.22em] ${
-                          isSelected ? "text-black/50" : "text-white/35"
-                        }`}
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <CamvelleInnerPanel className="mt-7 p-5">
+            <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+              Selected Date
+            </p>
+
+            <h3 className="mt-3 text-3xl font-light tracking-[-0.05em]">
+              {formatDate(selectedDate)}
+            </h3>
+
+            <div className="mt-5 grid gap-3">
+              {selectedDateClients.length === 0 && (
+                <p className="text-sm leading-7 text-white/45">
+                  No clients scheduled for this date.
+                </p>
+              )}
+
+              {selectedDateClients.map((client) => (
+                <div
+                  key={client.id}
+                  className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/60">
+                      <UserRound size={16} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/dashboard/clients/${client.id}`}
+                        className="text-xl font-light tracking-[-0.04em] text-white transition hover:text-white/70"
                       >
-                        {day.weekday}
+                        {client.full_name || "Unnamed Client"}
+                      </Link>
+
+                      <p className="mt-1 break-words text-sm text-white/45">
+                        {client.email || "No email"}
                       </p>
 
-                      <p className="mt-2 text-2xl font-light leading-none">
-                        {day.dayNumber}
+                      <p className="text-sm text-white/45">
+                        {client.phone || "No phone"}
                       </p>
+                    </div>
 
-                      <p
-                        className={`mt-1 text-[9px] uppercase tracking-[0.2em] ${
-                          isSelected ? "text-black/50" : "text-white/30"
-                        }`}
-                      >
-                        {day.month}
-                      </p>
+                    <IconButton
+                      label="Remove Schedule"
+                      icon={<X size={15} />}
+                      onClick={() => removeClientSchedule(client)}
+                      disabled={savingId === client.id}
+                      danger
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CamvelleInnerPanel>
+        </CamvelleInnerPanel>
+      </CamvellePanel>
 
-                      {count > 0 && (
-                        <span
-                          className={`mt-3 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${
-                            isSelected
-                              ? "bg-black text-white"
-                              : "bg-[#f5f0e7] text-black"
-                          }`}
-                        >
-                          {count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+      <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
+        <CamvelleEyebrow>Unscheduled Clients</CamvelleEyebrow>
 
-              <div className={`mt-7 p-5 ${crystalInner}`}>
-                <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-                  Selected Date
+        <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
+          Add to
+          <br />
+          calendar.
+        </h2>
+
+        {loading && <p className="mt-10 text-white/50">Loading clients...</p>}
+
+        {!loading && unscheduledClients.length === 0 && (
+          <CamvelleInnerPanel className="mt-10 p-7 text-white/50">
+            All clients have a scheduled date.
+          </CamvelleInnerPanel>
+        )}
+
+        <div className="mt-10 grid gap-4">
+          {unscheduledClients.map((client, index) => {
+            const draftDate = scheduleDrafts[client.id] || selectedDate;
+
+            return (
+              <CamvelleInnerPanel
+                key={client.id}
+                className="mx-auto w-full max-w-3xl p-5 transition hover:border-white/20 md:p-6"
+              >
+                <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                  {String(index + 1).padStart(2, "0")} / Client
                 </p>
 
-                <h3 className="mt-3 text-3xl font-semibold tracking-[-0.05em]">
-                  {formatDate(selectedDate)}
-                </h3>
+                <Link
+                  href={`/dashboard/clients/${client.id}`}
+                  className="mt-3 block text-3xl font-light tracking-[-0.06em] text-white transition hover:text-white/70 md:text-4xl"
+                >
+                  {client.full_name || "Unnamed Client"}
+                </Link>
 
-                <div className="mt-5 grid gap-3">
-                  {selectedDateClients.length === 0 && (
-                    <p className="text-sm leading-7 text-white/45">
-                      No clients scheduled for this date.
-                    </p>
-                  )}
-
-                  {selectedDateClients.map((client) => (
-                    <div key={client.id} className={`p-4 ${crystalInner}`}>
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/60">
-                          <UserRound size={16} />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-                          <Link
-                            href={`/dashboard/clients/${client.id}`}
-                            className="block text-xl font-semibold tracking-[-0.04em] text-white transition hover:text-white/75"
-                          >
-                            {client.full_name || "Unnamed Client"}
-                          </Link>
-
-                          <p className="mt-1 break-words text-sm text-white/45">
-                            {client.email || "No email"}
-                          </p>
-
-                          <p className="text-sm text-white/45">
-                            {client.phone || "No phone"}
-                          </p>
-                        </div>
-
-                        <IconButton
-                          label="Remove Schedule"
-                          icon={<X size={15} />}
-                          onClick={() => removeClientSchedule(client)}
-                          disabled={savingId === client.id}
-                          danger
-                        />
-                      </div>
-                    </div>
-                  ))}
+                <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
+                  <p>{client.email || "No email"}</p>
+                  <p>{client.phone || "No phone"}</p>
                 </div>
-              </div>
-            </div>
-          </div>
 
-          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${crystalPanel}`}>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                Unscheduled Clients
-              </p>
+                <CamvelleInnerPanel className="mt-6 p-5">
+                  <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                    Schedule Date
+                  </label>
 
-              <h2 className="mt-6 text-5xl font-semibold tracking-[-0.07em] md:text-6xl">
-                Add to calendar.
-              </h2>
-            </div>
+                  <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <input
+                      type="date"
+                      value={draftDate}
+                      onChange={(e) =>
+                        setScheduleDrafts({
+                          ...scheduleDrafts,
+                          [client.id]: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-full border border-white/10 bg-black/20 px-5 py-4 text-white outline-none transition hover:border-white/20"
+                    />
 
-            {loading && <p className="mt-10 text-white/50">Loading clients...</p>}
-
-            {!loading && unscheduledClients.length === 0 && (
-              <div className={`mt-10 p-7 text-white/50 ${crystalInner}`}>
-                All clients have a scheduled date.
-              </div>
-            )}
-
-            <div className="mt-10 grid gap-4">
-              {unscheduledClients.map((client, index) => {
-                const draftDate = scheduleDrafts[client.id] || selectedDate;
-
-                return (
-                  <div
-                    key={client.id}
-                    className={`mx-auto w-full max-w-3xl p-5 md:p-6 ${crystalInner}`}
-                  >
-                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                      {String(index + 1).padStart(2, "0")} / Client
-                    </p>
-
-                    <Link
-                      href={`/dashboard/clients/${client.id}`}
-                      className="mt-3 block text-3xl font-semibold tracking-[-0.06em] text-white transition hover:text-white/75 md:text-4xl"
-                    >
-                      {client.full_name || "Unnamed Client"}
-                    </Link>
-
-                    <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
-                      <p>{client.email || "No email"}</p>
-                      <p>{client.phone || "No phone"}</p>
-                    </div>
-
-                    <div className={`mt-6 p-5 ${crystalInner}`}>
-                      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                        Schedule Date
-                      </label>
-
-                      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                        <input
-                          type="date"
-                          value={draftDate}
-                          onChange={(e) =>
-                            setScheduleDrafts({
-                              ...scheduleDrafts,
-                              [client.id]: e.target.value,
-                            })
-                          }
-                          className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-white outline-none transition hover:border-white/20 hover:bg-white/[0.05]"
-                        />
-
-                        <IconButton
-                          label={
-                            savingId === client.id ? "Saving" : "Schedule Client"
-                          }
-                          icon={
-                            savingId === client.id ? (
-                              <Save size={16} />
-                            ) : (
-                              <CalendarPlus size={16} />
-                            )
-                          }
-                          onClick={() => scheduleClient(client, draftDate)}
-                          disabled={savingId === client.id}
-                        />
-                      </div>
-
-                      <p className="mt-4 text-sm leading-7 text-white/45">
-                        This will move the client into the selected calendar date.
-                      </p>
-                    </div>
+                    <IconButton
+                      label={savingId === client.id ? "Saving" : "Schedule Client"}
+                      icon={
+                        savingId === client.id ? (
+                          <Save size={16} />
+                        ) : (
+                          <CalendarPlus size={16} />
+                        )
+                      }
+                      onClick={() => scheduleClient(client, draftDate)}
+                      disabled={savingId === client.id}
+                    />
                   </div>
-                );
-              })}
-            </div>
-          </div>
+
+                  <p className="mt-4 text-sm leading-7 text-white/45">
+                    This will move the client into the selected calendar date.
+                  </p>
+                </CamvelleInnerPanel>
+              </CamvelleInnerPanel>
+            );
+          })}
         </div>
-      </section>
-    </main>
+      </CamvellePanel>
+    </CamvellePageShell>
   );
 }
 
@@ -528,10 +503,10 @@ function IconButton({
       onClick={onClick}
       title={label}
       disabled={disabled}
-      className={`flex h-12 w-12 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-50 ${
         danger
           ? "border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-          : "border-white/10 bg-white/[0.035] text-white/65 hover:bg-white hover:text-black"
+          : "border-white/10 bg-black/20 text-white/65 hover:bg-[#f5f0e7] hover:text-black"
       }`}
     >
       {icon}
