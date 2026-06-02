@@ -17,6 +17,17 @@ import {
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import {
+  CamvelleBody,
+  CamvelleEyebrow,
+  CamvelleHeading,
+  CamvelleInnerPanel,
+  CamvellePageShell,
+  CamvellePanel,
+  camvelleCreamButton,
+  camvelleGhostButton,
+  camvelleInnerPanel,
+} from "../components/CamvelleUI";
 
 type Inquiry = {
   id: string;
@@ -163,28 +174,9 @@ export default function DashboardPage() {
   }, [clients]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      <div className="pointer-events-none fixed inset-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{
-            backgroundImage: "url('/backgrounds/camvelle-background.png')",
-          }}
-        />
-
-        <div className="absolute inset-0 bg-black/35" />
-
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
-          }}
-        />
-      </div>
-
-      <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
-        <Link href="/" className="flex items-center">
+    <CamvellePageShell>
+      <header className="relative z-[9999] mb-10 flex items-center justify-between gap-4">
+        <Link href="/dashboard" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
             alt="Camvelle Creative"
@@ -192,226 +184,214 @@ export default function DashboardPage() {
             height={120}
             priority
             unoptimized
-            className="h-12 w-auto object-contain md:h-16 lg:h-20 xl:h-24"
+            className="h-14 w-auto object-contain sm:h-16 md:h-20"
           />
         </Link>
 
         <button
           type="button"
           onClick={handleLogout}
-          className="flex items-center gap-3 rounded-full border border-white/10 bg-[#f5f0e7] px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-black transition hover:scale-[1.02]"
+          className={`${camvelleCreamButton} inline-flex items-center gap-3`}
         >
           <LogOut size={15} />
           Logout
         </button>
       </header>
 
-      <section className="relative z-10 px-4 pb-24 pt-4 md:px-10">
-        <div className="mx-auto w-full max-w-7xl">
-          <div className="rounded-[3rem] border border-white/10 bg-white/[0.015] p-8 text-center shadow-[inset_0_0_60px_rgba(255,255,255,0.02)] backdrop-blur-[1px] md:p-14">
-            <p className="text-[11px] uppercase tracking-[0.6em] text-white/35">
-              Camvelle Studio HQ
-            </p>
+      <CamvellePanel className="p-8 text-center sm:p-10 md:p-14">
+        <CamvelleEyebrow>Camvelle Studio HQ</CamvelleEyebrow>
 
-            <h1 className="mx-auto mt-8 max-w-5xl text-6xl font-light leading-[0.88] tracking-[-0.09em] md:text-8xl">
-              Studio
-              <br />
-              Dashboard
-            </h1>
+        <CamvelleHeading>
+          Studio
+          <br />
+          Dashboard
+        </CamvelleHeading>
 
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/45">
-              Business operations overview.
-            </p>
+        <CamvelleBody>Business operations overview.</CamvelleBody>
 
-            <div className="mx-auto mt-12 max-w-3xl">
-              <label className="mb-3 block text-left text-[11px] uppercase tracking-[0.35em] text-white/35">
-                Navigate
-              </label>
+        <div className="mx-auto mt-12 max-w-3xl">
+          <label className="mb-3 block text-left text-[11px] uppercase tracking-[0.35em] text-white/35">
+            Navigate
+          </label>
 
-              <select
-                defaultValue=""
-                onChange={(e) => {
-                  if (e.target.value) {
-                    window.location.href = `/dashboard/${e.target.value}`;
-                  }
-                }}
-                className="w-full rounded-full border border-white/10 bg-black/45 px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-white outline-none backdrop-blur-xl transition hover:border-white/20"
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) {
+                window.location.href = `/dashboard/${e.target.value}`;
+              }
+            }}
+            className="w-full rounded-full border border-white/10 bg-black/45 px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-white outline-none backdrop-blur-xl transition hover:border-white/20"
+          >
+            <option value="" className="bg-black">
+              Select Page
+            </option>
+
+            {sections.map((section) => (
+              <option
+                key={section.value}
+                value={section.value}
+                className="bg-black"
               >
-                <option value="" className="bg-black">
-                  Select Page
-                </option>
+                {section.label}
+              </option>
+            ))}
+          </select>
 
-                {sections.map((section) => (
-                  <option
-                    key={section.value}
-                    value={section.value}
-                    className="bg-black"
-                  >
-                    {section.label}
-                  </option>
-                ))}
-              </select>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <Link href="/dashboard/clients" className={camvelleGhostButton}>
+              Clients
+            </Link>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Link
-                  href="/dashboard/clients"
-                  className="rounded-full border border-white/10 bg-black/45 px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-                >
-                  Clients
-                </Link>
-
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              title="Inquiries"
-              value={loading ? "..." : String(inquiries.length)}
-              detail="Incoming booking interest"
-              icon={<Inbox size={18} />}
-            />
-
-            <StatCard
-              title="Clients"
-              value={loading ? "..." : String(clients.length)}
-              detail="Saved client files"
-              icon={<Users size={18} />}
-            />
-
-            <StatCard
-              title="Outstanding"
-              value={loading ? "..." : formatMoney(outstandingTotal)}
-              detail="Unpaid invoice balance"
-              icon={<Wallet size={18} />}
-            />
-
-            <StatCard
-              title="Signed"
-              value={loading ? "..." : String(signedContracts)}
-              detail="Completed agreements"
-              icon={<CheckCircle size={18} />}
-            />
-          </div>
-
-          <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <DashboardCard
-              href="/dashboard/clients"
-              title="Clients"
-              value={String(clients.length)}
-              description="Manage client records, session notes, invoices, and contracts."
-              icon={<Users size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/bookings"
-              title="Bookings"
-              value={String(inquiries.length)}
-              description="Review incoming inquiries and move leads toward confirmed sessions."
-              icon={<Inbox size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/calendar"
-              title="Calendar"
-              value={`${scheduledClients}`}
-              description="Track scheduled clients and upcoming session dates."
-              icon={<Calendar size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/invoices"
-              title="Invoices"
-              value={formatMoney(invoiceTotal)}
-              description={`${openInvoices} open invoice${
-                openInvoices === 1 ? "" : "s"
-              } currently tracked.`}
-              icon={<ReceiptText size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/contracts"
-              title="Contracts"
-              value={`${signedContracts}/${contracts.length}`}
-              description="Send agreements, monitor signatures, and access signed PDFs."
-              icon={<FileSignature size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/galleries"
-              title="Galleries"
-              value="Manage"
-              description="Upload, organize, and prepare gallery content for delivery."
-              icon={<GalleryVerticalEnd size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/finance"
-              title="Finance"
-              value={formatMoney(estimatedRevenue)}
-              description="Estimate future revenue and review business performance."
-              icon={<Wallet size={18} />}
-            />
-
-            <DashboardCard
-              href="/dashboard/calendar"
-              title="Schedule"
-              value="30 Days"
-              description="A clean look at upcoming calendar movement."
-              icon={<Calendar size={18} />}
-            />
-          </div>
-
-          <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm md:p-12">
-              <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                    Calendar
-                  </p>
-
-                  <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                    Next 30 days.
-                  </h2>
-                </div>
-
-                <Link
-                  href="/dashboard/calendar"
-                  className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-black/45 px-5 py-4 text-[10px] font-semibold uppercase tracking-[0.26em] text-white/65 transition hover:bg-white hover:text-black"
-                >
-                  Open Calendar
-                  <ArrowUpRight size={15} />
-                </Link>
-              </div>
-
-              <MiniCalendar upcomingDates={upcomingDates} />
-            </div>
-
-            <div className="rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm md:p-12">
-              <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                Activity
-              </p>
-
-              <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                Recent movement.
-              </h2>
-
-              {activity.length === 0 ? (
-                <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/55 p-6 text-white/50">
-                  No activity recorded yet.
-                </div>
-              ) : (
-                <div className="mt-10 grid gap-3">
-                  {activity.map((item) => (
-                    <ActivityCard key={item.id} item={item} />
-                  ))}
-                </div>
-              )}
-            </div>
+            <Link href="/dashboard/bookings" className={camvelleGhostButton}>
+              Bookings
+            </Link>
           </div>
         </div>
-      </section>
-    </main>
+      </CamvellePanel>
+
+      <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title="Inquiries"
+          value={loading ? "..." : String(inquiries.length)}
+          detail="Incoming booking interest"
+          icon={<Inbox size={18} />}
+        />
+
+        <StatCard
+          title="Clients"
+          value={loading ? "..." : String(clients.length)}
+          detail="Saved client files"
+          icon={<Users size={18} />}
+        />
+
+        <StatCard
+          title="Outstanding"
+          value={loading ? "..." : formatMoney(outstandingTotal)}
+          detail="Unpaid invoice balance"
+          icon={<Wallet size={18} />}
+        />
+
+        <StatCard
+          title="Signed"
+          value={loading ? "..." : String(signedContracts)}
+          detail="Completed agreements"
+          icon={<CheckCircle size={18} />}
+        />
+      </div>
+
+      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <DashboardCard
+          href="/dashboard/clients"
+          title="Clients"
+          value={String(clients.length)}
+          description="Manage client records, session notes, invoices, contracts, and photo delivery progress."
+          icon={<Users size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/bookings"
+          title="Bookings"
+          value={String(inquiries.length)}
+          description="Review incoming inquiries and move leads toward confirmed sessions."
+          icon={<Inbox size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/calendar"
+          title="Calendar"
+          value={`${scheduledClients}`}
+          description="Track scheduled clients and upcoming session dates."
+          icon={<Calendar size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/invoices"
+          title="Invoices"
+          value={formatMoney(invoiceTotal)}
+          description={`${openInvoices} open invoice${
+            openInvoices === 1 ? "" : "s"
+          } currently tracked.`}
+          icon={<ReceiptText size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/contracts"
+          title="Contracts"
+          value={`${signedContracts}/${contracts.length}`}
+          description="Send agreements, monitor signatures, and access signed PDFs."
+          icon={<FileSignature size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/galleries"
+          title="Galleries"
+          value="Manage"
+          description="Upload, organize, and prepare gallery content for delivery."
+          icon={<GalleryVerticalEnd size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/finance"
+          title="Finance"
+          value={formatMoney(estimatedRevenue)}
+          description="Estimate future revenue and review business performance."
+          icon={<Wallet size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/calendar"
+          title="Schedule"
+          value="30 Days"
+          description="A clean look at upcoming calendar movement."
+          icon={<Calendar size={18} />}
+        />
+      </div>
+
+      <div className="mt-6 grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
+        <CamvellePanel className="p-7 md:p-12">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <CamvelleEyebrow>Calendar</CamvelleEyebrow>
+
+              <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] text-white md:text-6xl">
+                Next 30 days.
+              </h2>
+            </div>
+
+            <Link
+              href="/dashboard/calendar"
+              className={`${camvelleGhostButton} inline-flex items-center gap-3`}
+            >
+              Open Calendar
+              <ArrowUpRight size={15} />
+            </Link>
+          </div>
+
+          <MiniCalendar upcomingDates={upcomingDates} />
+        </CamvellePanel>
+
+        <CamvellePanel className="p-7 md:p-12">
+          <CamvelleEyebrow>Activity</CamvelleEyebrow>
+
+          <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] text-white md:text-6xl">
+            Recent movement.
+          </h2>
+
+          {activity.length === 0 ? (
+            <CamvelleInnerPanel className="mt-10 p-6 text-white/50">
+              No activity recorded yet.
+            </CamvelleInnerPanel>
+          ) : (
+            <div className="mt-10 grid gap-3">
+              {activity.map((item) => (
+                <ActivityCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+        </CamvellePanel>
+      </div>
+    </CamvellePageShell>
   );
 }
 
@@ -427,21 +407,23 @@ function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm transition hover:border-white/20">
+    <CamvelleInnerPanel className="p-7 transition hover:border-white/20 hover:bg-white/[0.04]">
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
           {title}
         </p>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/50">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/50">
           {icon}
         </div>
       </div>
 
-      <h3 className="mt-7 text-5xl font-light tracking-[-0.07em]">{value}</h3>
+      <h3 className="mt-7 text-5xl font-light tracking-[-0.07em] text-white">
+        {value}
+      </h3>
 
       <p className="mt-5 text-sm leading-6 text-white/40">{detail}</p>
-    </div>
+    </CamvelleInnerPanel>
   );
 }
 
@@ -461,14 +443,14 @@ function DashboardCard({
   return (
     <Link
       href={href}
-      className="group rounded-[3rem] border border-white/10 bg-black/65 p-7 shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-sm transition hover:border-white/20 hover:bg-[#f5f0e7] hover:text-black"
+      className={`group block ${camvelleInnerPanel} p-7 transition hover:border-white/20 hover:bg-[#f5f0e7] hover:text-black`}
     >
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] uppercase tracking-[0.35em] text-white/35 transition group-hover:text-black/45">
           {title}
         </p>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white/50 transition group-hover:border-black/10 group-hover:bg-black/5 group-hover:text-black">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/50 transition group-hover:border-black/10 group-hover:bg-black/5 group-hover:text-black">
           {icon}
         </div>
       </div>
@@ -508,10 +490,10 @@ function MiniCalendar({ upcomingDates }: { upcomingDates: Set<string> }) {
             key={iso}
             className={`rounded-2xl border p-4 text-center backdrop-blur-sm transition ${
               hasEvent
-                ? "border-green-400/25 bg-green-500/10"
+                ? "border-emerald-400/25 bg-emerald-500/10"
                 : isToday
                   ? "border-white/20 bg-white/[0.07]"
-                  : "border-white/10 bg-black/45"
+                  : "border-white/10 bg-black/35"
             }`}
           >
             <p className="text-xs text-white/40">
@@ -520,10 +502,12 @@ function MiniCalendar({ upcomingDates }: { upcomingDates: Set<string> }) {
               })}
             </p>
 
-            <p className="mt-2 text-lg font-light">{day.getDate()}</p>
+            <p className="mt-2 text-lg font-light text-white">
+              {day.getDate()}
+            </p>
 
             {hasEvent && (
-              <div className="mx-auto mt-3 h-1.5 w-1.5 rounded-full bg-green-200" />
+              <div className="mx-auto mt-3 h-1.5 w-1.5 rounded-full bg-emerald-200" />
             )}
           </div>
         );
@@ -545,9 +529,9 @@ function ActivityCard({ item }: { item: ActivityItem }) {
     );
 
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-black/55 p-5">
+    <CamvelleInnerPanel className="p-5">
       <div className="flex items-start gap-4">
-        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/45 text-white/55">
+        <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-black/35 text-white/55">
           {icon}
         </div>
 
@@ -558,7 +542,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
                 {item.type}
               </p>
 
-              <h3 className="mt-2 text-xl font-light tracking-[-0.04em]">
+              <h3 className="mt-2 text-xl font-light tracking-[-0.04em] text-white">
                 {item.title}
               </h3>
             </div>
@@ -571,7 +555,7 @@ function ActivityCard({ item }: { item: ActivityItem }) {
           <p className="mt-2 text-sm leading-6 text-white/45">{item.detail}</p>
         </div>
       </div>
-    </div>
+    </CamvelleInnerPanel>
   );
 }
 
