@@ -16,27 +16,24 @@ type Client = {
   created_at: string | null;
 };
 
-type ViewMode = "day" | "week" | "month";
+const sections = ["overview", "clients", "bookings", "galleries", "finance"];
 
-const sections = [
-  { label: "Overview", value: "overview" },
-  { label: "Clients", value: "clients" },
-  { label: "Bookings", value: "bookings" },
-  { label: "Galleries", value: "galleries" },
-  { label: "Finance", value: "finance" },
-];
+const camvellePanel =
+  "rounded-[3rem] border border-white/10 bg-white/[0.035] shadow-[inset_0_0_70px_rgba(255,255,255,0.025)] backdrop-blur-[1px] transition duration-500 hover:border-white/20 hover:bg-white/[0.05]";
 
-const crystalPanel =
-  "rounded-[3rem] border border-white/10 bg-white/[0.035] shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-[2px] transition duration-500 hover:border-white/20 hover:bg-white/[0.05]";
+const camvelleInnerPanel =
+  "rounded-[2.35rem] border border-white/10 bg-white/[0.025] shadow-[inset_0_0_45px_rgba(255,255,255,0.02)] backdrop-blur-[1px]";
 
-const crystalInner =
-  "rounded-[2rem] border border-white/10 bg-white/[0.025] shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-[2px]";
+const creamButton =
+  "rounded-full border border-white/10 bg-[#f5f0e7] text-black transition hover:scale-[1.02] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60";
+
+const ghostButton =
+  "rounded-full border border-white/10 bg-white/[0.035] text-white/70 transition hover:border-white/25 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-60";
 
 export default function CalendarPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(toDateKey(new Date()));
-  const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
   const [scheduleDrafts, setScheduleDrafts] = useState<Record<string, string>>(
@@ -123,6 +120,21 @@ export default function CalendarPage() {
     window.location.href = "/login";
   }
 
+  const calendarDays = useMemo(() => {
+    return Array.from({ length: 30 }, (_, index) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + index);
+
+      return {
+        key: toDateKey(date),
+        dayNumber: date.getDate(),
+        weekday: date.toLocaleDateString(undefined, { weekday: "short" }),
+        month: date.toLocaleDateString(undefined, { month: "short" }),
+      };
+    });
+  }, []);
+
   const scheduledClients = useMemo(() => {
     return clients.filter((client) => getScheduledDate(client.notes));
   }, [clients]);
@@ -130,34 +142,6 @@ export default function CalendarPage() {
   const unscheduledClients = useMemo(() => {
     return clients.filter((client) => !getScheduledDate(client.notes));
   }, [clients]);
-
-  const visibleDays = useMemo(() => {
-    if (viewMode === "day") {
-      const date = dateKeyToDate(selectedDate);
-      return [buildCalendarDay(date)];
-    }
-
-    if (viewMode === "week") {
-      const selected = dateKeyToDate(selectedDate);
-      const start = startOfWeek(selected);
-
-      return Array.from({ length: 7 }, (_, index) => {
-        const date = new Date(start);
-        date.setDate(start.getDate() + index);
-        return buildCalendarDay(date);
-      });
-    }
-
-    const selected = dateKeyToDate(selectedDate);
-    const year = selected.getFullYear();
-    const month = selected.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    return Array.from({ length: daysInMonth }, (_, index) => {
-      const date = new Date(year, month, index + 1);
-      return buildCalendarDay(date);
-    });
-  }, [selectedDate, viewMode]);
 
   const selectedDateClients = useMemo(() => {
     return scheduledClients.filter(
@@ -178,28 +162,6 @@ export default function CalendarPage() {
     return counts;
   }, [scheduledClients]);
 
-  const calendarRangeLabel = useMemo(() => {
-    if (viewMode === "day") {
-      return formatDate(selectedDate);
-    }
-
-    if (viewMode === "week") {
-      const firstDay = visibleDays[0];
-      const lastDay = visibleDays[visibleDays.length - 1];
-
-      if (!firstDay || !lastDay) return "This week";
-
-      return `${firstDay.month} ${firstDay.dayNumber} — ${lastDay.month} ${lastDay.dayNumber}`;
-    }
-
-    const selected = dateKeyToDate(selectedDate);
-
-    return selected.toLocaleDateString(undefined, {
-      month: "long",
-      year: "numeric",
-    });
-  }, [selectedDate, viewMode, visibleDays]);
-
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
       <div className="pointer-events-none fixed inset-0">
@@ -216,7 +178,7 @@ export default function CalendarPage() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at center, transparent 22%, rgba(0,0,0,0.48) 100%)",
+              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
           }}
         />
       </div>
@@ -237,7 +199,7 @@ export default function CalendarPage() {
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02]"
+          className={`${creamButton} px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em]`}
         >
           Logout
         </button>
@@ -245,7 +207,7 @@ export default function CalendarPage() {
 
       <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
         <div className="mx-auto w-full max-w-7xl">
-          <div className={`mx-auto w-full p-8 text-center md:p-14 ${crystalPanel}`}>
+          <div className={`mx-auto w-full p-8 text-center md:p-14 ${camvellePanel}`}>
             <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
               Calendar Management
             </p>
@@ -257,7 +219,7 @@ export default function CalendarPage() {
             </h1>
 
             <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              View, edit, and organize Camvelle Creative session dates.
+              View, edit, and organize upcoming Camvelle Creative sessions.
             </p>
 
             <div className="mx-auto mt-14 w-full max-w-sm">
@@ -284,54 +246,34 @@ export default function CalendarPage() {
                 </option>
 
                 {sections.map((section) => (
-                  <option key={section.value} value={section.value} className="bg-black">
-                    {section.label}
+                  <option key={section} value={section} className="bg-black">
+                    {section}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${crystalPanel}`}>
-            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${camvellePanel}`}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                   Studio Calendar
                 </p>
 
                 <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                  {calendarRangeLabel}
+                  Upcoming dates.
                 </h2>
 
                 <p className="mt-5 max-w-3xl text-sm leading-7 text-white/45">
-                  Click a date to view scheduled clients. Click a client name to
-                  open their client file.
+                  Click a date to view scheduled clients. Use the unscheduled
+                  section below to add clients to the calendar.
                 </p>
               </div>
 
-              <div className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-white/45">
+              <div className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-[10px] uppercase tracking-[0.3em] text-white/55">
                 {scheduledClients.length} scheduled
               </div>
-            </div>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <ViewButton
-                label="Day"
-                active={viewMode === "day"}
-                onClick={() => setViewMode("day")}
-              />
-
-              <ViewButton
-                label="Week"
-                active={viewMode === "week"}
-                onClick={() => setViewMode("week")}
-              />
-
-              <ViewButton
-                label="Month"
-                active={viewMode === "month"}
-                onClick={() => setViewMode("month")}
-              />
             </div>
 
             {notice && (
@@ -340,17 +282,9 @@ export default function CalendarPage() {
               </div>
             )}
 
-            <div className={`mt-8 p-5 ${crystalInner}`}>
-              <div
-                className={
-                  viewMode === "day"
-                    ? "grid grid-cols-1 gap-3"
-                    : viewMode === "week"
-                      ? "grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7"
-                      : "grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-7"
-                }
-              >
-                {visibleDays.map((day) => {
+            <div className={`mt-8 p-5 ${camvelleInnerPanel}`}>
+              <div className="grid grid-cols-5 gap-2 sm:grid-cols-6 md:grid-cols-10">
+                {calendarDays.map((day) => {
                   const isSelected = selectedDate === day.key;
                   const count = clientCountByDate[day.key] || 0;
 
@@ -359,26 +293,26 @@ export default function CalendarPage() {
                       key={day.key}
                       type="button"
                       onClick={() => setSelectedDate(day.key)}
-                      className={`min-h-[112px] rounded-[1.75rem] border p-4 text-left transition ${
+                      className={`min-h-[82px] rounded-[1.5rem] border p-3 text-left transition ${
                         isSelected
                           ? "border-white bg-[#f5f0e7] text-black"
                           : "border-white/10 bg-white/[0.025] text-white/65 hover:border-white/25 hover:bg-white/[0.06]"
                       }`}
                     >
                       <p
-                        className={`text-[9px] uppercase tracking-[0.28em] ${
+                        className={`text-[9px] uppercase tracking-[0.22em] ${
                           isSelected ? "text-black/50" : "text-white/35"
                         }`}
                       >
                         {day.weekday}
                       </p>
 
-                      <p className="mt-3 text-3xl font-light leading-none">
+                      <p className="mt-2 text-2xl font-light leading-none">
                         {day.dayNumber}
                       </p>
 
                       <p
-                        className={`mt-2 text-[9px] uppercase tracking-[0.22em] ${
+                        className={`mt-1 text-[9px] uppercase tracking-[0.2em] ${
                           isSelected ? "text-black/50" : "text-white/30"
                         }`}
                       >
@@ -387,10 +321,10 @@ export default function CalendarPage() {
 
                       {count > 0 && (
                         <span
-                          className={`mt-4 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-semibold ${
+                          className={`mt-3 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] ${
                             isSelected
                               ? "bg-black text-white"
-                              : "bg-white text-black"
+                              : "bg-[#f5f0e7] text-black"
                           }`}
                         >
                           {count}
@@ -401,7 +335,7 @@ export default function CalendarPage() {
                 })}
               </div>
 
-              <div className="mt-7 rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
+              <div className={`mt-7 p-5 ${camvelleInnerPanel}`}>
                 <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
                   Selected Date
                 </p>
@@ -417,83 +351,49 @@ export default function CalendarPage() {
                     </p>
                   )}
 
-                  {selectedDateClients.map((client) => {
-                    const draftDate =
-                      scheduleDrafts[client.id] ||
-                      getScheduledDate(client.notes) ||
-                      selectedDate;
-
-                    return (
-                      <div
-                        key={client.id}
-                        className="rounded-[1.75rem] border border-white/10 bg-white/[0.025] p-4"
-                      >
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="flex min-w-0 items-start gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/60">
-                              <UserRound size={16} />
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                              <Link
-                                href={`/dashboard/clients/${client.id}`}
-                                className="inline-flex items-center gap-2 text-xl font-light tracking-[-0.04em] text-white transition hover:text-white/70"
-                              >
-                                {client.full_name || "Unnamed Client"}
-                              </Link>
-
-                              <p className="mt-1 break-words text-sm text-white/45">
-                                {client.email || "No email"}
-                              </p>
-
-                              <p className="text-sm text-white/45">
-                                {client.phone || "No phone"}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] lg:w-[420px]">
-                            <input
-                              type="date"
-                              value={draftDate}
-                              onChange={(e) =>
-                                setScheduleDrafts({
-                                  ...scheduleDrafts,
-                                  [client.id]: e.target.value,
-                                })
-                              }
-                              className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-3 text-white outline-none"
-                            />
-
-                            <IconButton
-                              label={
-                                savingId === client.id
-                                  ? "Saving"
-                                  : "Save Schedule"
-                              }
-                              icon={<Save size={15} />}
-                              onClick={() => scheduleClient(client, draftDate)}
-                              disabled={savingId === client.id}
-                            />
-
-                            <IconButton
-                              label="Remove Schedule"
-                              icon={<X size={15} />}
-                              onClick={() => removeClientSchedule(client)}
-                              disabled={savingId === client.id}
-                              danger
-                            />
-                          </div>
+                  {selectedDateClients.map((client) => (
+                    <div
+                      key={client.id}
+                      className="rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-4 transition hover:border-white/20 hover:bg-white/[0.05]"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/60">
+                          <UserRound size={16} />
                         </div>
+
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/dashboard/clients/${client.id}`}
+                            className="text-xl font-light tracking-[-0.04em] transition hover:text-white/75"
+                          >
+                            {client.full_name || "Unnamed Client"}
+                          </Link>
+
+                          <p className="mt-1 break-words text-sm text-white/45">
+                            {client.email || "No email"}
+                          </p>
+
+                          <p className="text-sm text-white/45">
+                            {client.phone || "No phone"}
+                          </p>
+                        </div>
+
+                        <IconButton
+                          label="Remove Schedule"
+                          icon={<X size={15} />}
+                          onClick={() => removeClientSchedule(client)}
+                          disabled={savingId === client.id}
+                          danger
+                        />
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${crystalPanel}`}>
+          <div className={`mx-auto mt-6 w-full p-7 md:p-12 ${camvellePanel}`}>
             <div>
               <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
                 Unscheduled Clients
@@ -504,15 +404,15 @@ export default function CalendarPage() {
               </h2>
 
               <p className="mt-5 max-w-3xl text-sm leading-7 text-white/45">
-                Choose a date and schedule the client. Their name will appear on
-                the calendar.
+                Choose a date and save. The client will appear on the selected
+                calendar day.
               </p>
             </div>
 
             {loading && <p className="mt-10 text-white/50">Loading clients...</p>}
 
             {!loading && unscheduledClients.length === 0 && (
-              <div className="mt-10 rounded-[2.5rem] border border-white/10 bg-white/[0.025] p-7 text-white/50">
+              <div className={`mt-10 p-7 text-white/50 ${camvelleInnerPanel}`}>
                 All clients have a scheduled date.
               </div>
             )}
@@ -524,68 +424,61 @@ export default function CalendarPage() {
                 return (
                   <div
                     key={client.id}
-                    className="mx-auto w-full max-w-4xl rounded-[2.25rem] border border-white/10 bg-white/[0.025] p-5 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-6"
+                    className={`mx-auto w-full max-w-3xl p-5 md:p-6 ${camvelleInnerPanel}`}
                   >
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          {String(index + 1).padStart(2, "0")} / Client
-                        </p>
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Client
+                    </p>
 
-                        <Link
-                          href={`/dashboard/clients/${client.id}`}
-                          className="mt-3 inline-flex text-3xl font-light tracking-[-0.06em] text-white transition hover:text-white/70 md:text-4xl"
+                    <Link
+                      href={`/dashboard/clients/${client.id}`}
+                      className="mt-3 block text-3xl font-light tracking-[-0.06em] transition hover:text-white/75 md:text-4xl"
+                    >
+                      {client.full_name || "Unnamed Client"}
+                    </Link>
+
+                    <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
+                      <p>{client.email || "No email"}</p>
+                      <p>{client.phone || "No phone"}</p>
+                    </div>
+
+                    <div className={`mt-6 p-5 ${camvelleInnerPanel}`}>
+                      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                        Schedule Date
+                      </label>
+
+                      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                        <input
+                          type="date"
+                          value={draftDate}
+                          onChange={(e) =>
+                            setScheduleDrafts({
+                              ...scheduleDrafts,
+                              [client.id]: e.target.value,
+                            })
+                          }
+                          className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-white outline-none transition hover:border-white/20 hover:bg-white/[0.05]"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => scheduleClient(client, draftDate)}
+                          disabled={savingId === client.id}
+                          className={`${ghostButton} flex min-h-12 items-center justify-center gap-3 px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.24em]`}
                         >
-                          {client.full_name || "Unnamed Client"}
-                        </Link>
+                          {savingId === client.id ? (
+                            <Save size={15} />
+                          ) : (
+                            <CalendarPlus size={15} />
+                          )}
 
-                        <div className="mt-3 grid gap-1 text-sm leading-6 text-white/50">
-                          <p>{client.email || "No email"}</p>
-                          <p>{client.phone || "No phone"}</p>
-                        </div>
+                          <span>{savingId === client.id ? "Saving" : "Schedule"}</span>
+                        </button>
                       </div>
 
-                      <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-white/[0.025] p-5">
-                        <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                          Schedule Date
-                        </label>
-
-                        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                          <input
-                            type="date"
-                            value={draftDate}
-                            onChange={(e) =>
-                              setScheduleDrafts({
-                                ...scheduleDrafts,
-                                [client.id]: e.target.value,
-                              })
-                            }
-                            className="w-full rounded-full border border-white/10 bg-white/[0.035] px-5 py-4 text-white outline-none"
-                          />
-
-                          <IconButton
-                            label={
-                              savingId === client.id
-                                ? "Saving"
-                                : "Schedule Client"
-                            }
-                            icon={
-                              savingId === client.id ? (
-                                <Save size={16} />
-                              ) : (
-                                <CalendarPlus size={16} />
-                              )
-                            }
-                            onClick={() => scheduleClient(client, draftDate)}
-                            disabled={savingId === client.id}
-                          />
-                        </div>
-
-                        <p className="mt-4 text-sm leading-7 text-white/45">
-                          This will move the client into the selected calendar
-                          date.
-                        </p>
-                      </div>
+                      <p className="mt-4 text-sm leading-7 text-white/45">
+                        This will move the client into the selected calendar date.
+                      </p>
                     </div>
                   </div>
                 );
@@ -595,30 +488,6 @@ export default function CalendarPage() {
         </div>
       </section>
     </main>
-  );
-}
-
-function ViewButton({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full border px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.3em] transition ${
-        active
-          ? "border-white bg-[#f5f0e7] text-black"
-          : "border-white/10 bg-white/[0.035] text-white/60 hover:border-white/25 hover:bg-white/[0.06]"
-      }`}
-    >
-      {label}
-    </button>
   );
 }
 
@@ -643,29 +512,6 @@ function addScheduledDateToNotes(notes: string | null, date: string) {
   return [`Scheduled Date: ${date}`, cleaned].filter(Boolean).join("\n\n");
 }
 
-function buildCalendarDay(date: Date) {
-  return {
-    key: toDateKey(date),
-    dayNumber: date.getDate(),
-    weekday: date.toLocaleDateString(undefined, { weekday: "short" }),
-    month: date.toLocaleDateString(undefined, { month: "short" }),
-  };
-}
-
-function startOfWeek(date: Date) {
-  const start = new Date(date);
-  const day = start.getDay();
-
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - day);
-
-  return start;
-}
-
-function dateKeyToDate(dateKey: string) {
-  return new Date(`${dateKey}T00:00:00`);
-}
-
 function toDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -675,7 +521,7 @@ function toDateKey(date: Date) {
 }
 
 function formatDate(dateKey: string) {
-  return dateKeyToDate(dateKey).toLocaleDateString(undefined, {
+  return new Date(`${dateKey}T00:00:00`).toLocaleDateString(undefined, {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -702,10 +548,10 @@ function IconButton({
       onClick={onClick}
       title={label}
       disabled={disabled}
-      className={`flex h-12 w-12 items-center justify-center rounded-full border text-white/65 transition disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`flex h-12 w-12 items-center justify-center rounded-full border transition disabled:cursor-not-allowed disabled:opacity-50 ${
         danger
           ? "border-red-400/20 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-          : "border-white/10 bg-white/[0.035] hover:bg-white hover:text-black"
+          : "border-white/10 bg-white/[0.035] text-white/65 hover:bg-white hover:text-black"
       }`}
     >
       {icon}
