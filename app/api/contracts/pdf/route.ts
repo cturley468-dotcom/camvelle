@@ -7,6 +7,8 @@ import {
   type PDFFont,
   type PDFPage,
 } from "pdf-lib";
+import { buildContract } from "../../../lib/contractTemplate";
+import type { ContractType } from "../../../lib/contracts";
 
 export const runtime = "nodejs";
 
@@ -60,6 +62,59 @@ function makeFileName(value: unknown) {
       .replace(/^-+|-+$/g, "") || "client"
   );
 }
+
+function getContractType(contract: any): ContractType {
+  const rawContractType = clean(
+    contract.contract_type ||
+      contract.type ||
+      contract.session_type ||
+      contract.service_type ||
+      contract.title,
+    ""
+  );
+
+  const normalizedContractType = rawContractType
+    .toLowerCase()
+    .trim()
+    .replace(/_/g, "-");
+
+  let contractType: ContractType = "portrait";
+
+  if (normalizedContractType.includes("proposal")) {
+    contractType = "proposal";
+  } else if (normalizedContractType.includes("engagement")) {
+    contractType = "engagement";
+  } else if (normalizedContractType.includes("couple")) {
+    contractType = "couples";
+  } else if (normalizedContractType.includes("family")) {
+    contractType = "family";
+  } else if (normalizedContractType.includes("portrait")) {
+    contractType = "portrait";
+  } else if (
+    normalizedContractType.includes("business") ||
+    normalizedContractType.includes("branding")
+  ) {
+    contractType = "business";
+  } else if (
+    normalizedContractType.includes("real-estate") ||
+    normalizedContractType.includes("real estate") ||
+    normalizedContractType.includes("realestate")
+  ) {
+    contractType = "real-estate";
+  } else if (
+    normalizedContractType.includes("automotive") ||
+    normalizedContractType.includes("auto")
+  ) {
+    contractType = "automotive";
+  } else if (normalizedContractType.includes("event")) {
+    contractType = "events";
+  } else if (normalizedContractType.includes("wedding")) {
+    contractType = "wedding";
+  }
+
+  return contractType;
+}
+
 
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number) {
   const words = text.split(/\s+/);
@@ -241,10 +296,11 @@ export async function GET(request: Request) {
       y -= 12;
     }
 
-    const contractTitle = clean(
-      contract.title || contract.contract_type,
-      "Photography Agreement"
-    );
+   const contractType = getContractType(contract);
+const builtContract = buildContract(contractType);
+
+const contractTitle = builtContract.title;
+const contractTerms = builtContract.body;
 
     const clientName = clean(contract.client_name);
     const clientEmail = clean(contract.client_email);
@@ -391,23 +447,24 @@ export async function GET(request: Request) {
 
     drawSectionTitle("Agreement Terms");
 
-    const agreementText =
-      clean(contract.notes, "") ||
-      "This agreement confirms photography services provided by Camvelle Creative. The client agrees to the session details, payment expectations, delivery terms, image usage rights, and project terms connected to this booking.";
+const contractParagraphs = contractTerms
+  .split(/\n{2,}/)
+  .map((section) => section.trim())
+  .filter(Boolean);
 
-    drawParagraph(
-      "This agreement confirms photography services provided by Camvelle Creative."
-    );
+for (const paragraph of contractParagraphs) {
+  drawParagraph(paragraph);
+}
 
-    drawParagraph(
-      "The client confirms that they reviewed the agreement and approved the terms for this photography service."
-    );
+if (clean(contract.notes, "")) {
+  drawSectionTitle("Additional Notes");
+  drawParagraph(clean(contract.notes));
+}
 
-    drawParagraph(agreementText);
+drawParagraph(
+  "This document records the client's electronic signature and agreement confirmation."
+);
 
-    drawParagraph(
-      "This document records the client's electronic signature and agreement confirmation."
-    );
 
     drawDivider(36);
 
