@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type StatusResult = {
@@ -11,18 +12,28 @@ type StatusResult = {
   contractStatus?: string;
   invoiceStatus?: string;
   lastUpdated?: string;
+  photoStatus?: string;
+  photoProgress?: number;
+  estimatedDelivery?: string;
+  galleryUrl?: string;
+  photoNotes?: string;
 };
 
 function statusClass(status: string | undefined) {
-  if (status === "Signed" || status === "Paid" || status === "Received") {
+  if (
+    status === "Signed" ||
+    status === "Paid" ||
+    status === "Received" ||
+    status === "Gallery Ready"
+  ) {
     return "border-emerald-400/30 bg-emerald-400/10 text-emerald-200";
   }
 
-  if (status === "Sent") {
+  if (status === "Sent" || status === "Editing" || status === "Uploading") {
     return "border-sky-400/30 bg-sky-400/10 text-sky-200";
   }
 
-  if (status === "Draft") {
+  if (status === "Draft" || status === "Photos Received") {
     return "border-amber-400/30 bg-amber-400/10 text-amber-200";
   }
 
@@ -59,18 +70,39 @@ export default function ClientStatusPage() {
       }
 
       setResult(data);
-    } catch (error) {
+    } catch {
       setNotice("Could not check status. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
+  const progress = Math.max(0, Math.min(100, Number(result?.photoProgress || 0)));
+
   return (
-    <main className="min-h-screen bg-[#050505] px-5 py-10 text-white sm:px-8">
-      <div className="mx-auto max-w-3xl">
-        <section className="rounded-[2.5rem] border border-white/10 bg-white/[0.03] p-7 shadow-2xl sm:p-10">
-          <p className="mb-5 text-xs uppercase tracking-[0.45em] text-white/35">
+    <main
+      className="min-h-screen bg-[#020202] bg-cover bg-center bg-fixed px-5 py-7 text-white sm:px-8"
+      style={{
+        backgroundImage:
+          "linear-gradient(to bottom, rgba(0,0,0,.15), rgba(0,0,0,.92)), url('/backgrounds/camvelle-background.png')",
+      }}
+    >
+      <div className="mx-auto max-w-4xl">
+        <header className="mb-8 flex items-center justify-between gap-4">
+          <Link href="/" className="text-xs uppercase tracking-[0.45em] text-white/50">
+            Camvelle Creative
+          </Link>
+
+          <Link
+            href="/"
+            className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.3em] text-white backdrop-blur-2xl"
+          >
+            Home
+          </Link>
+        </header>
+
+        <section className="rounded-[2.8rem] border border-white/15 bg-white/[0.07] p-7 shadow-[0_24px_90px_rgba(0,0,0,.55)] backdrop-blur-3xl sm:p-10">
+          <p className="mb-5 text-xs uppercase tracking-[0.45em] text-white/40">
             Camvelle Creative
           </p>
 
@@ -78,14 +110,14 @@ export default function ClientStatusPage() {
             Booking Status
           </h1>
 
-          <p className="mt-6 max-w-2xl text-base leading-8 text-white/55">
+          <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
             Enter the email used on your booking request to view your current
-            Camvelle Creative status.
+            status, contract progress, invoice status, and photo delivery update.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-9 space-y-4">
             <label className="block">
-              <span className="mb-2 block text-xs uppercase tracking-[0.3em] text-white/35">
+              <span className="mb-2 block text-xs uppercase tracking-[0.3em] text-white/40">
                 Email Address
               </span>
 
@@ -95,7 +127,7 @@ export default function ClientStatusPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-white outline-none placeholder:text-white/25 focus:border-white/30"
+                className="w-full rounded-[1.4rem] border border-white/20 bg-white/90 px-5 py-4 text-black outline-none placeholder:text-black/35 focus:border-white"
               />
             </label>
 
@@ -116,34 +148,34 @@ export default function ClientStatusPage() {
         </section>
 
         {result && (
-          <section className="mt-6 rounded-[2.5rem] border border-white/10 bg-black/50 p-7 sm:p-10">
+          <section className="mt-6 rounded-[2.8rem] border border-white/15 bg-black/45 p-7 shadow-[0_24px_90px_rgba(0,0,0,.55)] backdrop-blur-3xl sm:p-10">
             {!result.found ? (
               <div>
                 <p className="text-xl font-semibold text-white">
                   No status found
                 </p>
 
-                <p className="mt-4 text-sm leading-7 text-white/50">
+                <p className="mt-4 text-sm leading-7 text-white/55">
                   {result.message}
                 </p>
               </div>
             ) : (
               <div>
-                <p className="text-xs uppercase tracking-[0.45em] text-white/35">
+                <p className="text-xs uppercase tracking-[0.45em] text-white/40">
                   Status Found
                 </p>
 
-                <h2 className="mt-5 text-3xl font-semibold text-white">
+                <h2 className="mt-5 text-4xl font-semibold text-white">
                   {result.clientName}
                 </h2>
 
-                <p className="mt-3 text-sm leading-7 text-white/45">
+                <p className="mt-3 text-sm leading-7 text-white/50">
                   {result.sessionType}
                 </p>
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/30">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl">
+                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/35">
                       Booking
                     </p>
 
@@ -156,8 +188,8 @@ export default function ClientStatusPage() {
                     </span>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/30">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl">
+                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/35">
                       Contract
                     </p>
 
@@ -170,8 +202,8 @@ export default function ClientStatusPage() {
                     </span>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/30">
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 backdrop-blur-2xl">
+                    <p className="mb-3 text-xs uppercase tracking-[0.3em] text-white/35">
                       Invoice
                     </p>
 
@@ -183,6 +215,73 @@ export default function ClientStatusPage() {
                       {result.invoiceStatus}
                     </span>
                   </div>
+                </div>
+
+                <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 backdrop-blur-2xl">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.35em] text-white/35">
+                        Photo Delivery
+                      </p>
+
+                      <h3 className="mt-3 text-2xl font-semibold text-white">
+                        {result.photoStatus || "Not Started"}
+                      </h3>
+                    </div>
+
+                    <span
+                      className={`inline-flex w-fit rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
+                        result.photoStatus
+                      )}`}
+                    >
+                      {progress}%
+                    </span>
+                  </div>
+
+                  <div className="mt-6 h-3 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-white transition-all"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-white/30">
+                        Estimated Delivery
+                      </p>
+                      <p className="mt-2 text-sm text-white/60">
+                        {result.estimatedDelivery || "Not listed"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-white/30">
+                        Gallery
+                      </p>
+
+                      {result.galleryUrl ? (
+                        <a
+                          href={result.galleryUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 inline-flex text-sm font-semibold text-white underline underline-offset-4"
+                        >
+                          Open Gallery
+                        </a>
+                      ) : (
+                        <p className="mt-2 text-sm text-white/60">
+                          Not available yet
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {result.photoNotes && (
+                    <p className="mt-5 text-sm leading-7 text-white/50">
+                      {result.photoNotes}
+                    </p>
+                  )}
                 </div>
 
                 <p className="mt-8 text-sm leading-7 text-white/40">

@@ -129,6 +129,7 @@ setSuccess("Booking request submitted. I’ll follow up soon.");
 
           <div className="absolute right-0 top-16 z-[99999] w-72 rounded-[2rem] border border-white/15 bg-black/95 p-6 shadow-[0_0_80px_rgba(255,255,255,.18)] backdrop-blur-2xl">
             <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.25em] text-white/70">
+              <Link href="/status">Client Status</Link>
               <Link href="/galleries">Galleries</Link>
               <Link href="/services">Services</Link>
               <a href="#book">Book</a>

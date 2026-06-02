@@ -61,10 +61,22 @@ function latest(rows: AnyRow[]) {
 
   return [...rows].sort((a, b) => {
     const aDate =
-      dateValue(a, ["updated_at", "signed_at", "sent_at", "sent_date", "created_at"])?.getTime() || 0;
+      dateValue(a, [
+        "updated_at",
+        "signed_at",
+        "sent_at",
+        "sent_date",
+        "created_at",
+      ])?.getTime() || 0;
 
     const bDate =
-      dateValue(b, ["updated_at", "signed_at", "sent_at", "sent_date", "created_at"])?.getTime() || 0;
+      dateValue(b, [
+        "updated_at",
+        "signed_at",
+        "sent_at",
+        "sent_date",
+        "created_at",
+      ])?.getTime() || 0;
 
     return bDate - aDate;
   })[0];
@@ -143,26 +155,46 @@ export async function POST(request: Request) {
       );
     }
 
-    const [inquiriesResult, contractsResult, invoicesResult] = await Promise.all([
-      supabaseAdmin.from("inquiries").select("*").limit(500),
-      supabaseAdmin.from("contracts").select("*").limit(500),
-      supabaseAdmin.from("invoices").select("*").limit(500),
-    ]);
+    const [inquiriesResult, contractsResult, invoicesResult, progressResult] =
+      await Promise.all([
+        supabaseAdmin.from("inquiries").select("*").limit(500),
+        supabaseAdmin.from("contracts").select("*").limit(500),
+        supabaseAdmin.from("invoices").select("*").limit(500),
+        supabaseAdmin
+          .from("photo_progress")
+          .select("*")
+          .eq("client_email", email)
+          .order("updated_at", { ascending: false })
+          .limit(1),
+      ]);
 
     const inquiries = inquiriesResult.data || [];
     const contracts = contractsResult.data || [];
     const invoices = invoicesResult.data || [];
+    const progressRows = progressResult.data || [];
 
-    const matchingInquiries = inquiries.filter((row) => rowMatchesEmail(row, email));
-    const matchingContracts = contracts.filter((row) => rowMatchesEmail(row, email));
-    const matchingInvoices = invoices.filter((row) => rowMatchesEmail(row, email));
+    const matchingInquiries = inquiries.filter((row) =>
+      rowMatchesEmail(row, email)
+    );
+
+    const matchingContracts = contracts.filter((row) =>
+      rowMatchesEmail(row, email)
+    );
+
+    const matchingInvoices = invoices.filter((row) =>
+      rowMatchesEmail(row, email)
+    );
 
     const latestInquiry = latest(matchingInquiries);
     const latestContract = latest(matchingContracts);
     const latestInvoice = latest(matchingInvoices);
+    const latestProgress = progressRows[0] || null;
 
     const found =
-      Boolean(latestInquiry) || Boolean(latestContract) || Boolean(latestInvoice);
+      Boolean(latestInquiry) ||
+      Boolean(latestContract) ||
+      Boolean(latestInvoice) ||
+      Boolean(latestProgress);
 
     if (!found) {
       return NextResponse.json({
@@ -177,12 +209,14 @@ export async function POST(request: Request) {
       clean(latestInvoice?.client_name) ||
       clean(latestInvoice?.customer_name) ||
       clean(latestInquiry?.full_name) ||
+      clean(latestProgress?.client_name) ||
       "Client";
 
     const sessionType =
       clean(latestContract?.contract_type) ||
       clean(latestContract?.title) ||
       clean(latestInquiry?.service_type) ||
+      clean(latestProgress?.session_type) ||
       "Photography Session";
 
     const bookingStatus = latestInquiry ? "Received" : "Not Found";
@@ -190,6 +224,7 @@ export async function POST(request: Request) {
     const invoiceStatus = getInvoiceStatus(latestInvoice);
 
     const lastUpdated =
+      dateValue(latestProgress || {}, ["updated_at", "created_at"]) ||
       dateValue(latestContract || {}, [
         "signed_at",
         "sent_at",
@@ -214,6 +249,13 @@ export async function POST(request: Request) {
       contractStatus,
       invoiceStatus,
       lastUpdated: formatDate(lastUpdated),
+
+      photoStatus: clean(latestProgress?.status, "Not Started"),
+      photoProgress: Number(latestProgress?.progress || 0),
+      estimatedDelivery: formatDate(latestProgress?.estimated_delivery_date),
+      galleryUrl: clean(latestProgress?.gallery_url),
+      photoNotes: clean(latestProgress?.notes),
+
       message: "Status found.",
     });
   } catch (error) {
