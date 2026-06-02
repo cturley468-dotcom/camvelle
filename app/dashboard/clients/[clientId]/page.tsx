@@ -11,6 +11,7 @@ import {
   ExternalLink,
   FileSignature,
   FileText,
+  LogOut,
   Pencil,
   ReceiptText,
   Save,
@@ -19,6 +20,16 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import {
+  CamvelleBody,
+  CamvelleEyebrow,
+  CamvelleHeading,
+  CamvelleInnerPanel,
+  CamvellePageShell,
+  CamvellePanel,
+  camvelleCreamButton,
+  camvelleGhostButton,
+} from "../../../components/CamvelleUI";
 
 type Client = {
   id: string;
@@ -595,27 +606,8 @@ export default function ClientDetailPage() {
   const scheduledDate = getScheduledDate(client?.notes || null);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      <div className="pointer-events-none fixed inset-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{
-            backgroundImage: "url('/backgrounds/camvelle-background.png')",
-          }}
-        />
-
-        <div className="absolute inset-0 bg-black/40" />
-
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
-          }}
-        />
-      </div>
-
-      <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
+    <CamvellePageShell>
+      <header className="relative z-[9999] mb-10 flex items-center justify-between gap-4">
         <Link href="/dashboard" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
@@ -624,736 +616,697 @@ export default function ClientDetailPage() {
             height={120}
             priority
             unoptimized
-            className="h-12 w-auto object-contain md:h-16 lg:h-20 xl:h-24"
+            className="h-14 w-auto object-contain sm:h-16 md:h-20"
           />
         </Link>
 
         <button
           type="button"
           onClick={handleLogout}
-          className="rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02]"
+          className={`${camvelleCreamButton} inline-flex items-center gap-3`}
         >
+          <LogOut size={15} />
           Logout
         </button>
       </header>
 
-      <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
-        <div className="mx-auto w-full max-w-7xl">
-          <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-              Client Profile
-            </p>
+      <CamvellePanel className="p-8 text-center sm:p-10 md:p-14">
+        <CamvelleEyebrow>Client Profile</CamvelleEyebrow>
 
-            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
-              {loading ? "Loading" : client?.full_name || "Unnamed"}
-              <br />
-              Client File.
-            </h1>
+        <CamvelleHeading>
+          {loading ? "Loading" : client?.full_name || "Unnamed"}
+          <br />
+          Client File.
+        </CamvelleHeading>
 
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Manage details, schedule, contracts, invoices, photo progress, and PDFs.
-            </p>
+        <CamvelleBody>
+          Manage details, schedule, contracts, invoices, photo progress, and PDFs.
+        </CamvelleBody>
 
-            <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link
-                href="/dashboard/clients"
-                className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-              >
-                Back to Clients
-              </Link>
-
-              {client && (
-                <>
-                  <Link
-                    href={`/dashboard/clients/${client.id}/contract`}
-                    className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-                  >
-                    Create Contract
-                  </Link>
-
-                  <Link
-                    href={`/dashboard/clients/${client.id}/invoice`}
-                    className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-                  >
-                    Create Invoice
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-
-          {notice && (
-            <div className="mx-auto mt-6 w-full max-w-3xl rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
-              {notice}
-            </div>
-          )}
-
-          {loading && (
-            <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-              Loading client file...
-            </div>
-          )}
-
-          {!loading && !client && (
-            <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-              Client not found.
-            </div>
-          )}
+        <div className="mx-auto mt-12 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
+          <Link href="/dashboard/clients" className={camvelleGhostButton}>
+            Back to Clients
+          </Link>
 
           {client && (
             <>
-              <div className="mx-auto mt-6 grid w-full gap-5 md:grid-cols-5">
-                <StatCard title="Invoices" value={String(invoices.length)} />
-                <StatCard title="Contracts" value={String(contracts.length)} />
-                <StatCard title="Signed" value={String(signedContracts)} />
-                <StatCard title="Total Billed" value={formatMoney(invoiceTotal)} />
-                <StatCard
-                  title="Outstanding"
-                  value={formatMoney(outstandingTotal)}
-                />
-              </div>
-
-              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  Client Details
-                </p>
-
-                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                  Session profile.
-                </h2>
-
-                {!editing && !scheduling && (
-                  <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7">
-                    <div className="grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
-                      <DetailLine label="Name" value={client.full_name} />
-                      <DetailLine label="Email" value={client.email} />
-                      <DetailLine label="Phone" value={client.phone} />
-                      <DetailLine label="Scheduled" value={scheduledDate} />
-                      <DetailLine
-                        label="Created"
-                        value={
-                          client.created_at
-                            ? new Date(client.created_at).toLocaleDateString()
-                            : null
-                        }
-                      />
-
-                      <div className="md:col-span-2">
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-                          Notes
-                        </p>
-
-                        <p className="mt-3 whitespace-pre-wrap text-white/55">
-                          {client.notes || "No notes saved."}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-7 flex flex-wrap gap-3">
-                      <ActionButton
-                        label="Edit Client"
-                        icon={<Pencil size={16} />}
-                        onClick={() => {
-                          setEditing(true);
-                          setScheduling(false);
-                        }}
-                      />
-
-                      <ActionButton
-                        label="Schedule"
-                        icon={<Calendar size={16} />}
-                        onClick={() => {
-                          setScheduling(true);
-                          setEditing(false);
-                        }}
-                      />
-
-                      <ActionLink
-                        label="New Contract"
-                        href={`/dashboard/clients/${client.id}/contract`}
-                        icon={<FileSignature size={16} />}
-                      />
-
-                      <ActionLink
-                        label="New Invoice"
-                        href={`/dashboard/clients/${client.id}/invoice`}
-                        icon={<ReceiptText size={16} />}
-                      />
-
-                      <ActionButton
-                        label="Delete Client"
-                        danger
-                        icon={<Trash2 size={16} />}
-                        onClick={deleteClient}
-                        disabled={deleting}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {editing && (
-                  <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7">
-                    <div className="grid gap-4">
-                      <InputBubble
-                        label="Full Name"
-                        value={editForm.full_name}
-                        onChange={(value) =>
-                          setEditForm({ ...editForm, full_name: value })
-                        }
-                      />
-
-                      <InputBubble
-                        label="Email"
-                        value={editForm.email}
-                        onChange={(value) =>
-                          setEditForm({ ...editForm, email: value })
-                        }
-                      />
-
-                      <InputBubble
-                        label="Phone"
-                        value={editForm.phone}
-                        onChange={(value) =>
-                          setEditForm({ ...editForm, phone: value })
-                        }
-                      />
-
-                      <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
-                        <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                          Notes
-                        </label>
-
-                        <textarea
-                          rows={6}
-                          value={editForm.notes}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              notes: e.target.value,
-                            })
-                          }
-                          className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-7 flex flex-wrap gap-3">
-                      <ActionButton
-                        label="Save Client"
-                        icon={<Save size={16} />}
-                        onClick={saveClient}
-                        disabled={saving}
-                      />
-
-                      <ActionButton
-                        label="Cancel"
-                        icon={<X size={16} />}
-                        onClick={() => setEditing(false)}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {scheduling && (
-                  <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7">
-                    <InputBubble
-                      label="Schedule Date"
-                      type="date"
-                      value={scheduleDate}
-                      onChange={setScheduleDate}
-                    />
-
-                    <div className="mt-7 flex flex-wrap gap-3">
-                      <ActionButton
-                        label="Save Schedule"
-                        icon={<Save size={16} />}
-                        onClick={saveSchedule}
-                        disabled={saving}
-                      />
-
-                      <ActionButton
-                        label="Remove Schedule"
-                        icon={<X size={16} />}
-                        onClick={removeSchedule}
-                        disabled={saving}
-                        danger
-                      />
-
-                      <ActionButton
-                        label="Cancel"
-                        icon={<X size={16} />}
-                        onClick={() => setScheduling(false)}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-                <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                      Photo Delivery
-                    </p>
-
-                    <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                      Client progress.
-                    </h2>
-
-                    <p className="mt-5 max-w-3xl text-sm leading-7 text-white/45">
-                      Update the photo delivery status shown on the public client
-                      booking status page.
-                    </p>
-                  </div>
-
-                  <div className="rounded-full border border-white/10 bg-black/45 px-5 py-3 text-sm text-white/60">
-                    {Math.max(
-                      0,
-                      Math.min(100, Number(photoProgress.progress || 0))
-                    )}
-                    %
-                  </div>
-                </div>
-
-                <div className="mt-8 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-[2rem] border border-white/10 bg-black/55 p-5">
-                    <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                      Photo Status
-                    </label>
-
-                    <select
-                      value={photoProgress.status}
-                      onChange={(e) =>
-                        setPhotoProgress((current) => ({
-                          ...current,
-                          status: e.target.value,
-                        }))
-                      }
-                      className="w-full bg-transparent text-white outline-none"
-                    >
-                      <option value="Not Started" className="bg-black">
-                        Not Started
-                      </option>
-                      <option value="Photos Received" className="bg-black">
-                        Photos Received
-                      </option>
-                      <option value="Editing" className="bg-black">
-                        Editing
-                      </option>
-                      <option value="Uploading" className="bg-black">
-                        Uploading
-                      </option>
-                      <option value="Gallery Ready" className="bg-black">
-                        Gallery Ready
-                      </option>
-                    </select>
-                  </div>
-
-                  <InputBubble
-                    label="Completion Percentage"
-                    type="number"
-                    value={String(photoProgress.progress)}
-                    onChange={(value) =>
-                      setPhotoProgress((current) => ({
-                        ...current,
-                        progress: Number(value),
-                      }))
-                    }
-                  />
-
-                  <InputBubble
-                    label="Estimated Delivery Date"
-                    type="date"
-                    value={photoProgress.estimated_delivery_date}
-                    onChange={(value) =>
-                      setPhotoProgress((current) => ({
-                        ...current,
-                        estimated_delivery_date: value,
-                      }))
-                    }
-                  />
-
-                  <InputBubble
-                    label="Gallery URL"
-                    type="url"
-                    value={photoProgress.gallery_url}
-                    onChange={(value) =>
-                      setPhotoProgress((current) => ({
-                        ...current,
-                        gallery_url: value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <div className="mt-4 rounded-[2rem] border border-white/10 bg-black/55 p-5">
-                  <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                    Client-Facing Notes
-                  </label>
-
-                  <textarea
-                    rows={5}
-                    value={photoProgress.notes}
-                    onChange={(e) =>
-                      setPhotoProgress((current) => ({
-                        ...current,
-                        notes: e.target.value,
-                      }))
-                    }
-                    placeholder="Example: Your images are currently being edited and prepared for delivery."
-                    className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
-                  />
-                </div>
-
-                <div className="mt-6 h-3 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full rounded-full bg-[#f5f0e7] transition-all"
-                    style={{
-                      width: `${Math.max(
-                        0,
-                        Math.min(100, Number(photoProgress.progress || 0))
-                      )}%`,
-                    }}
-                  />
-                </div>
-
-                <div className="mt-7 flex flex-wrap items-center gap-3">
-                  <ActionButton
-                    label={
-                      savingPhotoProgress
-                        ? "Saving Progress"
-                        : "Save Photo Progress"
-                    }
-                    icon={<Save size={16} />}
-                    onClick={savePhotoProgress}
-                    disabled={savingPhotoProgress}
-                  />
-
-                  {photoProgressNotice && (
-                    <p className="text-sm text-green-200">
-                      {photoProgressNotice}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <RecordSection
-                title="Contract Records"
-                heading="Agreement history."
-                emptyText="No contracts created for this client yet."
-                actionHref={`/dashboard/clients/${client.id}/contract`}
-                actionText="New Contract"
+              <Link
+                href={`/dashboard/clients/${client.id}/contract`}
+                className={camvelleGhostButton}
               >
-                {contracts.map((contract, index) => (
-                  <div
-                    key={contract.id}
-                    className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7"
-                  >
-                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          {String(index + 1).padStart(2, "0")} / Contract
-                        </p>
+                Create Contract
+              </Link>
 
-                        <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] md:text-4xl">
-                          {contract.contract_type || "Photography Agreement"}
-                        </h3>
-                      </div>
-
-                      <StatusBadge status={contract.status || "draft"} />
-                    </div>
-
-                    <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
-                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4 md:col-span-2">
-                        <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          Update Status
-                        </label>
-
-                        <select
-                          value={contract.status || "draft"}
-                          onChange={(e) =>
-                            updateContractStatus(contract.id, e.target.value)
-                          }
-                          className="w-full bg-transparent text-white outline-none"
-                        >
-                          <option value="draft" className="bg-black">
-                            Draft
-                          </option>
-
-                          <option value="sent" className="bg-black">
-                            Sent
-                          </option>
-
-                          <option value="signed" className="bg-black">
-                            Signed
-                          </option>
-
-                          <option value="archived" className="bg-black">
-                            Archived
-                          </option>
-                        </select>
-                      </div>
-
-                      <DetailLine label="Sent To" value={contract.client_email} />
-                      <DetailLine label="Sent Date" value={contract.sent_date} />
-                      <DetailLine
-                        label="Sent Time"
-                        value={formatDateTime(contract.sent_at)}
-                      />
-                      <DetailLine label="Signed Date" value={contract.signed_date} />
-                      <DetailLine label="Signed By" value={contract.signed_name} />
-                      <DetailLine label="Signed Email" value={contract.signed_email} />
-                      <DetailLine
-                        label="Contract PDF"
-                        value={contract.contract_pdf_url ? "Ready" : "Not generated"}
-                      />
-                      <DetailLine
-                        label="Signed PDF"
-                        value={contract.signed_pdf_url ? "Ready" : "Not signed yet"}
-                      />
-
-                      <div className="md:col-span-2">
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-                          Notes
-                        </p>
-
-                        <p className="mt-3 whitespace-pre-wrap text-white/55">
-                          {contract.notes || "No notes saved."}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-7 flex flex-wrap gap-3">
-                      <ActionButton
-                        label={
-                          contract.status === "sent" || contract.sent_at
-                            ? "Resend Contract"
-                            : "Send Contract"
-                        }
-                        icon={<Send size={16} />}
-                        onClick={() => sendContract(contract.id)}
-                        disabled={saving}
-                      />
-
-                      {contract.signing_token && (
-                        <ActionLink
-                          label="Open Signing Page"
-                          href={`/contract-sign/${contract.signing_token}`}
-                          icon={<ExternalLink size={16} />}
-                        />
-                      )}
-
-                      {contract.contract_pdf_url && (
-                        <ActionExternalLink
-                          label="View Contract PDF"
-                          href={contract.contract_pdf_url}
-                          icon={<FileText size={16} />}
-                        />
-                      )}
-
-                      {contract.signed_pdf_url && (
-                        <ActionExternalLink
-                          label="View Signed PDF"
-                          href={contract.signed_pdf_url}
-                          icon={<CheckCircle size={16} />}
-                        />
-                      )}
-
-                      <ActionButton
-                        label="Delete Contract"
-                        icon={<Trash2 size={16} />}
-                        onClick={() => deleteContract(contract.id)}
-                        disabled={deleting}
-                        danger
-                      />
-                    </div>
-                  </div>
-                ))}
-              </RecordSection>
-
-              <RecordSection
-                title="Invoice Records"
-                heading="Billing history."
-                emptyText="No invoices created for this client yet."
-                actionHref={`/dashboard/clients/${client.id}/invoice`}
-                actionText="New Invoice"
+              <Link
+                href={`/dashboard/clients/${client.id}/invoice`}
+                className={camvelleCreamButton}
               >
-                {invoices.map((invoice, index) => (
-                  <div
-                    key={invoice.id}
-                    className="mx-auto w-full max-w-4xl rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7"
-                  >
-                    <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          {String(index + 1).padStart(2, "0")} / Invoice
-                        </p>
-
-                        <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] md:text-4xl">
-                          {invoice.invoice_number || "No invoice number"}
-                        </h3>
-                      </div>
-
-                      <StatusBadge status={invoice.status || "draft"} />
-                    </div>
-
-                    <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
-                      <DetailLine
-                        label="Amount"
-                        value={formatMoney(Number(invoice.amount || 0))}
-                      />
-
-                      <DetailLine label="Sent To" value={invoice.client_email} />
-
-                      <div className="rounded-[1.5rem] border border-white/10 bg-black/35 p-4 md:col-span-2">
-                        <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
-                          Update Status
-                        </label>
-
-                        <select
-                          value={invoice.status || "draft"}
-                          onChange={(e) =>
-                            updateInvoiceStatus(invoice.id, e.target.value)
-                          }
-                          className="w-full bg-transparent text-white outline-none"
-                        >
-                          <option value="draft" className="bg-black">
-                            Draft
-                          </option>
-
-                          <option value="sent" className="bg-black">
-                            Sent
-                          </option>
-
-                          <option value="paid" className="bg-black">
-                            Paid
-                          </option>
-
-                          <option value="overdue" className="bg-black">
-                            Overdue
-                          </option>
-                        </select>
-                      </div>
-
-                      <DetailLine label="Due Date" value={invoice.due_date} />
-                      <DetailLine
-                        label="Sent Time"
-                        value={formatDateTime(invoice.sent_at)}
-                      />
-                      <DetailLine
-                        label="Paid Time"
-                        value={formatDateTime(invoice.paid_at)}
-                      />
-                      <DetailLine
-                        label="Invoice PDF"
-                        value={invoice.invoice_pdf_url ? "Ready" : "Not generated"}
-                      />
-
-                      <div className="md:col-span-2">
-                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
-                          Notes
-                        </p>
-
-                        <p className="mt-3 whitespace-pre-wrap text-white/55">
-                          {invoice.notes || "No notes saved."}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-7 flex flex-wrap gap-3">
-                      {invoice.invoice_pdf_url ? (
-                        <ActionExternalLink
-                          label="View Invoice PDF"
-                          href={invoice.invoice_pdf_url}
-                          icon={<FileText size={16} />}
-                        />
-                      ) : (
-                        <ActionButton
-                          label="Generate PDF"
-                          icon={<FileText size={16} />}
-                          onClick={() => generateInvoicePdf(invoice.id)}
-                          disabled={saving}
-                        />
-                      )}
-
-                      <ActionButton
-                        label={
-                          invoice.status === "sent" || invoice.sent_at
-                            ? "Resend Invoice"
-                            : "Send Invoice"
-                        }
-                        icon={<Send size={16} />}
-                        onClick={() => sendInvoice(invoice.id)}
-                        disabled={saving || !invoice.invoice_pdf_url}
-                      />
-
-                      <ActionButton
-                        label="Delete Invoice"
-                        icon={<Trash2 size={16} />}
-                        onClick={() => deleteInvoice(invoice.id)}
-                        disabled={deleting}
-                        danger
-                      />
-                    </div>
-
-                    {!invoice.invoice_pdf_url && (
-                      <p className="mt-4 text-xs leading-6 text-white/35">
-                        Generate the invoice PDF before sending this invoice.
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </RecordSection>
-
-              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  Activity
-                </p>
-
-                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                  Client timeline.
-                </h2>
-
-                {activity.length === 0 ? (
-                  <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/55 p-6 text-white/50">
-                    No activity recorded yet.
-                  </div>
-                ) : (
-                  <div className="mt-10 grid gap-3">
-                    {activity.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-[2rem] border border-white/10 bg-black/55 p-5"
-                      >
-                        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                              {item.type}
-                            </p>
-
-                            <h3 className="mt-2 text-xl font-light tracking-[-0.04em]">
-                              {item.title}
-                            </h3>
-
-                            <p className="mt-2 text-sm leading-6 text-white/45">
-                              {item.detail}
-                            </p>
-                          </div>
-
-                          <p className="text-sm text-white/35">
-                            {formatDateTime(item.time) || "Date not listed"}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                Create Invoice
+              </Link>
             </>
           )}
         </div>
-      </section>
-    </main>
+      </CamvellePanel>
+
+      {notice && (
+        <div className="mx-auto mt-6 w-full max-w-3xl rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-5 text-center text-sm text-emerald-100">
+          {notice}
+        </div>
+      )}
+
+      {loading && (
+        <CamvellePanel className="mt-6 p-8 text-white/50">
+          Loading client file...
+        </CamvellePanel>
+      )}
+
+      {!loading && !client && (
+        <CamvellePanel className="mt-6 p-8 text-white/50">
+          Client not found.
+        </CamvellePanel>
+      )}
+
+      {client && (
+        <>
+          <div className="mt-6 grid w-full gap-5 md:grid-cols-5">
+            <StatCard title="Invoices" value={String(invoices.length)} />
+            <StatCard title="Contracts" value={String(contracts.length)} />
+            <StatCard title="Signed" value={String(signedContracts)} />
+            <StatCard title="Total Billed" value={formatMoney(invoiceTotal)} />
+            <StatCard title="Outstanding" value={formatMoney(outstandingTotal)} />
+          </div>
+
+          <CamvellePanel className="mt-6 p-7 md:p-12">
+            <CamvelleEyebrow>Client Details</CamvelleEyebrow>
+
+            <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] text-white md:text-6xl">
+              Session profile.
+            </h2>
+
+            {!editing && !scheduling && (
+              <CamvelleInnerPanel className="mt-8 p-5 md:p-7">
+                <div className="grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
+                  <DetailLine label="Name" value={client.full_name} />
+                  <DetailLine label="Email" value={client.email} />
+                  <DetailLine label="Phone" value={client.phone} />
+                  <DetailLine label="Scheduled" value={scheduledDate} />
+                  <DetailLine
+                    label="Created"
+                    value={
+                      client.created_at
+                        ? new Date(client.created_at).toLocaleDateString()
+                        : null
+                    }
+                  />
+
+                  <div className="md:col-span-2">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Notes
+                    </p>
+
+                    <p className="mt-3 whitespace-pre-wrap text-white/55">
+                      {client.notes || "No notes saved."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <ActionButton
+                    label="Edit Client"
+                    icon={<Pencil size={16} />}
+                    onClick={() => {
+                      setEditing(true);
+                      setScheduling(false);
+                    }}
+                  />
+
+                  <ActionButton
+                    label="Schedule"
+                    icon={<Calendar size={16} />}
+                    onClick={() => {
+                      setScheduling(true);
+                      setEditing(false);
+                    }}
+                  />
+
+                  <ActionLink
+                    label="New Contract"
+                    href={`/dashboard/clients/${client.id}/contract`}
+                    icon={<FileSignature size={16} />}
+                  />
+
+                  <ActionLink
+                    label="New Invoice"
+                    href={`/dashboard/clients/${client.id}/invoice`}
+                    icon={<ReceiptText size={16} />}
+                  />
+
+                  <ActionButton
+                    label="Delete Client"
+                    danger
+                    icon={<Trash2 size={16} />}
+                    onClick={deleteClient}
+                    disabled={deleting}
+                  />
+                </div>
+              </CamvelleInnerPanel>
+            )}
+
+            {editing && (
+              <CamvelleInnerPanel className="mt-8 p-5 md:p-7">
+                <div className="grid gap-4">
+                  <InputBubble
+                    label="Full Name"
+                    value={editForm.full_name}
+                    onChange={(value) =>
+                      setEditForm({ ...editForm, full_name: value })
+                    }
+                  />
+
+                  <InputBubble
+                    label="Email"
+                    value={editForm.email}
+                    onChange={(value) =>
+                      setEditForm({ ...editForm, email: value })
+                    }
+                  />
+
+                  <InputBubble
+                    label="Phone"
+                    value={editForm.phone}
+                    onChange={(value) =>
+                      setEditForm({ ...editForm, phone: value })
+                    }
+                  />
+
+                  <CamvelleInnerPanel className="p-5">
+                    <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Notes
+                    </label>
+
+                    <textarea
+                      rows={6}
+                      value={editForm.notes}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          notes: e.target.value,
+                        })
+                      }
+                      className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+                    />
+                  </CamvelleInnerPanel>
+                </div>
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <ActionButton
+                    label="Save Client"
+                    icon={<Save size={16} />}
+                    onClick={saveClient}
+                    disabled={saving}
+                  />
+
+                  <ActionButton
+                    label="Cancel"
+                    icon={<X size={16} />}
+                    onClick={() => setEditing(false)}
+                  />
+                </div>
+              </CamvelleInnerPanel>
+            )}
+
+            {scheduling && (
+              <CamvelleInnerPanel className="mt-8 p-5 md:p-7">
+                <InputBubble
+                  label="Schedule Date"
+                  type="date"
+                  value={scheduleDate}
+                  onChange={setScheduleDate}
+                />
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <ActionButton
+                    label="Save Schedule"
+                    icon={<Save size={16} />}
+                    onClick={saveSchedule}
+                    disabled={saving}
+                  />
+
+                  <ActionButton
+                    label="Remove Schedule"
+                    icon={<X size={16} />}
+                    onClick={removeSchedule}
+                    disabled={saving}
+                    danger
+                  />
+
+                  <ActionButton
+                    label="Cancel"
+                    icon={<X size={16} />}
+                    onClick={() => setScheduling(false)}
+                  />
+                </div>
+              </CamvelleInnerPanel>
+            )}
+          </CamvellePanel>
+
+          <CamvellePanel className="mt-6 p-7 md:p-12">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <CamvelleEyebrow>Photo Delivery</CamvelleEyebrow>
+
+                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] text-white md:text-6xl">
+                  Client progress.
+                </h2>
+
+                <p className="mt-5 max-w-3xl text-sm leading-7 text-white/45">
+                  Update the photo delivery status shown on the public client
+                  booking status page.
+                </p>
+              </div>
+
+              <div className="rounded-full border border-white/10 bg-black/45 px-5 py-3 text-sm text-white/60">
+                {Math.max(0, Math.min(100, Number(photoProgress.progress || 0)))}%
+              </div>
+            </div>
+
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              <CamvelleInnerPanel className="p-5">
+                <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                  Photo Status
+                </label>
+
+                <select
+                  value={photoProgress.status}
+                  onChange={(e) =>
+                    setPhotoProgress((current) => ({
+                      ...current,
+                      status: e.target.value,
+                    }))
+                  }
+                  className="w-full bg-transparent text-white outline-none"
+                >
+                  <option value="Not Started" className="bg-black">
+                    Not Started
+                  </option>
+                  <option value="Photos Received" className="bg-black">
+                    Photos Received
+                  </option>
+                  <option value="Editing" className="bg-black">
+                    Editing
+                  </option>
+                  <option value="Uploading" className="bg-black">
+                    Uploading
+                  </option>
+                  <option value="Gallery Ready" className="bg-black">
+                    Gallery Ready
+                  </option>
+                </select>
+              </CamvelleInnerPanel>
+
+              <InputBubble
+                label="Completion Percentage"
+                type="number"
+                value={String(photoProgress.progress)}
+                onChange={(value) =>
+                  setPhotoProgress((current) => ({
+                    ...current,
+                    progress: Number(value),
+                  }))
+                }
+              />
+
+              <InputBubble
+                label="Estimated Delivery Date"
+                type="date"
+                value={photoProgress.estimated_delivery_date}
+                onChange={(value) =>
+                  setPhotoProgress((current) => ({
+                    ...current,
+                    estimated_delivery_date: value,
+                  }))
+                }
+              />
+
+              <InputBubble
+                label="Gallery URL"
+                type="url"
+                value={photoProgress.gallery_url}
+                onChange={(value) =>
+                  setPhotoProgress((current) => ({
+                    ...current,
+                    gallery_url: value,
+                  }))
+                }
+              />
+            </div>
+
+            <CamvelleInnerPanel className="mt-4 p-5">
+              <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                Client-Facing Notes
+              </label>
+
+              <textarea
+                rows={5}
+                value={photoProgress.notes}
+                onChange={(e) =>
+                  setPhotoProgress((current) => ({
+                    ...current,
+                    notes: e.target.value,
+                  }))
+                }
+                placeholder="Example: Your images are currently being edited and prepared for delivery."
+                className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+              />
+            </CamvelleInnerPanel>
+
+            <div className="mt-6 h-3 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-[#f5f0e7] transition-all"
+                style={{
+                  width: `${Math.max(
+                    0,
+                    Math.min(100, Number(photoProgress.progress || 0))
+                  )}%`,
+                }}
+              />
+            </div>
+
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <ActionButton
+                label={
+                  savingPhotoProgress
+                    ? "Saving Progress"
+                    : "Save Photo Progress"
+                }
+                icon={<Save size={16} />}
+                onClick={savePhotoProgress}
+                disabled={savingPhotoProgress}
+              />
+
+              {photoProgressNotice && (
+                <p className="text-sm text-emerald-200">
+                  {photoProgressNotice}
+                </p>
+              )}
+            </div>
+          </CamvellePanel>
+
+          <RecordSection
+            title="Contract Records"
+            heading="Agreement history."
+            emptyText="No contracts created for this client yet."
+            actionHref={`/dashboard/clients/${client.id}/contract`}
+            actionText="New Contract"
+          >
+            {contracts.map((contract, index) => (
+              <CamvelleInnerPanel
+                key={contract.id}
+                className="mx-auto w-full max-w-4xl p-5 md:p-7"
+              >
+                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Contract
+                    </p>
+
+                    <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] text-white md:text-4xl">
+                      {contract.contract_type || "Photography Agreement"}
+                    </h3>
+                  </div>
+
+                  <StatusBadge status={contract.status || "draft"} />
+                </div>
+
+                <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
+                  <CamvelleInnerPanel className="p-4 md:col-span-2">
+                    <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      Update Status
+                    </label>
+
+                    <select
+                      value={contract.status || "draft"}
+                      onChange={(e) =>
+                        updateContractStatus(contract.id, e.target.value)
+                      }
+                      className="w-full bg-transparent text-white outline-none"
+                    >
+                      <option value="draft" className="bg-black">
+                        Draft
+                      </option>
+                      <option value="sent" className="bg-black">
+                        Sent
+                      </option>
+                      <option value="signed" className="bg-black">
+                        Signed
+                      </option>
+                      <option value="archived" className="bg-black">
+                        Archived
+                      </option>
+                    </select>
+                  </CamvelleInnerPanel>
+
+                  <DetailLine label="Sent To" value={contract.client_email} />
+                  <DetailLine label="Sent Date" value={contract.sent_date} />
+                  <DetailLine label="Sent Time" value={formatDateTime(contract.sent_at)} />
+                  <DetailLine label="Signed Date" value={contract.signed_date} />
+                  <DetailLine label="Signed By" value={contract.signed_name} />
+                  <DetailLine label="Signed Email" value={contract.signed_email} />
+                  <DetailLine
+                    label="Contract PDF"
+                    value={contract.contract_pdf_url ? "Ready" : "Not generated"}
+                  />
+                  <DetailLine
+                    label="Signed PDF"
+                    value={contract.signed_pdf_url ? "Ready" : "Not signed yet"}
+                  />
+
+                  <div className="md:col-span-2">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Notes
+                    </p>
+
+                    <p className="mt-3 whitespace-pre-wrap text-white/55">
+                      {contract.notes || "No notes saved."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  <ActionButton
+                    label={
+                      contract.status === "sent" || contract.sent_at
+                        ? "Resend Contract"
+                        : "Send Contract"
+                    }
+                    icon={<Send size={16} />}
+                    onClick={() => sendContract(contract.id)}
+                    disabled={saving}
+                  />
+
+                  {contract.signing_token && (
+                    <ActionLink
+                      label="Open Signing Page"
+                      href={`/contract-sign/${contract.signing_token}`}
+                      icon={<ExternalLink size={16} />}
+                    />
+                  )}
+
+                  {contract.contract_pdf_url && (
+                    <ActionExternalLink
+                      label="View Contract PDF"
+                      href={contract.contract_pdf_url}
+                      icon={<FileText size={16} />}
+                    />
+                  )}
+
+                  {contract.signed_pdf_url && (
+                    <ActionExternalLink
+                      label="View Signed PDF"
+                      href={contract.signed_pdf_url}
+                      icon={<CheckCircle size={16} />}
+                    />
+                  )}
+
+                  <ActionButton
+                    label="Delete Contract"
+                    icon={<Trash2 size={16} />}
+                    onClick={() => deleteContract(contract.id)}
+                    disabled={deleting}
+                    danger
+                  />
+                </div>
+              </CamvelleInnerPanel>
+            ))}
+          </RecordSection>
+
+          <RecordSection
+            title="Invoice Records"
+            heading="Billing history."
+            emptyText="No invoices created for this client yet."
+            actionHref={`/dashboard/clients/${client.id}/invoice`}
+            actionText="New Invoice"
+          >
+            {invoices.map((invoice, index) => (
+              <CamvelleInnerPanel
+                key={invoice.id}
+                className="mx-auto w-full max-w-4xl p-5 md:p-7"
+              >
+                <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Invoice
+                    </p>
+
+                    <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] text-white md:text-4xl">
+                      {invoice.invoice_number || "No invoice number"}
+                    </h3>
+                  </div>
+
+                  <StatusBadge status={invoice.status || "draft"} />
+                </div>
+
+                <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
+                  <DetailLine
+                    label="Amount"
+                    value={formatMoney(Number(invoice.amount || 0))}
+                  />
+
+                  <DetailLine label="Sent To" value={invoice.client_email} />
+
+                  <CamvelleInnerPanel className="p-4 md:col-span-2">
+                    <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      Update Status
+                    </label>
+
+                    <select
+                      value={invoice.status || "draft"}
+                      onChange={(e) =>
+                        updateInvoiceStatus(invoice.id, e.target.value)
+                      }
+                      className="w-full bg-transparent text-white outline-none"
+                    >
+                      <option value="draft" className="bg-black">
+                        Draft
+                      </option>
+                      <option value="sent" className="bg-black">
+                        Sent
+                      </option>
+                      <option value="paid" className="bg-black">
+                        Paid
+                      </option>
+                      <option value="overdue" className="bg-black">
+                        Overdue
+                      </option>
+                    </select>
+                  </CamvelleInnerPanel>
+
+                  <DetailLine label="Due Date" value={invoice.due_date} />
+                  <DetailLine label="Sent Time" value={formatDateTime(invoice.sent_at)} />
+                  <DetailLine label="Paid Time" value={formatDateTime(invoice.paid_at)} />
+                  <DetailLine
+                    label="Invoice PDF"
+                    value={invoice.invoice_pdf_url ? "Ready" : "Not generated"}
+                  />
+
+                  <div className="md:col-span-2">
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Notes
+                    </p>
+
+                    <p className="mt-3 whitespace-pre-wrap text-white/55">
+                      {invoice.notes || "No notes saved."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-7 flex flex-wrap gap-3">
+                  {invoice.invoice_pdf_url ? (
+                    <ActionExternalLink
+                      label="View Invoice PDF"
+                      href={invoice.invoice_pdf_url}
+                      icon={<FileText size={16} />}
+                    />
+                  ) : (
+                    <ActionButton
+                      label="Generate PDF"
+                      icon={<FileText size={16} />}
+                      onClick={() => generateInvoicePdf(invoice.id)}
+                      disabled={saving}
+                    />
+                  )}
+
+                  <ActionButton
+                    label={
+                      invoice.status === "sent" || invoice.sent_at
+                        ? "Resend Invoice"
+                        : "Send Invoice"
+                    }
+                    icon={<Send size={16} />}
+                    onClick={() => sendInvoice(invoice.id)}
+                    disabled={saving || !invoice.invoice_pdf_url}
+                  />
+
+                  <ActionButton
+                    label="Delete Invoice"
+                    icon={<Trash2 size={16} />}
+                    onClick={() => deleteInvoice(invoice.id)}
+                    disabled={deleting}
+                    danger
+                  />
+                </div>
+
+                {!invoice.invoice_pdf_url && (
+                  <p className="mt-4 text-xs leading-6 text-white/35">
+                    Generate the invoice PDF before sending this invoice.
+                  </p>
+                )}
+              </CamvelleInnerPanel>
+            ))}
+          </RecordSection>
+
+          <CamvellePanel className="mt-6 p-7 md:p-12">
+            <CamvelleEyebrow>Activity</CamvelleEyebrow>
+
+            <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] text-white md:text-6xl">
+              Client timeline.
+            </h2>
+
+            {activity.length === 0 ? (
+              <CamvelleInnerPanel className="mt-10 p-6 text-white/50">
+                No activity recorded yet.
+              </CamvelleInnerPanel>
+            ) : (
+              <div className="mt-10 grid gap-3">
+                {activity.map((item) => (
+                  <CamvelleInnerPanel key={item.id} className="p-5">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                          {item.type}
+                        </p>
+
+                        <h3 className="mt-2 text-xl font-light tracking-[-0.04em] text-white">
+                          {item.title}
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-white/45">
+                          {item.detail}
+                        </p>
+                      </div>
+
+                      <p className="text-sm text-white/35">
+                        {formatDateTime(item.time) || "Date not listed"}
+                      </p>
+                    </div>
+                  </CamvelleInnerPanel>
+                ))}
+              </div>
+            )}
+          </CamvellePanel>
+        </>
+      )}
+    </CamvellePageShell>
   );
 }
 
@@ -1517,13 +1470,15 @@ function buildActivity(
 
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+    <CamvelleInnerPanel className="p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.04]">
       <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
         {title}
       </p>
 
-      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
-    </div>
+      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em] text-white">
+        {value}
+      </h3>
+    </CamvelleInnerPanel>
   );
 }
 
@@ -1546,34 +1501,29 @@ function RecordSection({
     Array.isArray(children) ? children.length > 0 : Boolean(children);
 
   return (
-    <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
+    <CamvellePanel className="mt-6 p-7 md:p-12">
       <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-            {title}
-          </p>
+          <CamvelleEyebrow>{title}</CamvelleEyebrow>
 
-          <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+          <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] text-white md:text-6xl">
             {heading}
           </h2>
         </div>
 
-        <Link
-          href={actionHref}
-          className="rounded-full bg-[#f5f0e7] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-black transition hover:bg-white"
-        >
+        <Link href={actionHref} className={camvelleCreamButton}>
           {actionText}
         </Link>
       </div>
 
       {!hasChildren && (
-        <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/55 p-6 text-white/50">
+        <CamvelleInnerPanel className="mt-10 p-6 text-white/50">
           {emptyText}
-        </div>
+        </CamvelleInnerPanel>
       )}
 
       <div className="mt-10 grid gap-4">{children}</div>
-    </div>
+    </CamvellePanel>
   );
 }
 
@@ -1589,7 +1539,7 @@ function InputBubble({
   type?: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
+    <CamvelleInnerPanel className="p-5">
       <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
         {label}
       </label>
@@ -1600,7 +1550,7 @@ function InputBubble({
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
       />
-    </div>
+    </CamvelleInnerPanel>
   );
 }
 
@@ -1628,7 +1578,7 @@ function StatusBadge({ status }: { status: string }) {
   const isArchived = normalized === "archived";
 
   const className = isGood
-    ? "border-green-400/20 bg-green-500/10 text-green-100"
+    ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-100"
     : isWarning
       ? "border-yellow-400/20 bg-yellow-500/10 text-yellow-100"
       : isDanger
