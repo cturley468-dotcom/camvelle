@@ -19,12 +19,12 @@ type Client = {
 const sections = ["overview", "clients", "bookings", "galleries", "finance"];
 
 const crystalPanel =
-  "rounded-[3rem] border border-white/10 bg-white/[0.035] shadow-[inset_0_0_60px_rgba(255,255,255,0.025)] backdrop-blur-[1px] transition duration-500 hover:border-white/20 hover:bg-white/[0.05]";
+  "rounded-[3rem] border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_0_0_70px_rgba(255,255,255,0.025),0_30px_100px_rgba(0,0,0,0.55)] backdrop-blur-[1px] transition duration-500 hover:border-white/20 hover:bg-black/30";
 
 const crystalInner =
-  "rounded-[2rem] border border-white/10 bg-white/[0.025] shadow-[inset_0_0_40px_rgba(255,255,255,0.025)] backdrop-blur-[1px]";
+  "rounded-[2rem] border border-white/10 bg-black/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_40px_rgba(255,255,255,0.02)] backdrop-blur-[1px]";
 
-const creamButton =
+  const creamButton =
   "rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02] hover:bg-white";
 
 export default function CalendarPage() {
@@ -169,7 +169,7 @@ export default function CalendarPage() {
           }}
         />
 
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/50"/>
 
         <div
           className="absolute inset-0"
