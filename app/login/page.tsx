@@ -1,11 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import {
+  CamvelleBody,
+  CamvelleEyebrow,
+  CamvelleHeading,
+  CamvelleInnerPanel,
+  CamvellePageShell,
+  CamvellePanel,
+  camvelleCreamButton,
+} from "../components/CamvelleUI";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,14 +23,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
     setLoading(true);
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const email = String(formData.get("email"));
-    const password = String(formData.get("password"));
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -38,25 +49,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      <div className="pointer-events-none fixed inset-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{
-            backgroundImage: "url('/backgrounds/camvelle-background.png')",
-          }}
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
-          }}
-        />
-      </div>
-
-      <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
+    <CamvellePageShell>
+      <header className="relative z-[9999] mb-10 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
@@ -65,45 +59,64 @@ export default function LoginPage() {
             height={120}
             priority
             unoptimized
-            className="h-12 w-auto object-contain md:h-16 lg:h-20 xl:h-24"
+            className="h-14 w-auto object-contain sm:h-16 md:h-20"
           />
         </Link>
 
         <details className="relative z-[99999]">
-          <summary className="list-none cursor-pointer rounded-full border border-white/10 bg-[#f5f0e7] px-8 py-4 text-[11px] font-semibold uppercase tracking-[0.35em] text-black transition hover:scale-[1.02] [&::-webkit-details-marker]:hidden">
+          <summary
+            className={`${camvelleCreamButton} list-none cursor-pointer [&::-webkit-details-marker]:hidden`}
+          >
             Menu
           </summary>
 
-          <div className="absolute right-0 top-16 z-[99999] w-72 rounded-[3rem] border border-white/10 bg-black/80 p-6 backdrop-blur-2xl">
-            <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.3em] text-white/75">
-              <Link href="/" className="hover:text-white">Home</Link>
-              <Link href="/galleries" className="hover:text-white">Galleries</Link>
-              <Link href="/services" className="hover:text-white">Services</Link>
-              <Link href="/book" className="hover:text-white">Book</Link>
-              <Link href="/login" className="text-white">Studio Login</Link>
+          <div className="absolute right-0 top-16 z-[99999] w-80 rounded-[3rem] border border-white/10 bg-black/80 p-7 shadow-[0_30px_90px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+            <nav className="flex flex-col gap-5 text-sm font-semibold uppercase tracking-[0.32em] text-white/70">
+              <Link href="/" className="hover:text-white">
+                Home
+              </Link>
+
+              <Link href="/galleries" className="hover:text-white">
+                Galleries
+              </Link>
+
+              <Link href="/services" className="hover:text-white">
+                Services
+              </Link>
+
+              <Link href="/book" className="hover:text-white">
+                Book
+              </Link>
+
+              <Link href="/status" className="hover:text-white">
+                Client Status
+              </Link>
+
+              <Link href="/login" className="text-white">
+                Studio Login
+              </Link>
             </nav>
           </div>
         </details>
       </header>
 
-      <section className="relative z-10 flex min-h-[calc(100vh-112px)] items-center justify-center px-5 pb-14 pt-6 md:px-10 md:pb-20">
-        <div className="w-full max-w-xl rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-10">
-          <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-            Camvelle Creative
-          </p>
+      <section className="flex min-h-[calc(100vh-140px)] items-center justify-center pb-14">
+        <CamvellePanel className="w-full max-w-xl p-8 text-center sm:p-10 md:p-12">
+          <CamvelleEyebrow>Camvelle Creative</CamvelleEyebrow>
 
-          <h1 className="mt-8 text-5xl font-light leading-[0.9] tracking-[-0.08em] text-[#f5f1e8] md:text-7xl">
+          <CamvelleHeading>
             Studio
             <br />
             Login
-          </h1>
+          </CamvelleHeading>
 
-          <p className="mx-auto mt-8 max-w-xl text-lg leading-8 text-white/50">
-            Access bookings, galleries, uploads, schedules, and more.
-          </p>
+          <CamvelleBody>
+            Access bookings, galleries, uploads, schedules, contracts, invoices,
+            and client records.
+          </CamvelleBody>
 
-          <form onSubmit={handleLogin} className="mt-12 space-y-5 text-left">
-            <div className="flex items-center gap-4 rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-3 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+          <form onSubmit={handleLogin} className="mt-10 space-y-5 text-left">
+            <CamvelleInnerPanel className="flex items-center gap-4 px-6 py-4">
               <label className="min-w-24 text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Email
               </label>
@@ -115,9 +128,9 @@ export default function LoginPage() {
                 placeholder="Enter your email"
                 className="w-full bg-transparent text-lg text-white outline-none placeholder:text-white/25"
               />
-            </div>
+            </CamvelleInnerPanel>
 
-            <div className="flex items-center gap-4 rounded-[3rem] border border-white/10 bg-white/[0.035] px-6 py-3 transition duration-500 hover:border-white/20 hover:bg-white/[0.05]">
+            <CamvelleInnerPanel className="flex items-center gap-4 px-6 py-4">
               <label className="min-w-24 text-[11px] uppercase tracking-[0.32em] text-white/35">
                 Password
               </label>
@@ -132,15 +145,16 @@ export default function LoginPage() {
 
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((current) => !current)}
                 className="shrink-0 text-white/45 transition hover:text-white"
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
-            </div>
+            </CamvelleInnerPanel>
 
             {error && (
-              <div className="rounded-[2rem] border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300">
+              <div className="rounded-[2rem] border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm leading-7 text-red-200">
                 {error}
               </div>
             )}
@@ -148,19 +162,31 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-full bg-[#f5f0e7] px-10 py-6 text-[11px] font-semibold uppercase tracking-[0.35em] text-black transition hover:scale-[1.01] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              className={`${camvelleCreamButton} w-full disabled:cursor-not-allowed disabled:opacity-60`}
             >
               {loading ? "Checking..." : "Enter Studio"}
             </button>
           </form>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-7 text-[11px] uppercase tracking-[0.3em] text-white/40">
-            <Link href="/galleries" className="transition hover:text-white">Galleries</Link>
-            <Link href="/services" className="transition hover:text-white">Services</Link>
-            <Link href="/book" className="transition hover:text-white">Book</Link>
+            <Link href="/galleries" className="transition hover:text-white">
+              Galleries
+            </Link>
+
+            <Link href="/services" className="transition hover:text-white">
+              Services
+            </Link>
+
+            <Link href="/book" className="transition hover:text-white">
+              Book
+            </Link>
+
+            <Link href="/status" className="transition hover:text-white">
+              Status
+            </Link>
           </div>
-        </div>
+        </CamvellePanel>
       </section>
-    </main>
+    </CamvellePageShell>
   );
 }
