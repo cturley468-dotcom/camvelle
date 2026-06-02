@@ -169,7 +169,7 @@ export default function CalendarPage() {
           }}
         />
 
-        <div className="absolute inset-0 bg-black/50"/>
+        <div className="absolute inset-0 bg-black/40"/>
 
         <div
           className="absolute inset-0"
