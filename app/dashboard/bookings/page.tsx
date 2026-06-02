@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+
 type Booking = {
   id: string;
   full_name: string | null;
@@ -266,7 +267,7 @@ export default function BookingsPage() {
               Recent Inquiries
             </p>
 
-            <div className="mx-auto mt-12 max-w-3xl">
+            <div className="mx-auto mt-14 w-full max-w-sm">
               <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
                 Navigate
               </label>

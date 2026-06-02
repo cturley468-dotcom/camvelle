@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import { buildContract } from "../../../lib/contractTemplate";
+import type { ContractType } from "../../../lib/contracts";
 
 export const runtime = "nodejs";
 
@@ -97,10 +99,43 @@ export async function POST(request: Request) {
 
     const clientEmail = clean(contract.client_email || client?.email);
 
-    const contractType = clean(
-      contract.title || contract.contract_type || contract.type,
-      "Photography Agreement"
-    );
+  const rawContractType = clean(
+  contract.contract_type || contract.type || contract.session_type || contract.service_type || contract.title,
+  "portrait"
+);
+
+const contractTypeMap: Record<string, ContractType> = {
+  proposal: "proposal",
+  proposals: "proposal",
+  engagement: "engagement",
+  couples: "couples",
+  couple: "couples",
+  family: "family",
+  families: "family",
+  portrait: "portrait",
+  portraits: "portrait",
+  business: "business",
+  branding: "business",
+  "business branding": "business",
+  realestate: "real-estate",
+  "real estate": "real-estate",
+  "real-estate": "real-estate",
+  automotive: "automotive",
+  auto: "automotive",
+  events: "events",
+  event: "events",
+  wedding: "wedding",
+  weddings: "wedding",
+};
+
+const normalizedContractType =
+  rawContractType.toLowerCase().trim().replace(/_/g, "-");
+
+const contractType =
+  contractTypeMap[normalizedContractType] ||
+  contractTypeMap[normalizedContractType.replace(/-/g, " ")] ||
+  "portrait";
+
 
     if (!clientEmail) {
       return NextResponse.json(
@@ -144,6 +179,8 @@ export async function POST(request: Request) {
         ? [ownerEmail]
         : undefined;
 
+    const builtContract = buildContract(contractType);
+
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -156,11 +193,20 @@ export async function POST(request: Request) {
         reply_to: replyToEmail,
         to: [clientEmail],
         bcc,
-        subject: `${contractType} from Camvelle Creative`,
+        subject: `${builtContract.title} from Camvelle Creative`,
         html: `
           <div style="margin:0;padding:0;background:#f7f4ef;">
             <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
               Your Camvelle Creative contract is ready for review and signature.
+            </div>
+
+            <div style="margin:24px 0;padding:20px;border:1px solid #e5e7eb;border-radius:16px;background:#fafafa;">
+             <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">
+             ${builtContract.title}
+             </h2>
+            <pre style="white-space:pre-wrap;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.7;color:#374151;margin:0;">
+             ${builtContract.body}
+             </pre>
             </div>
 
             <div style="max-width:640px;margin:0 auto;padding:32px 18px;font-family:Arial,Helvetica,sans-serif;color:#151515;">
@@ -195,6 +241,7 @@ export async function POST(request: Request) {
                   </p>
                 </div>
 
+
                 <p style="margin:0 0 28px 0;">
                   <a href="${escapeHtml(signingUrl)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;border-radius:999px;padding:15px 24px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
                     Review & Sign Contract
@@ -223,6 +270,7 @@ export async function POST(request: Request) {
         text: `Hi ${clientName},
 
 Your contract from Camvelle Creative is ready for review and signature.
+
 
 Contract: ${contractType}
 Client: ${clientName}
