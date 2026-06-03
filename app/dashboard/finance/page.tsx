@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import {
-  CheckCircle,
-  FileSignature,
-  Inbox,
-  ReceiptText,
-  Search,
+  Download,
+  ExternalLink,
+  FileText,
+  RefreshCcw,
+  Trash2,
   Wallet,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -27,75 +27,76 @@ import {
 
 type Invoice = {
   id: string;
-  client_id: string | null;
-  client_name: string | null;
-  client_email: string | null;
-  invoice_number: string | null;
-  amount: number | null;
-  status: string | null;
-  due_date: string | null;
-  notes: string | null;
-  invoice_pdf_url: string | null;
-  sent_at: string | null;
-  paid_at: string | null;
-  created_at: string | null;
+  invoice_number?: string | null;
+  amount?: number | string | null;
+  total?: number | string | null;
+  status?: string | null;
+  due_date?: string | null;
+  client_name?: string | null;
+  client_email?: string | null;
+  notes?: string | null;
+  invoice_pdf_url?: string | null;
+  sent_at?: string | null;
+  paid_at?: string | null;
+  created_at?: string | null;
 };
 
-type Contract = {
+type Expense = {
   id: string;
-  client_id: string | null;
-  client_name: string | null;
-  client_email: string | null;
-  contract_type: string | null;
-  status: string | null;
-  sent_at: string | null;
-  signed_at: string | null;
-  created_at: string | null;
+  expense_date?: string | null;
+  date?: string | null;
+  vendor?: string | null;
+  category?: string | null;
+  amount?: number | string | null;
+  payment_method?: string | null;
+  description?: string | null;
+  status?: string | null;
+  file_path?: string | null;
+  file_name?: string | null;
+  file_url?: string | null;
+  created_at?: string | null;
 };
 
-type Inquiry = {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  service_type: string | null;
-  created_at: string | null;
-};
+type DateRange = "all" | "this_month" | "this_year";
 
-const sections = ["overview", "clients", "bookings", "calendar", "galleries", "expenses"];
+const sections = [
+  { label: "Overview", value: "overview" },
+  { label: "Clients", value: "clients" },
+  { label: "Bookings", value: "bookings" },
+  { label: "Calendar", value: "calendar" },
+  { label: "Galleries", value: "galleries" },
+  { label: "Expenses", value: "expenses" },
+];
+
+const EXPENSE_BUCKET = "expense-files";
 
 export default function FinancePage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [contracts, setContracts] = useState<Contract[]>([]);
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
   const [notice, setNotice] = useState("");
+  const [invoiceSearch, setInvoiceSearch] = useState("");
+  const [expenseSearch, setExpenseSearch] = useState("");
+  const [savingInvoiceId, setSavingInvoiceId] = useState<string | null>(null);
+  const [deletingInvoiceId, setDeletingInvoiceId] = useState<string | null>(
+    null
+  );
+  const [reportRange, setReportRange] = useState<DateRange>("all");
+  const [reportGeneratedAt, setReportGeneratedAt] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
-    loadFinance();
+    loadFinanceData();
   }, []);
 
-  async function loadFinance() {
+  async function loadFinanceData() {
     setLoading(true);
+    setNotice("");
 
-    const [invoiceResult, contractResult, inquiryResult] = await Promise.all([
-      supabase
-        .from("invoices")
-        .select("*")
-        .order("created_at", { ascending: false }),
-
-      supabase
-        .from("contracts")
-        .select(
-          "id, client_id, client_name, client_email, contract_type, status, sent_at, signed_at, created_at"
-        )
-        .order("created_at", { ascending: false }),
-
-      supabase
-        .from("inquiries")
-        .select("id, full_name, email, service_type, created_at")
-        .order("created_at", { ascending: false }),
+    const [invoiceResult, expenseResult] = await Promise.all([
+      supabase.from("invoices").select("*"),
+      supabase.from("expenses").select("*"),
     ]);
 
     if (invoiceResult.error) {
@@ -104,26 +105,32 @@ export default function FinancePage() {
       return;
     }
 
-    if (contractResult.error) {
-      alert(contractResult.error.message);
+    if (expenseResult.error) {
+      alert(expenseResult.error.message);
       setLoading(false);
       return;
     }
 
-    if (inquiryResult.error) {
-      alert(inquiryResult.error.message);
-      setLoading(false);
-      return;
-    }
+    const sortedInvoices = [...(invoiceResult.data || [])].sort((a, b) => {
+      return (
+        getSortTime(b.created_at || b.sent_at || b.paid_at || b.due_date) -
+        getSortTime(a.created_at || a.sent_at || a.paid_at || a.due_date)
+      );
+    });
 
-    setInvoices(invoiceResult.data || []);
-    setContracts(contractResult.data || []);
-    setInquiries(inquiryResult.data || []);
+    const sortedExpenses = [...(expenseResult.data || [])].sort((a, b) => {
+      return (
+        getSortTime(getExpenseDate(b)) - getSortTime(getExpenseDate(a))
+      );
+    });
+
+    setInvoices(sortedInvoices);
+    setExpenses(sortedExpenses);
     setLoading(false);
   }
 
-  async function updateInvoiceStatus(invoiceId: string, status: string) {
-    setSavingId(invoiceId);
+  async function updateInvoiceStatus(invoice: Invoice, status: string) {
+    setSavingInvoiceId(invoice.id);
     setNotice("");
 
     const updateData: Record<string, string | null> = {
@@ -141,17 +148,66 @@ export default function FinancePage() {
     const { error } = await supabase
       .from("invoices")
       .update(updateData)
-      .eq("id", invoiceId);
+      .eq("id", invoice.id);
 
-    setSavingId(null);
+    setSavingInvoiceId(null);
 
     if (error) {
       alert(error.message);
       return;
     }
 
-    setNotice(`Invoice marked ${formatStatus(status)}.`);
-    await loadFinance();
+    setNotice("Invoice updated successfully.");
+    await loadFinanceData();
+  }
+
+  async function deleteInvoice(invoice: Invoice) {
+    const confirmDelete = confirm(
+      `Delete ${invoice.invoice_number || "this invoice"}?`
+    );
+
+    if (!confirmDelete) return;
+
+    setDeletingInvoiceId(invoice.id);
+    setNotice("");
+
+    const { error } = await supabase
+      .from("invoices")
+      .delete()
+      .eq("id", invoice.id);
+
+    setDeletingInvoiceId(null);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNotice("Invoice deleted successfully.");
+    await loadFinanceData();
+  }
+
+  async function openExpenseFile(expense: Expense) {
+    if (expense.file_url) {
+      window.open(expense.file_url, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    if (!expense.file_path) {
+      alert("No file attached to this expense.");
+      return;
+    }
+
+    const { data, error } = await supabase.storage
+      .from(EXPENSE_BUCKET)
+      .createSignedUrl(expense.file_path, 60);
+
+    if (error || !data?.signedUrl) {
+      alert(error?.message || "Expense file could not be opened.");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   }
 
   async function handleLogout() {
@@ -159,48 +215,119 @@ export default function FinancePage() {
     window.location.href = "/login";
   }
 
-  const totalBilled = useMemo(() => {
-    return invoices.reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
-  }, [invoices]);
+  function generateCurrentReport() {
+    setReportGeneratedAt(new Date().toISOString());
+    setNotice("Finance report generated.");
+  }
 
-  const paidTotal = useMemo(() => {
-    return invoices
-      .filter((invoice) => invoice.status === "paid")
-      .reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
-  }, [invoices]);
-
-  const outstandingTotal = useMemo(() => {
-    return invoices
-      .filter((invoice) => invoice.status !== "paid")
-      .reduce((sum, invoice) => sum + Number(invoice.amount || 0), 0);
-  }, [invoices]);
-
-  const openInvoices = useMemo(() => {
-    return invoices.filter((invoice) => invoice.status !== "paid").length;
-  }, [invoices]);
-
-  const signedContracts = useMemo(() => {
-    return contracts.filter((contract) => contract.status === "signed").length;
-  }, [contracts]);
-
-  const estimatedLeadValue = useMemo(() => {
-    return inquiries.length * 400;
-  }, [inquiries.length]);
-
-  const filteredInvoices = useMemo(() => {
-    const term = search.toLowerCase();
-
-    return invoices.filter((invoice) => {
-      return (
-        invoice.invoice_number?.toLowerCase().includes(term) ||
-        invoice.client_name?.toLowerCase().includes(term) ||
-        invoice.client_email?.toLowerCase().includes(term) ||
-        invoice.status?.toLowerCase().includes(term) ||
-        invoice.due_date?.toLowerCase().includes(term) ||
-        invoice.notes?.toLowerCase().includes(term)
-      );
+  function printFinanceReport() {
+    const generatedAt = reportGeneratedAt || new Date().toISOString();
+    const html = buildFinanceReportHtml({
+      reportRange,
+      generatedAt,
+      invoices: reportInvoices,
+      expenses: reportExpenses,
+      totals,
     });
-  }, [invoices, search]);
+
+    const printWindow = window.open("", "_blank");
+
+    if (!printWindow) {
+      alert("Allow popups to print or save this report.");
+      return;
+    }
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
+  }
+
+  const reportInvoices = useMemo(() => {
+    return invoices.filter((invoice) =>
+      isWithinRange(getInvoiceReportDate(invoice), reportRange)
+    );
+  }, [invoices, reportRange]);
+
+  const reportExpenses = useMemo(() => {
+    return expenses.filter((expense) =>
+      isWithinRange(getExpenseDate(expense), reportRange)
+    );
+  }, [expenses, reportRange]);
+
+  const totals = useMemo(() => {
+    const totalBilled = reportInvoices.reduce((sum, invoice) => {
+      return sum + getInvoiceAmount(invoice);
+    }, 0);
+
+    const paidIncome = reportInvoices
+      .filter((invoice) => String(invoice.status || "").toLowerCase() === "paid")
+      .reduce((sum, invoice) => {
+        return sum + getInvoiceAmount(invoice);
+      }, 0);
+
+    const outstanding = reportInvoices
+      .filter((invoice) => String(invoice.status || "").toLowerCase() !== "paid")
+      .reduce((sum, invoice) => {
+        return sum + getInvoiceAmount(invoice);
+      }, 0);
+
+    const expenseTotal = reportExpenses.reduce((sum, expense) => {
+      return sum + moneyToNumber(expense.amount);
+    }, 0);
+
+    return {
+      totalBilled,
+      paidIncome,
+      outstanding,
+      expenseTotal,
+      netProfit: paidIncome - expenseTotal,
+    };
+  }, [reportInvoices, reportExpenses]);
+
+  const visibleInvoices = useMemo(() => {
+    const term = invoiceSearch.toLowerCase().trim();
+
+    return reportInvoices.filter((invoice) => {
+      const searchable = [
+        invoice.invoice_number,
+        invoice.client_name,
+        invoice.client_email,
+        invoice.status,
+        invoice.due_date,
+        invoice.notes,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchable.includes(term);
+    });
+  }, [reportInvoices, invoiceSearch]);
+
+  const visibleExpenses = useMemo(() => {
+    const term = expenseSearch.toLowerCase().trim();
+
+    return reportExpenses.filter((expense) => {
+      const searchable = [
+        expense.vendor,
+        expense.category,
+        expense.payment_method,
+        expense.description,
+        expense.status,
+        expense.file_name,
+        getExpenseDate(expense),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchable.includes(term);
+    });
+  }, [reportExpenses, expenseSearch]);
 
   return (
     <CamvellePageShell>
@@ -222,31 +349,21 @@ export default function FinancePage() {
         </button>
       </header>
 
-      <CamvellePanel className="p-7 text-center sm:p-10 md:p-14">
+      <CamvellePanel className="p-8 text-center md:p-14">
         <CamvelleEyebrow>Finance Management</CamvelleEyebrow>
 
         <CamvelleHeading>
-          Finance
+          Studio
           <br />
-          HQ
+          Finance.
         </CamvelleHeading>
 
         <CamvelleBody>
-          Track invoices, paid revenue, outstanding balances, and business
-          performance.
+          Track invoices, income, expenses, outstanding balances, and printable
+          financial reports.
         </CamvelleBody>
 
-        <div className="mx-auto mt-12 flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
-        <Link href="/dashboard/expenses" className={camvelleCreamButton}>
-          Open Expenses
-      </Link>
-
-  <Link href="/dashboard" className={camvelleGhostButton}>
-    Dashboard
-  </Link>
-</div>
-
-        <div className="mx-auto mt-12 w-full max-w-xl text-left">
+        <div className="mx-auto mt-12 w-full max-w-sm">
           <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
             Navigate
           </label>
@@ -263,242 +380,436 @@ export default function FinancePage() {
                 window.location.href = `/dashboard/${e.target.value}`;
               }
             }}
-            className="w-full rounded-full border border-white/10 bg-black/20 px-7 py-5 text-[11px] font-bold uppercase tracking-[0.35em] text-white outline-none transition hover:border-white/20 hover:bg-black/30"
+            className="w-full rounded-full border border-white/10 bg-black/20 px-6 py-4 text-[11px] uppercase tracking-[0.35em] text-white outline-none transition duration-500 hover:border-white/20"
           >
             <option value="finance" className="bg-black">
               Finance
             </option>
 
             {sections.map((section) => (
-              <option key={section} value={section} className="bg-black">
-                {section}
+              <option key={section.value} value={section.value} className="bg-black">
+                {section.label}
               </option>
             ))}
           </select>
         </div>
       </CamvellePanel>
 
-      <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Total Billed"
-          value={loading ? "..." : formatMoney(totalBilled)}
-          detail="All invoice value"
-          icon={<ReceiptText size={18} />}
-        />
+      {notice && (
+        <div className="mt-6 rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
+          {notice}
+        </div>
+      )}
 
-        <StatCard
-          title="Paid"
-          value={loading ? "..." : formatMoney(paidTotal)}
-          detail="Collected invoice value"
-          icon={<CheckCircle size={18} />}
-        />
-
-        <StatCard
-          title="Outstanding"
-          value={loading ? "..." : formatMoney(outstandingTotal)}
-          detail={`${openInvoices} open invoice${openInvoices === 1 ? "" : "s"}`}
-          icon={<Wallet size={18} />}
-        />
-
-        <StatCard
-          title="Lead Estimate"
-          value={loading ? "..." : formatMoney(estimatedLeadValue)}
-          detail={`${inquiries.length} inquiry estimate`}
-          icon={<Inbox size={18} />}
-        />
-      </div>
-
-      <div className="mt-6 grid gap-5 md:grid-cols-2">
-        <StatCard
-          title="Invoices"
-          value={loading ? "..." : String(invoices.length)}
-          detail="Total invoice records"
-          icon={<ReceiptText size={18} />}
-        />
-
-        <StatCard
-          title="Signed Contracts"
-          value={loading ? "..." : `${signedContracts}/${contracts.length}`}
-          detail="Completed agreements"
-          icon={<FileSignature size={18} />}
-        />
-      </div>
-
-      <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
+      <CamvellePanel className="mt-6 p-7 md:p-12">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <CamvelleEyebrow>Invoice Records</CamvelleEyebrow>
+            <CamvelleEyebrow>Income vs Expenses</CamvelleEyebrow>
 
-            <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
-              Billing
-              <br />
-              overview.
+            <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] md:text-6xl">
+              Current report.
             </h2>
+
+            <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
+              Review your income, expenses, net profit estimate, and outstanding
+              invoice balance.
+            </p>
           </div>
 
-          <div className="flex w-full max-w-md items-center gap-3 rounded-full border border-white/10 bg-black/20 px-6 py-4">
-            <Search size={16} className="text-white/35" />
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={generateCurrentReport}
+              className={camvelleCreamButton}
+            >
+              Generate Report
+            </button>
 
+            <button
+              type="button"
+              onClick={printFinanceReport}
+              className={camvelleGhostButton}
+            >
+              Print / PDF
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
+          <div className="rounded-full border border-white/10 bg-black/20 px-6 py-4">
+            <label className="mb-2 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+              Report Range
+            </label>
+
+            <select
+              value={reportRange}
+              onChange={(e) => setReportRange(e.target.value as DateRange)}
+              className="w-full bg-transparent text-white outline-none"
+            >
+              <option value="all" className="bg-black">
+                All Time
+              </option>
+              <option value="this_month" className="bg-black">
+                This Month
+              </option>
+              <option value="this_year" className="bg-black">
+                This Year
+              </option>
+            </select>
+          </div>
+
+          <p className="rounded-full border border-white/10 bg-black/20 px-6 py-4 text-[10px] uppercase tracking-[0.28em] text-white/45">
+            {reportGeneratedAt
+              ? `Generated ${formatDateTime(reportGeneratedAt)}`
+              : "Report not generated yet"}
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+          <StatCard title="Total Billed" value={formatMoney(totals.totalBilled)} />
+          <StatCard title="Paid Income" value={formatMoney(totals.paidIncome)} />
+          <StatCard title="Expenses" value={formatMoney(totals.expenseTotal)} />
+          <StatCard title="Net Estimate" value={formatMoney(totals.netProfit)} />
+          <StatCard title="Outstanding" value={formatMoney(totals.outstanding)} />
+        </div>
+      </CamvellePanel>
+
+      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+        <CamvellePanel className="p-7 md:p-12">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <CamvelleEyebrow>Invoice Income</CamvelleEyebrow>
+
+              <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] md:text-6xl">
+                Invoices.
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={loadFinanceData}
+              className={camvelleGhostButton}
+            >
+              Refresh
+            </button>
+          </div>
+
+          <div className="mt-8 rounded-full border border-white/10 bg-black/20 px-6 py-4">
             <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={invoiceSearch}
+              onChange={(e) => setInvoiceSearch(e.target.value)}
               placeholder="Search invoices..."
               className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
             />
           </div>
-        </div>
 
-        {notice && (
-          <div className="mt-8 rounded-[2rem] border border-emerald-400/20 bg-emerald-400/10 p-5 text-center text-sm text-emerald-100">
-            {notice}
-          </div>
-        )}
+          {loading && <p className="mt-10 text-white/50">Loading invoices...</p>}
 
-        {loading && <p className="mt-10 text-white/50">Loading finance data...</p>}
-
-        {!loading && filteredInvoices.length === 0 && (
-          <CamvelleInnerPanel className="mt-10 p-7 text-white/50">
-            No invoices found.
-          </CamvelleInnerPanel>
-        )}
-
-        <div className="mt-10 grid gap-4">
-          {filteredInvoices.map((invoice, index) => (
-            <CamvelleInnerPanel
-              key={invoice.id}
-              className="mx-auto w-full max-w-4xl p-5 md:p-6"
-            >
-              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                    {String(index + 1).padStart(2, "0")} / Invoice
-                  </p>
-
-                  <h3 className="mt-3 text-3xl font-light tracking-[-0.06em] text-white md:text-4xl">
-                    {invoice.invoice_number || "No invoice number"}
-                  </h3>
-
-                  <p className="mt-3 break-words text-sm leading-6 text-white/50">
-                    {invoice.client_name || invoice.client_email || "No client listed"}
-                  </p>
-                </div>
-
-                <div className="flex flex-col items-start gap-3 md:items-end">
-                  <CamvelleStatusPill status={formatStatus(invoice.status || "draft")} />
-
-                  <p className="text-3xl font-light tracking-[-0.06em] text-white">
-                    {formatMoney(Number(invoice.amount || 0))}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid gap-4 text-sm leading-7 text-white/55 md:grid-cols-2">
-                <DetailLine label="Client Email" value={invoice.client_email} />
-                <DetailLine label="Due Date" value={invoice.due_date} />
-                <DetailLine label="Sent" value={formatDateTime(invoice.sent_at)} />
-                <DetailLine label="Paid" value={formatDateTime(invoice.paid_at)} />
-              </div>
-
-              <div className="mt-6 rounded-[2rem] border border-white/10 bg-black/20 p-5">
-                <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                  Update Status
-                </label>
-
-                <select
-                  value={invoice.status || "draft"}
-                  onChange={(e) => updateInvoiceStatus(invoice.id, e.target.value)}
-                  disabled={savingId === invoice.id}
-                  className="w-full rounded-full border border-white/10 bg-black/20 px-5 py-4 text-[11px] font-bold uppercase tracking-[0.25em] text-white outline-none disabled:opacity-50"
-                >
-                  <option value="draft" className="bg-black">
-                    Draft
-                  </option>
-                  <option value="sent" className="bg-black">
-                    Sent
-                  </option>
-                  <option value="paid" className="bg-black">
-                    Paid
-                  </option>
-                  <option value="overdue" className="bg-black">
-                    Overdue
-                  </option>
-                </select>
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {invoice.client_id && (
-                  <Link
-                    href={`/dashboard/clients/${invoice.client_id}`}
-                    className={camvelleGhostButton}
-                  >
-                    Open Client
-                  </Link>
-                )}
-
-                {invoice.invoice_pdf_url && (
-                  <a
-                    href={invoice.invoice_pdf_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={camvelleCreamButton}
-                  >
-                    View PDF
-                  </a>
-                )}
-              </div>
+          {!loading && visibleInvoices.length === 0 && (
+            <CamvelleInnerPanel className="mt-10 p-6 text-white/50">
+              No invoices found for this range.
             </CamvelleInnerPanel>
-          ))}
+          )}
+
+          <div className="mt-10 grid gap-4">
+            {visibleInvoices.map((invoice, index) => (
+              <CamvelleInnerPanel key={invoice.id} className="p-5 md:p-6">
+                <div className="flex flex-col gap-5">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Invoice
+                    </p>
+
+                    <h3 className="mt-3 break-words text-4xl font-light tracking-[-0.06em]">
+                      {invoice.invoice_number || "No invoice number"}
+                    </h3>
+
+                    <p className="mt-4 text-lg text-white/55">
+                      {invoice.client_name || invoice.client_email || "No client listed"}
+                    </p>
+
+                    <div className="mt-5">
+                      <CamvelleStatusPill status={invoice.status || "draft"} />
+                    </div>
+
+                    <p className="mt-6 text-5xl font-light tracking-[-0.07em]">
+                      {formatMoney(getInvoiceAmount(invoice))}
+                    </p>
+
+                    <div className="mt-6 grid gap-3 text-sm leading-7 text-white/45">
+                      <p>
+                        <span className="text-white/30">Client Email:</span>{" "}
+                        {invoice.client_email || "Not provided"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Due Date:</span>{" "}
+                        {invoice.due_date || "Not provided"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Sent:</span>{" "}
+                        {formatDateTime(invoice.sent_at) || "Not provided"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Paid:</span>{" "}
+                        {formatDateTime(invoice.paid_at) || "Not provided"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5">
+                    <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                      Update Status
+                    </label>
+
+                    <select
+                      value={invoice.status || "draft"}
+                      disabled={savingInvoiceId === invoice.id}
+                      onChange={(e) => updateInvoiceStatus(invoice, e.target.value)}
+                      className="w-full bg-transparent text-white outline-none disabled:opacity-50"
+                    >
+                      <option value="draft" className="bg-black">
+                        Draft
+                      </option>
+                      <option value="sent" className="bg-black">
+                        Sent
+                      </option>
+                      <option value="paid" className="bg-black">
+                        Paid
+                      </option>
+                      <option value="overdue" className="bg-black">
+                        Overdue
+                      </option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {invoice.invoice_pdf_url && (
+                      <a
+                        href={invoice.invoice_pdf_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={camvelleCreamButton}
+                      >
+                        View PDF
+                      </a>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => deleteInvoice(invoice)}
+                      disabled={deletingInvoiceId === invoice.id}
+                      className="inline-flex items-center justify-center gap-3 rounded-full border border-red-400/20 bg-red-500/10 px-7 py-4 text-center text-[11px] font-bold uppercase tracking-[0.35em] text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Trash2 size={15} />
+                      {deletingInvoiceId === invoice.id ? "Deleting" : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              </CamvelleInnerPanel>
+            ))}
+          </div>
+        </CamvellePanel>
+
+        <CamvellePanel className="p-7 md:p-12">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div>
+              <CamvelleEyebrow>Business Expenses</CamvelleEyebrow>
+
+              <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] md:text-6xl">
+                Expenses.
+              </h2>
+            </div>
+
+            <Link href="/dashboard/expenses" className={camvelleCreamButton}>
+              Add Expense
+            </Link>
+          </div>
+
+          <div className="mt-8 rounded-full border border-white/10 bg-black/20 px-6 py-4">
+            <input
+              value={expenseSearch}
+              onChange={(e) => setExpenseSearch(e.target.value)}
+              placeholder="Search expenses..."
+              className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
+            />
+          </div>
+
+          {loading && <p className="mt-10 text-white/50">Loading expenses...</p>}
+
+          {!loading && visibleExpenses.length === 0 && (
+            <CamvelleInnerPanel className="mt-10 p-6 text-white/50">
+              No expenses found for this range.
+            </CamvelleInnerPanel>
+          )}
+
+          <div className="mt-10 grid gap-4">
+            {visibleExpenses.map((expense, index) => (
+              <CamvelleInnerPanel key={expense.id} className="p-5 md:p-6">
+                <div className="flex flex-col gap-5">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                      {String(index + 1).padStart(2, "0")} / Expense
+                    </p>
+
+                    <h3 className="mt-3 break-words text-4xl font-light tracking-[-0.06em]">
+                      {expense.vendor || "Expense"}
+                    </h3>
+
+                    <p className="mt-4 text-lg text-white/55">
+                      {expense.category || "Uncategorized"}
+                    </p>
+
+                    <div className="mt-5">
+                      <CamvelleStatusPill status={expense.status || "recorded"} />
+                    </div>
+
+                    <p className="mt-6 text-5xl font-light tracking-[-0.07em]">
+                      {formatMoney(moneyToNumber(expense.amount))}
+                    </p>
+
+                    <div className="mt-6 grid gap-3 text-sm leading-7 text-white/45">
+                      <p>
+                        <span className="text-white/30">Date:</span>{" "}
+                        {formatDate(getExpenseDate(expense)) || "Not provided"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">Payment:</span>{" "}
+                        {expense.payment_method || "Not provided"}
+                      </p>
+
+                      <p>
+                        <span className="text-white/30">File:</span>{" "}
+                        {expense.file_name || expense.file_path || "No file attached"}
+                      </p>
+
+                      {expense.description && (
+                        <p className="whitespace-pre-wrap">
+                          <span className="text-white/30">Notes:</span>{" "}
+                          {expense.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {(expense.file_url || expense.file_path) && (
+                      <button
+                        type="button"
+                        onClick={() => openExpenseFile(expense)}
+                        className={camvelleCreamButton}
+                      >
+                        Open File
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </CamvelleInnerPanel>
+            ))}
+          </div>
+        </CamvellePanel>
+      </div>
+
+      <CamvellePanel className="mt-6 p-7 md:p-12">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CamvelleEyebrow>Finance Tools</CamvelleEyebrow>
+
+            <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] md:text-6xl">
+              Quick actions.
+            </h2>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link href="/dashboard/invoices" className={camvelleGhostButton}>
+              Invoices
+            </Link>
+
+            <Link href="/dashboard/expenses" className={camvelleGhostButton}>
+              Expenses
+            </Link>
+
+            <button
+              type="button"
+              onClick={printFinanceReport}
+              className={camvelleCreamButton}
+            >
+              Save PDF
+            </button>
+          </div>
         </div>
       </CamvellePanel>
     </CamvellePageShell>
   );
 }
 
-function StatCard({
-  title,
-  value,
-  detail,
-  icon,
-}: {
-  title: string;
-  value: string;
-  detail: string;
-  icon: ReactNode;
-}) {
+function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <CamvellePanel className="p-7">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
-          {title}
-        </p>
+    <CamvelleInnerPanel className="p-7">
+      <p className="text-[11px] uppercase tracking-[0.35em] text-white/35">
+        {title}
+      </p>
 
-        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/50">
-          {icon}
-        </div>
-      </div>
-
-      <h3 className="mt-7 text-4xl font-light tracking-[-0.06em] text-white">
-        {value}
-      </h3>
-
-      <p className="mt-5 text-sm leading-6 text-white/40">{detail}</p>
-    </CamvellePanel>
+      <h3 className="mt-6 text-4xl font-light tracking-[-0.06em]">{value}</h3>
+    </CamvelleInnerPanel>
   );
 }
 
-function DetailLine({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
+function getInvoiceAmount(invoice: Invoice) {
+  return moneyToNumber(invoice.amount ?? invoice.total ?? 0);
+}
+
+function getInvoiceReportDate(invoice: Invoice) {
   return (
-    <p>
-      <span className="text-white/30">{label}:</span>{" "}
-      {value || "Not provided"}
-    </p>
+    invoice.paid_at ||
+    invoice.sent_at ||
+    invoice.created_at ||
+    invoice.due_date ||
+    null
   );
+}
+
+function getExpenseDate(expense: Expense) {
+  return expense.expense_date || expense.date || expense.created_at || null;
+}
+
+function moneyToNumber(value: number | string | null | undefined) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+
+  if (typeof value === "string") {
+    const cleaned = value.replace(/[^0-9.-]/g, "");
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  return 0;
+}
+
+function isWithinRange(value: string | null | undefined, range: DateRange) {
+  if (range === "all") return true;
+  if (!value) return false;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return false;
+
+  const now = new Date();
+
+  if (range === "this_month") {
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth()
+    );
+  }
+
+  if (range === "this_year") {
+    return date.getFullYear() === now.getFullYear();
+  }
+
+  return true;
 }
 
 function formatMoney(value: number) {
@@ -508,13 +819,18 @@ function formatMoney(value: number) {
   }).format(value || 0);
 }
 
-function formatStatus(status: string | null) {
-  const value = String(status || "draft").trim();
+function formatDate(value: string | null | undefined) {
+  if (!value) return null;
 
-  return value
-    .split("_")
-    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
-    .join(" ");
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function formatDateTime(value: string | null | undefined) {
@@ -531,4 +847,265 @@ function formatDateTime(value: string | null | undefined) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function getSortTime(value: string | null | undefined) {
+  if (!value) return 0;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return 0;
+
+  return date.getTime();
+}
+
+function reportRangeLabel(range: DateRange) {
+  if (range === "this_month") return "This Month";
+  if (range === "this_year") return "This Year";
+  return "All Time";
+}
+
+function escapeHtml(value: string | number | null | undefined) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function buildFinanceReportHtml({
+  reportRange,
+  generatedAt,
+  invoices,
+  expenses,
+  totals,
+}: {
+  reportRange: DateRange;
+  generatedAt: string;
+  invoices: Invoice[];
+  expenses: Expense[];
+  totals: {
+    totalBilled: number;
+    paidIncome: number;
+    outstanding: number;
+    expenseTotal: number;
+    netProfit: number;
+  };
+}) {
+  const invoiceRows = invoices
+    .map((invoice) => {
+      return `
+        <tr>
+          <td>${escapeHtml(invoice.invoice_number || "Invoice")}</td>
+          <td>${escapeHtml(invoice.client_name || invoice.client_email || "")}</td>
+          <td>${escapeHtml(invoice.status || "draft")}</td>
+          <td>${escapeHtml(formatDate(getInvoiceReportDate(invoice)) || "")}</td>
+          <td class="money">${escapeHtml(formatMoney(getInvoiceAmount(invoice)))}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const expenseRows = expenses
+    .map((expense) => {
+      return `
+        <tr>
+          <td>${escapeHtml(formatDate(getExpenseDate(expense)) || "")}</td>
+          <td>${escapeHtml(expense.vendor || "Expense")}</td>
+          <td>${escapeHtml(expense.category || "")}</td>
+          <td>${escapeHtml(expense.payment_method || "")}</td>
+          <td class="money">${escapeHtml(formatMoney(moneyToNumber(expense.amount)))}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <title>Camvelle Finance Report</title>
+        <style>
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            padding: 40px;
+            color: #111;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #fff;
+          }
+
+          .header {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
+          }
+
+          .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: #777;
+          }
+
+          h1 {
+            margin: 12px 0 0;
+            font-size: 44px;
+            letter-spacing: -0.04em;
+          }
+
+          h2 {
+            margin-top: 36px;
+            font-size: 24px;
+          }
+
+          .meta {
+            margin-top: 10px;
+            color: #666;
+          }
+
+          .summary {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 30px 0;
+          }
+
+          .card {
+            border: 1px solid #ddd;
+            border-radius: 18px;
+            padding: 18px;
+          }
+
+          .card-label {
+            font-size: 10px;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: #777;
+          }
+
+          .card-value {
+            margin-top: 12px;
+            font-size: 22px;
+            font-weight: 700;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            font-size: 13px;
+          }
+
+          th {
+            text-align: left;
+            border-bottom: 1px solid #222;
+            padding: 10px 8px;
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+          }
+
+          td {
+            border-bottom: 1px solid #e5e5e5;
+            padding: 10px 8px;
+            vertical-align: top;
+          }
+
+          .money {
+            text-align: right;
+            white-space: nowrap;
+          }
+
+          @media print {
+            body {
+              padding: 24px;
+            }
+
+            .summary {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+        </style>
+      </head>
+
+      <body>
+        <div class="header">
+          <div class="eyebrow">Camvelle Creative</div>
+          <h1>Finance Report</h1>
+          <div class="meta">Range: ${escapeHtml(reportRangeLabel(reportRange))}</div>
+          <div class="meta">Generated: ${escapeHtml(formatDateTime(generatedAt) || "")}</div>
+        </div>
+
+        <div class="summary">
+          <div class="card">
+            <div class="card-label">Total Billed</div>
+            <div class="card-value">${escapeHtml(formatMoney(totals.totalBilled))}</div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Paid Income</div>
+            <div class="card-value">${escapeHtml(formatMoney(totals.paidIncome))}</div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Expenses</div>
+            <div class="card-value">${escapeHtml(formatMoney(totals.expenseTotal))}</div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Net Estimate</div>
+            <div class="card-value">${escapeHtml(formatMoney(totals.netProfit))}</div>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Outstanding</div>
+            <div class="card-value">${escapeHtml(formatMoney(totals.outstanding))}</div>
+          </div>
+        </div>
+
+        <h2>Invoices</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Client</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th class="money">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              invoiceRows ||
+              `<tr><td colspan="5">No invoices found for this report.</td></tr>`
+            }
+          </tbody>
+        </table>
+
+        <h2>Expenses</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Vendor</th>
+              <th>Category</th>
+              <th>Payment</th>
+              <th class="money">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${
+              expenseRows ||
+              `<tr><td colspan="5">No expenses found for this report.</td></tr>`
+            }
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
 }
