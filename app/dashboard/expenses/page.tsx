@@ -30,7 +30,7 @@ import {
   camvelleGhostButton,
 } from "@/app/components/CamvelleUI";
 
-const EXPENSE_BUCKET = "expense-files";
+const EXPENSE_BUCKET = "expense-receipts";
 
 type Expense = {
   id: string;
@@ -215,7 +215,7 @@ export default function ExpensesPage() {
         status: "Recorded",
       });
 
-      const fileInput = document.getElementById("expense-file") as HTMLInputElement | null;
+      const fileInput = document.getElementById("expense-receipts") as HTMLInputElement | null;
       if (fileInput) fileInput.value = "";
 
       await loadExpenses();
@@ -564,7 +564,7 @@ export default function ExpensesPage() {
             </label>
 
             <input
-              id="expense-file"
+              id="expense-receipts"
               type="file"
               accept="image/*,.pdf"
               onChange={handleFileChange}
