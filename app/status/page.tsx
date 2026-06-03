@@ -163,16 +163,8 @@ export default function ClientStatusPage() {
                 {result.sessionType}
               </p>
 
-              <div className="mt-10 grid gap-5 md:grid-cols-3">
-                <CamvelleInnerPanel className="p-6">
-                  <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
-                    Booking
-                  </p>
-
-                  <div className="mt-5">
-                    <CamvelleStatusPill status={result.bookingStatus} />
-                  </div>
-                </CamvelleInnerPanel>
+              <div className="mt-10 grid gap-5 md:grid-cols-2">
+                
 
                 <CamvelleInnerPanel className="p-6">
                   <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
