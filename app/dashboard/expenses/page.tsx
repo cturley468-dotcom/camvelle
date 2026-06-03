@@ -220,11 +220,20 @@ export default function ExpensesPage() {
 
       await loadExpenses();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Expense could not be saved.";
-      alert(message);
-    } finally {
-      setUploading(false);
-    }
+  console.error("Expense create/upload error:", error);
+
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : JSON.stringify(error);
+
+  alert(message || "Expense could not be saved.");
+} finally {
+  setUploading(false);
+}
+
   }
 
   function startEdit(expense: Expense) {
