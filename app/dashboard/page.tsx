@@ -83,6 +83,7 @@ const sections = [
   { label: "Calendar", value: "calendar" },
   { label: "Galleries", value: "galleries" },
   { label: "Finance", value: "finance" },
+  { label: "Expenses", value: "expenses"},
 ];
 
 export default function DashboardPage() {
@@ -331,6 +332,14 @@ export default function DashboardPage() {
           value={formatMoney(estimatedRevenue)}
           description="Estimate future revenue and review business performance."
           icon={<Wallet size={18} />}
+        />
+
+        <DashboardCard
+          href="/dashboard/expenses"
+          title="Expenses"
+          value={formatMoney(outstandingTotal)}
+          description="Upload receipts, track invoices, and manage business spending."
+          icon={<ReceiptText size={18} />}
         />
 
         <DashboardCard

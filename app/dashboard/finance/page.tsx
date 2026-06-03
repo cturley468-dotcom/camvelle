@@ -61,7 +61,7 @@ type Inquiry = {
   created_at: string | null;
 };
 
-const sections = ["overview", "clients", "bookings", "calendar", "galleries"];
+const sections = ["overview", "clients", "bookings", "calendar", "galleries", "expenses"];
 
 export default function FinancePage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -235,6 +235,16 @@ export default function FinancePage() {
           Track invoices, paid revenue, outstanding balances, and business
           performance.
         </CamvelleBody>
+
+        <div className="mx-auto mt-12 flex max-w-2xl flex-col gap-3 sm:flex-row sm:justify-center">
+        <Link href="/dashboard/expenses" className={camvelleCreamButton}>
+          Open Expenses
+      </Link>
+
+  <Link href="/dashboard" className={camvelleGhostButton}>
+    Dashboard
+  </Link>
+</div>
 
         <div className="mx-auto mt-12 w-full max-w-xl text-left">
           <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
