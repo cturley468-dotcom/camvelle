@@ -28,7 +28,6 @@ import {
 } from "@/app/components/CamvelleUI";
 
 const GALLERY_BUCKET = "camvelle-galleries";
-const ADMIN_PREVIEW_LIMIT = 30;
 
 type GalleryType = {
   label: string;
@@ -105,7 +104,9 @@ export default function DashboardGalleriesPage() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [clientGalleries, setClientGalleries] = useState<ClientGallery[]>([]);
-  const [clientGalleryPhotos, setClientGalleryPhotos] = useState<ClientGalleryPhoto[]>([]);
+  const [clientGalleryPhotos, setClientGalleryPhotos] = useState<
+    ClientGalleryPhoto[]
+  >([]);
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -127,7 +128,8 @@ export default function DashboardGalleriesPage() {
   });
 
   const [deliverySearch, setDeliverySearch] = useState("");
-  const [selectedDeliveryGalleryId, setSelectedDeliveryGalleryId] = useState("");
+  const [selectedDeliveryGalleryId, setSelectedDeliveryGalleryId] =
+    useState("");
   const [deliveryFiles, setDeliveryFiles] = useState<File[]>([]);
   const [deliveryUploading, setDeliveryUploading] = useState(false);
   const [deliveryProgress, setDeliveryProgress] = useState({
@@ -200,7 +202,9 @@ export default function DashboardGalleriesPage() {
     setPhotos((photoResult.data || []) as GalleryPhoto[]);
     setClients((clientResult.data || []) as Client[]);
     setClientGalleries((galleryResult.data || []) as ClientGallery[]);
-    setClientGalleryPhotos((galleryPhotoResult.data || []) as ClientGalleryPhoto[]);
+    setClientGalleryPhotos(
+      (galleryPhotoResult.data || []) as ClientGalleryPhoto[]
+    );
 
     if (!selectedDeliveryGalleryId && galleryResult.data?.[0]?.id) {
       setSelectedDeliveryGalleryId(galleryResult.data[0].id);
@@ -553,68 +557,6 @@ export default function DashboardGalleriesPage() {
     await loadAllGalleryData();
   }
 
-  async function setCoverPhoto(photo: ClientGalleryPhoto) {
-    setSavingId(photo.id);
-    setNotice("");
-
-    await supabase
-      .from("client_gallery_photos")
-      .update({ is_cover: false })
-      .eq("gallery_id", photo.gallery_id);
-
-    const { error: photoError } = await supabase
-      .from("client_gallery_photos")
-      .update({ is_cover: true })
-      .eq("id", photo.id);
-
-    if (photoError) {
-      setSavingId(null);
-      alert(photoError.message);
-      return;
-    }
-
-    const { error: galleryError } = await supabase
-      .from("client_galleries")
-      .update({
-        cover_image_url: photo.file_url,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", photo.gallery_id);
-
-    setSavingId(null);
-
-    if (galleryError) {
-      alert(galleryError.message);
-      return;
-    }
-
-    setNotice("Cover photo updated.");
-    await loadAllGalleryData();
-  }
-
-  async function deleteClientGalleryPhoto(photo: ClientGalleryPhoto) {
-    const confirmDelete = confirm("Delete this client gallery photo?");
-    if (!confirmDelete) return;
-
-    setDeletingId(photo.id);
-    setNotice("");
-
-    const { error } = await supabase
-      .from("client_gallery_photos")
-      .delete()
-      .eq("id", photo.id);
-
-    setDeletingId(null);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    setNotice("Client gallery photo deleted.");
-    await loadAllGalleryData();
-  }
-
   async function deleteClientGallery(gallery: ClientGallery) {
     const confirmDelete = confirm(
       `Delete ${gallery.title || "this client gallery"}?`
@@ -647,7 +589,6 @@ export default function DashboardGalleriesPage() {
 
   async function copyGalleryLink(gallery: ClientGallery) {
     const url = getClientGalleryUrl(gallery);
-
     await navigator.clipboard.writeText(url);
     setNotice("Client gallery link copied.");
   }
@@ -706,26 +647,21 @@ export default function DashboardGalleriesPage() {
     });
   }, [clientGalleries, deliverySearch]);
 
-  const selectedDeliveryGallery = useMemo(() => {
-    return clientGalleries.find(
-      (gallery) => gallery.id === selectedDeliveryGalleryId
-    );
+  const selectedDeliveryGallery: ClientGallery | undefined = useMemo(() => {
+    return clientGalleries.find((gallery) => {
+      return gallery.id === selectedDeliveryGalleryId;
+    });
   }, [clientGalleries, selectedDeliveryGalleryId]);
 
- const selectedDeliveryPhotos: ClientGalleryPhoto[] = useMemo(() => {
-  if (!selectedDeliveryGalleryId) {
-    return [];
-  }
+  const selectedDeliveryPhotos: ClientGalleryPhoto[] = useMemo(() => {
+    if (!selectedDeliveryGalleryId) {
+      return [];
+    }
 
-  return clientGalleryPhotos.filter((photo) => {
-    return photo.gallery_id === selectedDeliveryGalleryId;
-  });
-}, [clientGalleryPhotos, selectedDeliveryGalleryId]);
-
-const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
-  return selectedDeliveryPhotos.slice(0, ADMIN_PREVIEW_LIMIT);
-}, [selectedDeliveryPhotos]);
-
+    return clientGalleryPhotos.filter((photo) => {
+      return photo.gallery_id === selectedDeliveryGalleryId;
+    });
+  }, [clientGalleryPhotos, selectedDeliveryGalleryId]);
 
   return (
     <CamvellePageShell>
@@ -756,7 +692,10 @@ const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
           Studio
         </CamvelleHeading>
 
-       
+        <CamvelleBody>
+          Manage homepage portfolio images and create private client delivery
+          galleries from the same Camvelle gallery system.
+        </CamvelleBody>
 
         <div className="mx-auto mt-12 w-full max-w-xl text-left">
           <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
@@ -801,8 +740,12 @@ const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
         <StatCard title="Client Galleries" value={String(clientGalleries.length)} />
         <StatCard title="Delivery Photos" value={String(clientGalleryPhotos.length)} />
         <StatCard
-          title="Selected"
-          value={selectedGallery === "all" ? "All" : getGalleryLabel(selectedGallery)}
+          title="Selected Gallery"
+          value={
+            selectedDeliveryGallery?.title ||
+            selectedDeliveryGallery?.client_name ||
+            "None"
+          }
         />
       </div>
 
@@ -951,7 +894,8 @@ const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
               {deliveryProgress.total > 0 && (
                 <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5 text-sm leading-7 text-white/50">
                   <p>
-                    Uploaded: {deliveryProgress.uploaded} / {deliveryProgress.total}
+                    Uploaded: {deliveryProgress.uploaded} /{" "}
+                    {deliveryProgress.total}
                   </p>
                   <p>Failed: {deliveryProgress.failed}</p>
                 </div>
@@ -1097,7 +1041,7 @@ const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
                       onClick={() => setSelectedDeliveryGalleryId(gallery.id)}
                       className={camvelleGhostButton}
                     >
-                      Manage Photos
+                      Select Gallery
                     </button>
 
                     <button
@@ -1137,104 +1081,44 @@ const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
 
       {selectedDeliveryGallery && (
         <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <CamvelleEyebrow>Selected Delivery Gallery</CamvelleEyebrow>
 
               <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
-                Manage
+                Gallery
                 <br />
-                photos.
+                controls.
               </h2>
 
               <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
-                {selectedDeliveryGallery.title} - {selectedDeliveryPhotos.length} photo
-                {selectedDeliveryPhotos.length === 1 ? "" : "s"}
+                {selectedDeliveryGallery.title || "Client Gallery"} has{" "}
+                {selectedDeliveryPhotos.length} uploaded photo
+                {selectedDeliveryPhotos.length === 1 ? "" : "s"}. Individual
+                delivery photos are not rendered inside the dashboard to keep
+                this page fast.
               </p>
             </div>
 
-            <a
-              href={getClientGalleryUrl(selectedDeliveryGallery)}
-              target="_blank"
-              rel="noreferrer"
-              className={camvelleCreamButton}
-            >
-              Preview Client Gallery
-            </a>
-          </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => copyGalleryLink(selectedDeliveryGallery)}
+                className={camvelleGhostButton}
+              >
+                <Copy size={15} />
+                Copy Link
+              </button>
 
-          {selectedDeliveryPhotos.length === 0 && (
-            <CamvelleInnerPanel className="mt-10 p-7 text-white/50">
-              No photos uploaded to this client gallery yet.
-            </CamvelleInnerPanel>
-          )}
-
-          {selectedDeliveryPhotos.length > ADMIN_PREVIEW_LIMIT && (
-            <CamvelleInnerPanel className="mt-10 p-5 text-sm leading-7 text-white/50">
-              Showing the first {ADMIN_PREVIEW_LIMIT} photos in the dashboard
-              preview. The full client gallery contains{" "}
-              {selectedDeliveryPhotos.length} photos.
-            </CamvelleInnerPanel>
-          )}
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {adminPreviewPhotos.map((photo) => (
-              <CamvelleInnerPanel key={photo.id} className="overflow-hidden p-0">
-                <div className="aspect-[4/5] w-full overflow-hidden rounded-t-[2.4rem] bg-black/30">
-                  <img
-                    src={photo.file_url}
-                    alt={photo.file_name || "Client Gallery Photo"}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                <div className="p-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <CamvelleStatusPill
-                      status={photo.is_cover ? "Cover" : "Photo"}
-                    />
-
-                    <p className="text-xs text-white/35">
-                      {formatFileSize(photo.file_size)}
-                    </p>
-                  </div>
-
-                  <p className="mt-5 break-words text-sm leading-6 text-white/50">
-                    {photo.file_name || "Gallery Photo"}
-                  </p>
-
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setCoverPhoto(photo)}
-                      disabled={savingId === photo.id}
-                      className={camvelleGhostButton}
-                    >
-                      Cover
-                    </button>
-
-                    <a
-                      href={photo.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={camvelleGhostButton}
-                    >
-                      Open
-                    </a>
-
-                    <IconButton
-                      label="Delete"
-                      icon={<Trash2 size={16} />}
-                      onClick={() => deleteClientGalleryPhoto(photo)}
-                      disabled={deletingId === photo.id}
-                      danger
-                    />
-                  </div>
-                </div>
-              </CamvelleInnerPanel>
-            ))}
+              <a
+                href={getClientGalleryUrl(selectedDeliveryGallery)}
+                target="_blank"
+                rel="noreferrer"
+                className={camvelleCreamButton}
+              >
+                Open Client Gallery
+              </a>
+            </div>
           </div>
         </CamvellePanel>
       )}
@@ -1627,14 +1511,4 @@ function formatDate(value: string | null | undefined) {
     day: "numeric",
     year: "numeric",
   });
-}
-
-function formatFileSize(value: number | null | undefined) {
-  if (!value) return "";
-
-  if (value < 1024 * 1024) {
-    return `${Math.round(value / 1024)} KB`;
-  }
-
-  return `${(value / 1024 / 1024).toFixed(1)} MB`;
 }
