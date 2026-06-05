@@ -1,17 +1,7 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import {
-  Download,
-  ExternalLink,
-  FileText,
-  RefreshCcw,
-  Trash2,
-  Wallet,
-} from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   CamvellePageShell,
@@ -51,13 +41,16 @@ type Expense = {
   payment_method?: string | null;
   description?: string | null;
   status?: string | null;
+
   file_path?: string | null;
   file_name?: string | null;
   file_url?: string | null;
+
+  receipt_file_name?: string | null;
+  receipt_file_path?: string | null;
+  receipt_file_url?: string | null;
+
   created_at?: string | null;
-  receipt_file_name: string | null;
-  receipt_file_path: string | null;
-  receipt_file_url: string | null;
 };
 
 type DateRange = "all" | "this_month" | "this_year";
@@ -122,58 +115,45 @@ export default function FinancePage() {
     });
 
     const sortedExpenses = [...(expenseResult.data || [])].sort((a, b) => {
-      return (
-        getSortTime(getExpenseDate(b)) - getSortTime(getExpenseDate(a))
-      );
+      return getSortTime(getExpenseDate(b)) - getSortTime(getExpenseDate(a));
     });
 
-    setInvoices(sortedInvoices);
-    setExpenses(sortedExpenses);
+    setInvoices(sortedInvoices as Invoice[]);
+    setExpenses(sortedExpenses as Expense[]);
     setLoading(false);
   }
 
   async function openExpenseFile(expense: Expense) {
-  if (expense.receipt_file_url) {
-    window.open(expense.receipt_file_url, "_blank", "noopener,noreferrer");
-    return;
-  }
+    const storagePath =
+      normalizeExpenseStoragePath(expense.receipt_file_path) ||
+      normalizeExpenseStoragePath(expense.file_path);
 
-  if (expense.file_url) {
-    window.open(expense.file_url, "_blank", "noopener,noreferrer");
-    return;
-  }
+    let storageError = "";
 
-  if (expense.receipt_file_path) {
-    const { data, error } = await supabase.storage
-      .from(EXPENSE_BUCKET)
-      .createSignedUrl(expense.receipt_file_path, 300);
+    if (storagePath) {
+      const { data, error } = await supabase.storage
+        .from(EXPENSE_BUCKET)
+        .createSignedUrl(storagePath, 300);
 
-    if (error || !data?.signedUrl) {
-      alert(error?.message || "Could not open file.");
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      storageError = error?.message || "Could not open file.";
+    }
+
+    const directUrl =
+      normalizeDirectUrl(expense.receipt_file_url) ||
+      normalizeDirectUrl(expense.file_url);
+
+    if (directUrl) {
+      window.open(directUrl, "_blank", "noopener,noreferrer");
       return;
     }
 
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    return;
+    alert(storageError || "No receipt file found.");
   }
-
-  if (expense.file_path) {
-    const { data, error } = await supabase.storage
-      .from(EXPENSE_BUCKET)
-      .createSignedUrl(expense.file_path, 300);
-
-    if (error || !data?.signedUrl) {
-      alert(error?.message || "Could not open file.");
-      return;
-    }
-
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    return;
-  }
-
-  alert("No receipt file found.");
-}
-
 
   async function updateInvoiceStatus(invoice: Invoice, status: string) {
     setSavingInvoiceId(invoice.id);
@@ -245,6 +225,7 @@ export default function FinancePage() {
 
   function printFinanceReport() {
     const generatedAt = reportGeneratedAt || new Date().toISOString();
+
     const html = buildFinanceReportHtml({
       reportRange,
       generatedAt,
@@ -342,6 +323,7 @@ export default function FinancePage() {
         expense.description,
         expense.status,
         expense.file_name,
+        expense.receipt_file_name,
         getExpenseDate(expense),
       ]
         .filter(Boolean)
@@ -669,82 +651,74 @@ export default function FinancePage() {
           )}
 
           <div className="mt-10 grid gap-4">
-            {visibleExpenses.map((expense, index) => (
-              <CamvelleInnerPanel key={expense.id} className="p-5 md:p-6">
-                <div className="flex flex-col gap-5">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
-                      {String(index + 1).padStart(2, "0")} / Expense
-                    </p>
+            {visibleExpenses.map((expense, index) => {
+              const expenseHasFile = hasExpenseFile(expense);
+              const fileLabel = getExpenseFileLabel(expense);
 
-                    <h3 className="mt-3 break-words text-4xl font-light tracking-[-0.06em]">
-                      {expense.vendor || "Expense"}
-                    </h3>
-
-                    <p className="mt-4 text-lg text-white/55">
-                      {expense.category || "Uncategorized"}
-                    </p>
-
-                    <div className="mt-5">
-                      <CamvelleStatusPill status={expense.status || "recorded"} />
-                    </div>
-
-                    <p className="mt-6 text-5xl font-light tracking-[-0.07em]">
-                      {formatMoney(moneyToNumber(expense.amount))}
-                    </p>
-
-                    {(expense.receipt_file_url ||
-                      expense.receipt_file_path ||
-                      expense.file_url ||
-                      expense.file_path) && (
-                     <button
-                         type="button"
-                         onClick={() => openExpenseFile(expense)}
-                         className={camvelleGhostButton}
-                     >
-                         Open File
-                  </button>
-                    )}
-
-                    <div className="mt-6 grid gap-3 text-sm leading-7 text-white/45">
-                      <p>
-                        <span className="text-white/30">Date:</span>{" "}
-                        {formatDate(getExpenseDate(expense)) || "Not provided"}
+              return (
+                <CamvelleInnerPanel key={expense.id} className="p-5 md:p-6">
+                  <div className="flex flex-col gap-5">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.35em] text-white/30">
+                        {String(index + 1).padStart(2, "0")} / Expense
                       </p>
 
-                      <p>
-                        <span className="text-white/30">Payment:</span>{" "}
-                        {expense.payment_method || "Not provided"}
+                      <h3 className="mt-3 break-words text-4xl font-light tracking-[-0.06em]">
+                        {expense.vendor || "Expense"}
+                      </h3>
+
+                      <p className="mt-4 text-lg text-white/55">
+                        {expense.category || "Uncategorized"}
                       </p>
 
-                      <p>
-                        <span className="text-white/30">File:</span>{" "}
-                        {expense.file_name || expense.file_path || "No file attached"}
+                      <div className="mt-5">
+                        <CamvelleStatusPill status={expense.status || "recorded"} />
+                      </div>
+
+                      <p className="mt-6 text-5xl font-light tracking-[-0.07em]">
+                        {formatMoney(moneyToNumber(expense.amount))}
                       </p>
 
-                      {expense.description && (
-                        <p className="whitespace-pre-wrap">
-                          <span className="text-white/30">Notes:</span>{" "}
-                          {expense.description}
+                      <div className="mt-6 grid gap-3 text-sm leading-7 text-white/45">
+                        <p>
+                          <span className="text-white/30">Date:</span>{" "}
+                          {formatDate(getExpenseDate(expense)) || "Not provided"}
                         </p>
-                      )}
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap gap-3">
-                    {(expense.file_url || expense.file_path) && (
-                      <button
-                        type="button"
-                        onClick={() => openExpenseFile(expense)}
-                        className={camvelleCreamButton}
-                      >
-                        Open File
-                      </button>
+                        <p>
+                          <span className="text-white/30">Payment:</span>{" "}
+                          {expense.payment_method || "Not provided"}
+                        </p>
+
+                        <p>
+                          <span className="text-white/30">File:</span>{" "}
+                          {fileLabel}
+                        </p>
+
+                        {expense.description && (
+                          <p className="whitespace-pre-wrap">
+                            <span className="text-white/30">Notes:</span>{" "}
+                            {expense.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {expenseHasFile && (
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={() => openExpenseFile(expense)}
+                          className={camvelleCreamButton}
+                        >
+                          Open File
+                        </button>
+                      </div>
                     )}
                   </div>
-                </div>
-              </CamvelleInnerPanel>
-            ))}
+                </CamvelleInnerPanel>
+              );
+            })}
           </div>
         </CamvellePanel>
       </div>
@@ -810,6 +784,97 @@ function getInvoiceReportDate(invoice: Invoice) {
 
 function getExpenseDate(expense: Expense) {
   return expense.expense_date || expense.date || expense.created_at || null;
+}
+
+function hasExpenseFile(expense: Expense) {
+  return Boolean(
+    expense.receipt_file_url ||
+      expense.receipt_file_path ||
+      expense.file_url ||
+      expense.file_path
+  );
+}
+
+function getExpenseFileLabel(expense: Expense) {
+  return (
+    expense.receipt_file_name ||
+    expense.file_name ||
+    getFileNameFromPath(expense.receipt_file_path) ||
+    getFileNameFromPath(expense.file_path) ||
+    getFileNameFromUrl(expense.receipt_file_url) ||
+    getFileNameFromUrl(expense.file_url) ||
+    "No file attached"
+  );
+}
+
+function getFileNameFromPath(value: string | null | undefined) {
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  const parts = text.split("/");
+  return parts[parts.length - 1] || null;
+}
+
+function getFileNameFromUrl(value: string | null | undefined) {
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  try {
+    const url = new URL(text);
+    const parts = url.pathname.split("/");
+    return decodeURIComponent(parts[parts.length - 1] || "") || null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeDirectUrl(value: string | null | undefined) {
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  if (text.startsWith("http://") || text.startsWith("https://")) {
+    return text;
+  }
+
+  return null;
+}
+
+function normalizeExpenseStoragePath(value: string | null | undefined) {
+  const text = String(value || "").trim();
+
+  if (!text) return null;
+
+  if (text.startsWith("http://") || text.startsWith("https://")) {
+    try {
+      const url = new URL(text);
+
+      const publicMarker = `/object/public/${EXPENSE_BUCKET}/`;
+      const signedMarker = `/object/sign/${EXPENSE_BUCKET}/`;
+
+      if (url.pathname.includes(publicMarker)) {
+        return decodeURIComponent(url.pathname.split(publicMarker)[1] || "");
+      }
+
+      if (url.pathname.includes(signedMarker)) {
+        return decodeURIComponent(url.pathname.split(signedMarker)[1] || "");
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  let cleaned = text.replace(/^\/+/, "");
+
+  if (cleaned.startsWith(`${EXPENSE_BUCKET}/`)) {
+    cleaned = cleaned.slice(`${EXPENSE_BUCKET}/`.length);
+  }
+
+  return cleaned || null;
 }
 
 function moneyToNumber(value: number | string | null | undefined) {
