@@ -28,6 +28,7 @@ import {
 } from "@/app/components/CamvelleUI";
 
 const GALLERY_BUCKET = "camvelle-galleries";
+const ADMIN_PREVIEW_LIMIT = 30;
 
 type GalleryType = {
   label: string;
@@ -104,9 +105,7 @@ export default function DashboardGalleriesPage() {
   const [photos, setPhotos] = useState<GalleryPhoto[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [clientGalleries, setClientGalleries] = useState<ClientGallery[]>([]);
-  const [clientGalleryPhotos, setClientGalleryPhotos] = useState<
-    ClientGalleryPhoto[]
-  >([]);
+  const [clientGalleryPhotos, setClientGalleryPhotos] = useState<ClientGalleryPhoto[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -128,8 +127,7 @@ export default function DashboardGalleriesPage() {
   });
 
   const [deliverySearch, setDeliverySearch] = useState("");
-  const [selectedDeliveryGalleryId, setSelectedDeliveryGalleryId] =
-    useState("");
+  const [selectedDeliveryGalleryId, setSelectedDeliveryGalleryId] = useState("");
   const [deliveryFiles, setDeliveryFiles] = useState<File[]>([]);
   const [deliveryUploading, setDeliveryUploading] = useState(false);
   const [deliveryProgress, setDeliveryProgress] = useState({
@@ -199,12 +197,10 @@ export default function DashboardGalleriesPage() {
       return;
     }
 
-    setPhotos(photoResult.data || []);
-    setClients(clientResult.data || []);
+    setPhotos((photoResult.data || []) as GalleryPhoto[]);
+    setClients((clientResult.data || []) as Client[]);
     setClientGalleries((galleryResult.data || []) as ClientGallery[]);
-    setClientGalleryPhotos(
-      (galleryPhotoResult.data || []) as ClientGalleryPhoto[]
-    );
+    setClientGalleryPhotos((galleryPhotoResult.data || []) as ClientGalleryPhoto[]);
 
     if (!selectedDeliveryGalleryId && galleryResult.data?.[0]?.id) {
       setSelectedDeliveryGalleryId(galleryResult.data[0].id);
@@ -238,7 +234,9 @@ export default function DashboardGalleriesPage() {
     setNotice("");
 
     const fileExtension = selectedFile.name.split(".").pop() || "jpg";
-    const safeFileName = makeSafeFileName(selectedFile.name.replace(/\.[^/.]+$/, ""));
+    const safeFileName = makeSafeFileName(
+      selectedFile.name.replace(/\.[^/.]+$/, "")
+    );
 
     const filePath = `${uploadGallery}/${Date.now()}-${safeFileName}.${fileExtension}`;
 
@@ -523,7 +521,10 @@ export default function DashboardGalleriesPage() {
     await loadAllGalleryData();
   }
 
-  async function updateClientGalleryStatus(gallery: ClientGallery, status: string) {
+  async function updateClientGalleryStatus(
+    gallery: ClientGallery,
+    status: string
+  ) {
     setSavingId(gallery.id);
     setNotice("");
 
@@ -711,13 +712,20 @@ export default function DashboardGalleriesPage() {
     );
   }, [clientGalleries, selectedDeliveryGalleryId]);
 
-  const selectedDeliveryPhotos = useMemo(() => {
-    if (!selectedDeliveryGalleryId) return [];
+ const selectedDeliveryPhotos: ClientGalleryPhoto[] = useMemo(() => {
+  if (!selectedDeliveryGalleryId) {
+    return [];
+  }
 
-    return clientGalleryPhotos.filter(
-      (photo) => photo.gallery_id === selectedDeliveryGalleryId
-    );
-  }, [clientGalleryPhotos, selectedDeliveryGalleryId]);
+  return clientGalleryPhotos.filter((photo) => {
+    return photo.gallery_id === selectedDeliveryGalleryId;
+  });
+}, [clientGalleryPhotos, selectedDeliveryGalleryId]);
+
+const adminPreviewPhotos: ClientGalleryPhoto[] = useMemo(() => {
+  return selectedDeliveryPhotos.slice(0, ADMIN_PREVIEW_LIMIT);
+}, [selectedDeliveryPhotos]);
+
 
   return (
     <CamvellePageShell>
@@ -748,10 +756,7 @@ export default function DashboardGalleriesPage() {
           Studio
         </CamvelleHeading>
 
-        <CamvelleBody>
-          Manage homepage portfolio images and create private client delivery
-          galleries from the same Camvelle gallery system.
-        </CamvelleBody>
+       
 
         <div className="mx-auto mt-12 w-full max-w-xl text-left">
           <label className="mb-3 block text-[11px] uppercase tracking-[0.35em] text-white/35">
@@ -794,15 +799,10 @@ export default function DashboardGalleriesPage() {
       <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <StatCard title="Homepage Photos" value={String(photos.length)} />
         <StatCard title="Client Galleries" value={String(clientGalleries.length)} />
-        <StatCard
-          title="Delivery Photos"
-          value={String(clientGalleryPhotos.length)}
-        />
+        <StatCard title="Delivery Photos" value={String(clientGalleryPhotos.length)} />
         <StatCard
           title="Selected"
-          value={
-            selectedGallery === "all" ? "All" : getGalleryLabel(selectedGallery)
-          }
+          value={selectedGallery === "all" ? "All" : getGalleryLabel(selectedGallery)}
         />
       </div>
 
@@ -921,7 +921,7 @@ export default function DashboardGalleriesPage() {
 
                   {clientGalleries.map((gallery) => (
                     <option key={gallery.id} value={gallery.id} className="bg-black">
-                      {gallery.title || "Client Gallery"} —{" "}
+                      {gallery.title || "Client Gallery"} -{" "}
                       {gallery.client_name || gallery.client_email || "Client"}
                     </option>
                   ))}
@@ -951,8 +951,7 @@ export default function DashboardGalleriesPage() {
               {deliveryProgress.total > 0 && (
                 <div className="rounded-[2rem] border border-white/10 bg-black/20 p-5 text-sm leading-7 text-white/50">
                   <p>
-                    Uploaded: {deliveryProgress.uploaded} /{" "}
-                    {deliveryProgress.total}
+                    Uploaded: {deliveryProgress.uploaded} / {deliveryProgress.total}
                   </p>
                   <p>Failed: {deliveryProgress.failed}</p>
                 </div>
@@ -1016,6 +1015,8 @@ export default function DashboardGalleriesPage() {
                     <img
                       src={gallery.cover_image_url}
                       alt={gallery.title || "Client Gallery"}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -1147,8 +1148,7 @@ export default function DashboardGalleriesPage() {
               </h2>
 
               <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
-                {selectedDeliveryGallery.title} —{" "}
-                {selectedDeliveryPhotos.length} photo
+                {selectedDeliveryGallery.title} - {selectedDeliveryPhotos.length} photo
                 {selectedDeliveryPhotos.length === 1 ? "" : "s"}
               </p>
             </div>
@@ -1169,13 +1169,23 @@ export default function DashboardGalleriesPage() {
             </CamvelleInnerPanel>
           )}
 
+          {selectedDeliveryPhotos.length > ADMIN_PREVIEW_LIMIT && (
+            <CamvelleInnerPanel className="mt-10 p-5 text-sm leading-7 text-white/50">
+              Showing the first {ADMIN_PREVIEW_LIMIT} photos in the dashboard
+              preview. The full client gallery contains{" "}
+              {selectedDeliveryPhotos.length} photos.
+            </CamvelleInnerPanel>
+          )}
+
           <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {selectedDeliveryPhotos.map((photo) => (
+            {adminPreviewPhotos.map((photo) => (
               <CamvelleInnerPanel key={photo.id} className="overflow-hidden p-0">
                 <div className="aspect-[4/5] w-full overflow-hidden rounded-t-[2.4rem] bg-black/30">
                   <img
                     src={photo.file_url}
                     alt={photo.file_name || "Client Gallery Photo"}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -1384,6 +1394,8 @@ export default function DashboardGalleriesPage() {
                   <img
                     src={photo.image_url}
                     alt={photo.caption || getGalleryLabel(photo.gallery_type)}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover"
                   />
                 </div>
