@@ -179,12 +179,8 @@ async function createCheckoutSession({
         client_email: invoice.client_email || "",
       },
     },
-    success_url: `${origin}/payment/success?invoiceId=${encodeURIComponent(
-      invoice.id
-    )}`,
-    cancel_url: `${origin}/payment/cancel?invoiceId=${encodeURIComponent(
-      invoice.id
-    )}`,
+   success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://camvelle.com"}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://camvelle.com"}/payment/cancel?invoice=${invoice.id}`,
   });
 
   const { error: updateError } = await supabaseAdmin

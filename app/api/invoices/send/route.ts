@@ -30,9 +30,14 @@ export async function POST(request: Request) {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const resendApiKey = process.env.RESEND_API_KEY;
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://camvelle.com";
+
+
     const invoiceFromEmail =
       process.env.INVOICE_FROM_EMAIL ||
       "Camvelle Creative <invoices@camvelle.com>";
+
+  
 
     const replyToEmail =
       process.env.CAMVELLE_REPLY_TO_EMAIL || "cam@camvelle.com";
@@ -81,6 +86,7 @@ export async function POST(request: Request) {
       );
     }
 
+    const paymentUrl = `${siteUrl}/api/stripe/invoice-checkout/${invoice.id}`;
     const clientEmail = clean(invoice.client_email);
     const clientName = clean(invoice.client_name, "there");
     const invoiceNumber = clean(invoice.invoice_number, "Invoice");
@@ -158,6 +164,48 @@ export async function POST(request: Request) {
                     <strong>Due Date:</strong> ${escapeHtml(dueDate)}
                   </p>
                 </div>
+               
+                <p style="margin:28px 0 14px 0;">
+  <a
+    href="${escapeHtml(paymentUrl)}"
+    style="
+      display:inline-block;
+      padding:18px 34px;
+      border-radius:999px;
+      background:#f5f0e7;
+      color:#050505;
+      text-decoration:none;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:0.28em;
+      text-transform:uppercase;
+    "
+  >
+    Pay Invoice
+  </a>
+</p>
+
+<p style="margin:14px 0 28px 0;">
+  <a
+    href="${escapeHtml(invoicePdfUrl)}"
+    style="
+      display:inline-block;
+      padding:18px 34px;
+      border-radius:999px;
+      background:#050505;
+      color:#f5f0e7;
+      text-decoration:none;
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:0.28em;
+      text-transform:uppercase;
+      border:1px solid rgba(245,240,231,0.18);
+    "
+  >
+    View Invoice PDF
+  </a>
+</p>
+
 
                 <p style="margin:0 0 28px 0;">
                   <a href="${escapeHtml(invoicePdfUrl)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;border-radius:999px;padding:15px 24px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">
