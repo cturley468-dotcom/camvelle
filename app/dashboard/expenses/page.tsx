@@ -47,6 +47,9 @@ type Expense = {
   status: string | null;
   created_at: string | null;
   updated_at: string | null;
+  receipt_file_name: string | null;
+  receipt_file_path: string | null;
+  receipt_file_url: string | null;
 };
 
 const sections = ["overview", "clients", "bookings", "calendar", "galleries", "finance"];
@@ -83,6 +86,8 @@ export default function ExpensesPage() {
   const [notice, setNotice] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -185,6 +190,40 @@ export default function ExpensesPage() {
         fileName = uploaded.fileName;
       }
 
+      let receiptFileName: string | null = null;
+let receiptFilePath: string | null = null;
+let receiptFileUrl: string | null = null;
+
+if (receiptFile) {
+  const safeFileName = receiptFile.name
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/-+/g, "-");
+
+  const filePath = `${crypto.randomUUID()}-${safeFileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("expense-files")
+    .upload(filePath, receiptFile, {
+      contentType: receiptFile.type || "application/octet-stream",
+      upsert: false,
+    });
+
+  if (uploadError) {
+    alert(uploadError.message);
+    return;
+  }
+
+  const { data: publicData } = supabase.storage
+    .from("expense-files")
+    .getPublicUrl(filePath);
+
+  receiptFileName = receiptFile.name;
+  receiptFilePath = filePath;
+  receiptFileUrl = publicData.publicUrl;
+}
+
+
       const { error } = await supabase.from("expenses").insert({
         expense_date: form.expense_date || null,
         vendor: form.vendor || null,
@@ -198,9 +237,14 @@ export default function ExpensesPage() {
         file_url: null,
         status: form.status || "Recorded",
         updated_at: new Date().toISOString(),
+        receipt_file_name: receiptFileName,
+        receipt_file_path: receiptFilePath,
+        receipt_file_url: receiptFileUrl,
       });
 
       if (error) throw error;
+
+      setReceiptFile(null);
 
       setNotice("Expense saved successfully.");
       setSelectedFile(null);
@@ -317,17 +361,32 @@ export default function ExpensesPage() {
     await loadExpenses();
   }
 
-  async function openFile(expense: Expense) {
-    if (expense.file_url) {
-      window.open(expense.file_url, "_blank", "noopener,noreferrer");
+ async function openFile(expense: Expense) {
+  if (expense.receipt_file_url) {
+    window.open(expense.receipt_file_url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (expense.file_url) {
+    window.open(expense.file_url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (expense.receipt_file_path) {
+    const { data, error } = await supabase.storage
+      .from(EXPENSE_BUCKET)
+      .createSignedUrl(expense.receipt_file_path, 300);
+
+    if (error || !data?.signedUrl) {
+      alert(error?.message || "Could not open file.");
       return;
     }
 
-    if (!expense.file_path) {
-      alert("No file attached to this expense.");
-      return;
-    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
 
+  if (expense.file_path) {
     const { data, error } = await supabase.storage
       .from(EXPENSE_BUCKET)
       .createSignedUrl(expense.file_path, 300);
@@ -338,7 +397,12 @@ export default function ExpensesPage() {
     }
 
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    return;
   }
+
+  alert("No receipt file found.");
+}
+
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -576,7 +640,9 @@ export default function ExpensesPage() {
               id="expense-receipts"
               type="file"
               accept="image/*,.pdf"
-              onChange={handleFileChange}
+              onChange={(e) => {
+              setReceiptFile(e.target.files?.[0] || null);
+            }}
               className="w-full text-sm text-white/60 file:mr-4 file:rounded-full file:border-0 file:bg-[#f5f0e7] file:px-5 file:py-3 file:text-[10px] file:font-bold file:uppercase file:tracking-[0.25em] file:text-black"
             />
 
@@ -732,7 +798,10 @@ export default function ExpensesPage() {
                         danger
                       />
 
-                      {(expense.file_path || expense.file_url) && (
+                      {(expense.receipt_file_url ||
+                        expense.receipt_file_path ||
+                        expense.file_url ||
+                        expense.file_path) && (
                         <button
                           type="button"
                           onClick={() => openFile(expense)}
