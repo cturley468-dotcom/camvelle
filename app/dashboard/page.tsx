@@ -82,6 +82,8 @@ const sections = [
   { label: "Bookings", value: "bookings" },
   { label: "Calendar", value: "calendar" },
   { label: "Galleries", value: "galleries" },
+  { label: "Invoices", value: "invoices" },
+  { label: "Contracts", value: "contracts" },
   { label: "Finance", value: "finance" },
   { label: "Expenses", value: "expenses"},
 ];
