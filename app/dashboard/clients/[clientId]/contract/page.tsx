@@ -4,8 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileSignature, Save, X } from "lucide-react";
+import { ArrowLeft, FileSignature, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import {
+  CamvellePageShell,
+  CamvellePanel,
+  CamvelleInnerPanel,
+  CamvelleEyebrow,
+  CamvelleHeading,
+  CamvelleBody,
+  CamvelleStatusPill,
+  camvelleCreamButton,
+  camvelleGhostButton,
+} from "@/app/components/CamvelleUI";
 
 type Client = {
   id: string;
@@ -16,13 +27,29 @@ type Client = {
   created_at: string | null;
 };
 
+const contractTypes = [
+  "Photography Agreement",
+  "Proposal Agreement",
+  "Portrait Agreement",
+  "Family Agreement",
+  "Couples Agreement",
+  "Business Agreement",
+  "Real Estate Agreement",
+  "Automotive Agreement",
+  "Event Agreement",
+];
+
+const statusOptions = ["draft", "sent", "signed", "archived"];
+
 export default function CreateClientContractPage() {
   const params = useParams();
   const router = useRouter();
 
-  const clientId = Array.isArray(params.clientId)
+  const rawClientId = Array.isArray(params.clientId)
     ? params.clientId[0]
     : params.clientId;
+
+  const clientId = typeof rawClientId === "string" ? rawClientId : "";
 
   const [client, setClient] = useState<Client | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,7 +65,9 @@ export default function CreateClientContractPage() {
   });
 
   useEffect(() => {
-    if (clientId) loadClient();
+    if (clientId) {
+      loadClient();
+    }
   }, [clientId]);
 
   async function loadClient() {
@@ -69,22 +98,21 @@ export default function CreateClientContractPage() {
     setCreating(true);
     setNotice("");
 
-   const contractTitle = `${client.full_name || "Client"} - ${
-  form.contract_type || "Photography Agreement"
-}`;
+    const contractTitle = `${client.full_name || "Client"} - ${
+      form.contract_type || "Photography Agreement"
+    }`;
 
-const { error } = await supabase.from("contracts").insert({
-  client_id: client.id,
-  client_name: client.full_name,
-  client_email: client.email,
-  title: contractTitle,
-  contract_type: form.contract_type || "Photography Agreement",
-  status: form.status || "draft",
-  sent_date: form.sent_date || null,
-  signed_date: form.signed_date || null,
-  notes: form.notes || null,
-});
-
+    const { error } = await supabase.from("contracts").insert({
+      client_id: client.id,
+      client_name: client.full_name,
+      client_email: client.email,
+      title: contractTitle,
+      contract_type: form.contract_type || "Photography Agreement",
+      status: form.status || "draft",
+      sent_date: form.sent_date || null,
+      signed_date: form.signed_date || null,
+      notes: form.notes || null,
+    });
 
     setCreating(false);
 
@@ -107,29 +135,8 @@ const { error } = await supabase.from("contracts").insert({
   }, [form.status]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020202] text-[#f5f1e8]">
-      {/* BACKGROUND */}
-      <div className="pointer-events-none fixed inset-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-fixed"
-          style={{
-            backgroundImage: "url('/backgrounds/camvelle-background.png')",
-          }}
-        />
-
-        <div className="absolute inset-0 bg-black/40" />
-
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(circle at center, transparent 25%, rgba(0,0,0,0.45) 100%)",
-          }}
-        />
-      </div>
-
-      {/* HEADER */}
-      <header className="relative z-[9999] flex items-center justify-between px-5 py-6 md:px-10">
+    <CamvellePageShell>
+      <header className="mb-10 flex items-center justify-between gap-4">
         <Link href="/dashboard" className="flex items-center">
           <Image
             src="/branding/camvelle-logo.png"
@@ -142,269 +149,201 @@ const { error } = await supabase.from("contracts").insert({
           />
         </Link>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="rounded-full border border-white/10 bg-[#f5f0e7] px-7 py-4 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:scale-[1.02]"
-        >
+        <button type="button" onClick={handleLogout} className={camvelleCreamButton}>
           Logout
         </button>
       </header>
 
-      <section className="relative z-10 px-4 pb-24 pt-6 md:px-10">
-        <div className="mx-auto w-full max-w-7xl">
-          {/* HERO */}
-          <div className="mx-auto w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-center transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-14">
-            <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-              Client Contract
-            </p>
+      <CamvellePanel className="p-7 text-center sm:p-10 md:p-14">
+        <CamvelleEyebrow>Client Contract</CamvelleEyebrow>
 
-            <h1 className="mx-auto mt-7 max-w-5xl text-5xl font-light leading-[0.9] tracking-[-0.08em] md:text-7xl">
-              Create
-              <br />
-              agreement file.
-            </h1>
+        <CamvelleHeading>
+          Create
+          <br />
+          agreement file.
+        </CamvelleHeading>
 
-            <p className="mx-auto mt-8 max-w-3xl text-lg leading-8 text-white/50">
-              Create a contract record directly inside this client file. Once
-              saved, it will appear on the client profile.
-            </p>
+        <CamvelleBody>
+          Create a contract record directly inside this client file. Once saved,
+          it will appear on the client profile.
+        </CamvelleBody>
 
-            <div className="mx-auto mt-12 flex max-w-md flex-col gap-3 sm:flex-row sm:justify-center">
-              <Link
-                href={`/dashboard/clients/${clientId}`}
-                className="inline-flex items-center justify-center gap-3 rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-              >
-                <ArrowLeft size={15} />
-                Client File
-              </Link>
+        <div className="mx-auto mt-12 grid w-full max-w-xl gap-3 sm:grid-cols-2">
+          <Link
+            href={`/dashboard/clients/${clientId}`}
+            className={camvelleGhostButton}
+          >
+            <ArrowLeft size={15} />
+            Client File
+          </Link>
 
-              <Link
-                href="/dashboard/clients"
-                className="rounded-full border border-white/10 bg-white/[0.035] px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-white/65 transition hover:bg-white hover:text-black"
-              >
-                All Clients
-              </Link>
-            </div>
-          </div>
+          <Link href="/dashboard/clients" className={camvelleGhostButton}>
+            All Clients
+          </Link>
+        </div>
+      </CamvellePanel>
 
-          {notice && (
-            <div className="mx-auto mt-6 w-full max-w-3xl rounded-[2rem] border border-green-400/20 bg-green-500/10 p-5 text-center text-sm text-green-100">
-              {notice}
-            </div>
-          )}
+      {notice && (
+        <div className="mt-6 rounded-[2rem] border border-emerald-400/20 bg-emerald-400/10 p-5 text-center text-sm text-emerald-100">
+          {notice}
+        </div>
+      )}
 
-          {loading && (
-            <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-              Loading client...
-            </div>
-          )}
+      {loading && (
+        <CamvellePanel className="mt-6 p-7 text-white/50 md:p-12">
+          Loading client...
+        </CamvellePanel>
+      )}
 
-          {!loading && !client && (
-            <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-8 text-white/50">
-              Client not found.
-            </div>
-          )}
+      {!loading && !client && (
+        <CamvellePanel className="mt-6 p-7 text-white/50 md:p-12">
+          Client not found.
+        </CamvellePanel>
+      )}
 
-          {client && (
-            <>
-              {/* CLIENT PREVIEW */}
-              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  Agreement For
-                </p>
+      {client && (
+        <>
+          <CamvellePanel className="mt-6 p-7 md:p-12">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <CamvelleEyebrow>Agreement For</CamvelleEyebrow>
 
-                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
+                <h2 className="mt-6 break-words text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">
                   {client.full_name || "Unnamed Client"}
                 </h2>
 
-                <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7">
-                  <div className="grid gap-4 text-sm leading-7 text-white/55">
-                    <p>
-                      <span className="text-white/30">Email:</span>{" "}
-                      {client.email || "Not provided"}
-                    </p>
-
-                    <p>
-                      <span className="text-white/30">Phone:</span>{" "}
-                      {client.phone || "Not provided"}
-                    </p>
-
-                    <p>
-                      <span className="text-white/30">Contract Type:</span>{" "}
-                      {form.contract_type || "Photography Agreement"}
-                    </p>
-
-                    <p>
-                      <span className="text-white/30">Status:</span>{" "}
-                      {previewStatus}
-                    </p>
-                  </div>
-                </div>
+                <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
+                  Review the client details before creating this agreement.
+                </p>
               </div>
 
-              {/* CREATE FORM */}
-              <div className="mx-auto mt-6 w-full rounded-[3rem] border border-white/10 bg-white/[0.035] p-7 transition duration-500 hover:border-white/20 hover:bg-white/[0.05] md:p-12">
-                <p className="text-[11px] uppercase tracking-[0.55em] text-white/35">
-                  New Contract
-                </p>
+              <CamvelleStatusPill status={previewStatus} />
+            </div>
 
-                <h2 className="mt-6 text-5xl font-light tracking-[-0.07em] md:text-6xl">
-                  Contract details.
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              <InfoCard label="Email" value={client.email || "Not provided"} />
+              <InfoCard label="Phone" value={client.phone || "Not provided"} />
+              <InfoCard
+                label="Contract Type"
+                value={form.contract_type || "Photography Agreement"}
+              />
+              <InfoCard label="Status" value={previewStatus} />
+            </div>
+          </CamvellePanel>
+
+          <CamvellePanel className="mt-6 p-7 md:p-12">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <CamvelleEyebrow>New Contract</CamvelleEyebrow>
+
+                <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white md:text-6xl">
+                  Contract
+                  <br />
+                  details.
                 </h2>
 
-                <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/55 p-5 shadow-[inset_0_0_40px_rgba(255,255,255,0.03)] md:p-7">
-                  <div className="grid gap-4">
-                    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
-                      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                        Contract Type
-                      </label>
-
-                      <select
-                        value={form.contract_type}
-                        onChange={(e) =>
-                          setForm({ ...form, contract_type: e.target.value })
-                        }
-                        className="w-full bg-transparent text-white outline-none"
-                      >
-                        <option value="Photography Agreement" className="bg-black">
-                          Photography Agreement
-                        </option>
-
-                        <option value="Proposal Agreement" className="bg-black">
-                          Proposal Agreement
-                        </option>
-
-                        <option value="Portrait Agreement" className="bg-black">
-                          Portrait Agreement
-                        </option>
-
-                        <option value="Family Agreement" className="bg-black">
-                          Family Agreement
-                        </option>
-
-                        <option value="Couples Agreement" className="bg-black">
-                          Couples Agreement
-                        </option>
-
-                        <option value="Business Agreement" className="bg-black">
-                          Business Agreement
-                        </option>
-
-                        <option value="Real Estate Agreement" className="bg-black">
-                          Real Estate Agreement
-                        </option>
-
-                        <option value="Automotive Agreement" className="bg-black">
-                          Automotive Agreement
-                        </option>
-
-                        <option value="Event Agreement" className="bg-black">
-                          Event Agreement
-                        </option>
-                      </select>
-                    </div>
-
-                    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
-                      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                        Status
-                      </label>
-
-                      <select
-                        value={form.status}
-                        onChange={(e) =>
-                          setForm({ ...form, status: e.target.value })
-                        }
-                        className="w-full bg-transparent text-white outline-none"
-                      >
-                        <option value="draft" className="bg-black">
-                          Draft
-                        </option>
-
-                        <option value="sent" className="bg-black">
-                          Sent
-                        </option>
-
-                        <option value="signed" className="bg-black">
-                          Signed
-                        </option>
-
-                        <option value="archived" className="bg-black">
-                          Archived
-                        </option>
-                      </select>
-                    </div>
-
-                    <InputBubble
-                      label="Sent Date"
-                      type="date"
-                      value={form.sent_date}
-                      onChange={(value) =>
-                        setForm({ ...form, sent_date: value })
-                      }
-                    />
-
-                    <InputBubble
-                      label="Signed Date"
-                      type="date"
-                      value={form.signed_date}
-                      onChange={(value) =>
-                        setForm({ ...form, signed_date: value })
-                      }
-                    />
-
-                    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
-                      <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
-                        Notes
-                      </label>
-
-                      <textarea
-                        rows={6}
-                        value={form.notes}
-                        onChange={(e) =>
-                          setForm({ ...form, notes: e.target.value })
-                        }
-                        placeholder="Agreement details, client notes, usage rights, payment terms, delivery notes..."
-                        className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
-                      />
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={createContract}
-                        disabled={creating}
-                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/65 transition hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
-                        title="Create Contract"
-                      >
-                        {creating ? <Save size={16} /> : <FileSignature size={16} />}
-                      </button>
-
-                      <Link
-                        href={`/dashboard/clients/${client.id}`}
-                        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.035] text-white/65 transition hover:bg-white hover:text-black"
-                        title="Cancel"
-                      >
-                        <X size={16} />
-                      </Link>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={createContract}
-                      disabled={creating}
-                      className="mt-4 rounded-full bg-[#f5f0e7] px-7 py-5 text-[11px] font-semibold uppercase tracking-[0.32em] text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {creating ? "Creating Contract..." : "Create Contract"}
-                    </button>
-                  </div>
-                </div>
+                <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
+                  Choose the agreement type, status, dates, and any notes that
+                  should appear on this contract record.
+                </p>
               </div>
-            </>
-          )}
-        </div>
-      </section>
-    </main>
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/50">
+                <FileSignature size={18} />
+              </div>
+            </div>
+
+            <div className="mt-10 grid gap-4 md:grid-cols-2">
+              <CamvelleInnerPanel className="p-5">
+                <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                  Contract Type
+                </label>
+
+                <select
+                  value={form.contract_type}
+                  onChange={(e) =>
+                    setForm({ ...form, contract_type: e.target.value })
+                  }
+                  className="w-full bg-transparent text-white outline-none"
+                >
+                  {contractTypes.map((type) => (
+                    <option key={type} value={type} className="bg-black">
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </CamvelleInnerPanel>
+
+              <CamvelleInnerPanel className="p-5">
+                <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                  Status
+                </label>
+
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="w-full bg-transparent text-white outline-none"
+                >
+                  {statusOptions.map((status) => (
+                    <option key={status} value={status} className="bg-black">
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </CamvelleInnerPanel>
+
+              <InputBubble
+                label="Sent Date"
+                type="date"
+                value={form.sent_date}
+                onChange={(value) => setForm({ ...form, sent_date: value })}
+              />
+
+              <InputBubble
+                label="Signed Date"
+                type="date"
+                value={form.signed_date}
+                onChange={(value) => setForm({ ...form, signed_date: value })}
+              />
+
+              <CamvelleInnerPanel className="p-5 md:col-span-2">
+                <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
+                  Notes
+                </label>
+
+                <textarea
+                  rows={6}
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Agreement details, client notes, usage rights, payment terms, delivery notes..."
+                  className="w-full resize-none bg-transparent text-white outline-none placeholder:text-white/25"
+                />
+              </CamvelleInnerPanel>
+            </div>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={createContract}
+                disabled={creating}
+                className={`${camvelleCreamButton} disabled:cursor-not-allowed disabled:opacity-60`}
+              >
+                <FileSignature size={15} />
+                {creating ? "Creating Contract" : "Create Contract"}
+              </button>
+
+              <Link
+                href={`/dashboard/clients/${client.id}`}
+                className={camvelleGhostButton}
+              >
+                <X size={15} />
+                Cancel
+              </Link>
+            </div>
+          </CamvellePanel>
+        </>
+      )}
+    </CamvellePageShell>
   );
 }
 
@@ -422,7 +361,7 @@ function InputBubble({
   type?: string;
 }) {
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-black/35 p-5">
+    <CamvelleInnerPanel className="p-5">
       <label className="mb-3 block text-[10px] uppercase tracking-[0.35em] text-white/35">
         {label}
       </label>
@@ -434,6 +373,20 @@ function InputBubble({
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-transparent text-white outline-none placeholder:text-white/25"
       />
-    </div>
+    </CamvelleInnerPanel>
+  );
+}
+
+function InfoCard({ label, value }: { label: string; value: string }) {
+  return (
+    <CamvelleInnerPanel className="p-5">
+      <p className="text-[10px] uppercase tracking-[0.35em] text-white/35">
+        {label}
+      </p>
+
+      <p className="mt-4 break-words text-base leading-7 text-white/65">
+        {value}
+      </p>
+    </CamvelleInnerPanel>
   );
 }
