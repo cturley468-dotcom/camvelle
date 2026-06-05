@@ -55,6 +55,9 @@ type Expense = {
   file_name?: string | null;
   file_url?: string | null;
   created_at?: string | null;
+  receipt_file_name: string | null;
+  receipt_file_path: string | null;
+  receipt_file_url: string | null;
 };
 
 type DateRange = "all" | "this_month" | "this_year";
@@ -129,6 +132,49 @@ export default function FinancePage() {
     setLoading(false);
   }
 
+  async function openExpenseFile(expense: Expense) {
+  if (expense.receipt_file_url) {
+    window.open(expense.receipt_file_url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (expense.file_url) {
+    window.open(expense.file_url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (expense.receipt_file_path) {
+    const { data, error } = await supabase.storage
+      .from(EXPENSE_BUCKET)
+      .createSignedUrl(expense.receipt_file_path, 300);
+
+    if (error || !data?.signedUrl) {
+      alert(error?.message || "Could not open file.");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  if (expense.file_path) {
+    const { data, error } = await supabase.storage
+      .from(EXPENSE_BUCKET)
+      .createSignedUrl(expense.file_path, 300);
+
+    if (error || !data?.signedUrl) {
+      alert(error?.message || "Could not open file.");
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  alert("No receipt file found.");
+}
+
+
   async function updateInvoiceStatus(invoice: Invoice, status: string) {
     setSavingInvoiceId(invoice.id);
     setNotice("");
@@ -185,29 +231,6 @@ export default function FinancePage() {
 
     setNotice("Invoice deleted successfully.");
     await loadFinanceData();
-  }
-
-  async function openExpenseFile(expense: Expense) {
-    if (expense.file_url) {
-      window.open(expense.file_url, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    if (!expense.file_path) {
-      alert("No file attached to this expense.");
-      return;
-    }
-
-    const { data, error } = await supabase.storage
-      .from(EXPENSE_BUCKET)
-      .createSignedUrl(expense.file_path, 60);
-
-    if (error || !data?.signedUrl) {
-      alert(error?.message || "Expense file could not be opened.");
-      return;
-    }
-
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   }
 
   async function handleLogout() {
@@ -669,6 +692,19 @@ export default function FinancePage() {
                     <p className="mt-6 text-5xl font-light tracking-[-0.07em]">
                       {formatMoney(moneyToNumber(expense.amount))}
                     </p>
+
+                    {(expense.receipt_file_url ||
+                      expense.receipt_file_path ||
+                      expense.file_url ||
+                      expense.file_path) && (
+                     <button
+                         type="button"
+                         onClick={() => openExpenseFile(expense)}
+                         className={camvelleGhostButton}
+                     >
+                         Open File
+                  </button>
+                    )}
 
                     <div className="mt-6 grid gap-3 text-sm leading-7 text-white/45">
                       <p>
