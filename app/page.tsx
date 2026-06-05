@@ -196,9 +196,7 @@ export default function HomePage() {
     </h1>
 
     <CamvelleBody>
-      Timeless photography services for proposals, couples, families,
-      portraits, brands, real estate, automotive, and cinematic emotional
-      storytelling.
+      Camvelle Creative provides elevated photography, video, and visual storytelling for proposals, couples, families, portraits, events, businesses, real estate, and automotive work across Myrtle Beach, South Carolina area.
     </CamvelleBody>
 
     <div className="mt-12 flex flex-col gap-4 sm:flex-row">
@@ -429,6 +427,34 @@ export default function HomePage() {
         </div>
       </section>
 
+
+<footer className="relative z-10 mx-auto mt-20 w-full max-w-7xl px-4 pb-12 text-center">
+  <div className="rounded-[2.5rem] border border-white/10 bg-black/20 p-7">
+    <p className="text-[10px] uppercase tracking-[0.45em] text-white/35">
+      Camvelle Creative
+    </p>
+
+    <div className="mt-5 flex flex-wrap justify-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/45">
+      <Link href="/privacy" className="transition hover:text-white">
+        Privacy
+      </Link>
+
+      <Link href="/terms" className="transition hover:text-white">
+        Terms
+      </Link>
+
+      <Link href="/refund-policy" className="transition hover:text-white">
+        Refund Policy
+      </Link>
+    </div>
+
+    <p className="mt-5 text-xs text-white/30">
+      © {new Date().getFullYear()} Camvelle Creative. All rights reserved.
+    </p>
+  </div>
+</footer>
+
+     
       <footer className="mt-12 border-t border-white/10 py-10 text-xs uppercase tracking-[0.35em] text-white/35">
         Camvelle Creative
       </footer>
