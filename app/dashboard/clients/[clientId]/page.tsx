@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import {
   Calendar,
   CheckCircle,
+  CreditCard,
   ExternalLink,
   FileSignature,
   FileText,
@@ -123,6 +124,7 @@ export default function ClientDetailPage() {
   const [scheduling, setScheduling] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
 
   const [editForm, setEditForm] = useState({
     full_name: "",
@@ -451,6 +453,56 @@ export default function ClientDetailPage() {
     setNotice("Invoice sent successfully.");
     await loadClientPage();
   }
+
+  async function openInvoiceCheckout(invoice: Invoice) {
+  if (!invoice.id) return;
+
+  if (String(invoice.status || "").toLowerCase() === "paid") {
+    alert("This invoice is already marked paid.");
+    return;
+  }
+
+  if (!invoice.amount || Number(invoice.amount) <= 0) {
+    alert("Invoice amount must be greater than $0.");
+    return;
+  }
+
+  setPayingInvoiceId(invoice.id);
+  setNotice("");
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.access_token;
+
+  const response = await fetch("/api/stripe/create-checkout-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify({
+      invoiceId: invoice.id,
+    }),
+  });
+
+  const result = await response.json();
+
+  setPayingInvoiceId(null);
+
+  if (!response.ok) {
+    alert(result.error || "Checkout could not be created.");
+    return;
+  }
+
+  const checkoutUrl = result.url || result.checkoutUrl;
+
+  if (!checkoutUrl) {
+    alert("Checkout link was not returned.");
+    return;
+  }
+
+  window.location.href = checkoutUrl;
+}
+
 
   async function deleteInvoice(invoiceId: string) {
     const confirmDelete = confirm("Delete this invoice?");
@@ -1221,6 +1273,14 @@ export default function ClientDetailPage() {
                 </div>
 
                 <div className="mt-7 flex flex-wrap gap-3">
+                  {String(invoice.status || "").toLowerCase() !== "paid" && (
+  <ActionButton
+    label={payingInvoiceId === invoice.id ? "Opening Checkout" : "Pay Invoice"}
+    icon={<CreditCard size={16} />}
+    onClick={() => openInvoiceCheckout(invoice)}
+    disabled={payingInvoiceId === invoice.id || saving}
+  />
+)}
                   {invoice.invoice_pdf_url ? (
                     <ActionExternalLink
                       label="View Invoice PDF"
