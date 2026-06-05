@@ -8,6 +8,15 @@ function clean(value: unknown, fallback = "") {
   return text || fallback;
 }
 
+function escapeHtml(value: unknown) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,7 +40,6 @@ function getAllowedAdminEmails() {
 export async function POST(request: Request) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
-
     const resendApiKey = process.env.RESEND_API_KEY;
 
     const galleryFromEmail =
@@ -105,6 +113,7 @@ export async function POST(request: Request) {
 
     const clientName = clean(gallery.client_name, "there");
     const galleryTitle = clean(gallery.title, "Your Camvelle Gallery");
+    const galleryDescription = clean(gallery.description);
 
     const origin =
       request.headers.get("origin") ||
@@ -113,10 +122,24 @@ export async function POST(request: Request) {
 
     const galleryUrl = `${origin}/gallery/${gallery.share_token}`;
 
-    const { count } = await supabaseAdmin
+    const { count, error: countError } = await supabaseAdmin
       .from("client_gallery_photos")
       .select("id", { count: "exact", head: true })
       .eq("gallery_id", gallery.id);
+
+    if (countError) {
+      return NextResponse.json(
+        { error: countError.message },
+        { status: 500 }
+      );
+    }
+
+    const photoCount = count || 0;
+
+    const safeClientName = escapeHtml(clientName);
+    const safeGalleryTitle = escapeHtml(galleryTitle);
+    const safeDescription = escapeHtml(galleryDescription);
+    const safeGalleryUrl = escapeHtml(galleryUrl);
 
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -131,41 +154,72 @@ export async function POST(request: Request) {
         to: [clientEmail],
         subject: `${galleryTitle} is ready - Camvelle Creative`,
         html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-            <h2>Camvelle Creative</h2>
+          <div style="margin:0;padding:0;background:#050505;color:#f5f0e7;font-family:Arial,Helvetica,sans-serif;">
+            <div style="max-width:680px;margin:0 auto;padding:34px 18px;">
+              <div style="border:1px solid rgba(255,255,255,0.12);background:#111111;border-radius:38px;padding:42px 34px;box-shadow:0 0 70px rgba(255,255,255,0.05);">
+                
+                <p style="margin:0 0 24px 0;color:rgba(245,240,231,0.42);font-size:11px;letter-spacing:0.45em;text-transform:uppercase;">
+                  Camvelle Creative
+                </p>
 
-            <p>Hi ${clientName},</p>
+                <h1 style="margin:0;color:#f5f0e7;font-size:44px;line-height:0.95;font-weight:700;letter-spacing:-0.06em;">
+                  Gallery<br />Ready
+                </h1>
 
-            <p>Your private Camvelle gallery is ready to view.</p>
+                <p style="margin:34px 0 0 0;color:rgba(245,240,231,0.78);font-size:21px;line-height:1.6;">
+                  Hi ${safeClientName},
+                </p>
 
-            <p>
-              <strong>Gallery:</strong> ${galleryTitle}<br />
-              <strong>Photos:</strong> ${count || 0}<br />
-              <strong>Status:</strong> Ready
-            </p>
+                <p style="margin:28px 0 0 0;color:rgba(245,240,231,0.72);font-size:21px;line-height:1.7;">
+                  Your private Camvelle gallery is ready to view.
+                </p>
 
-            ${
-              gallery.description
-                ? `<p>${gallery.description}</p>`
-                : ""
-            }
+                <div style="margin:34px 0 0 0;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.035);border-radius:28px;padding:26px;">
+                  <p style="margin:0 0 14px 0;color:rgba(245,240,231,0.92);font-size:18px;line-height:1.5;">
+                    <strong>Gallery:</strong> ${safeGalleryTitle}
+                  </p>
 
-            <p>
-              <a href="${galleryUrl}" style="display:inline-block;padding:14px 22px;background:#111;color:#fff;text-decoration:none;border-radius:999px;">
-                View Your Gallery
-              </a>
-            </p>
+                  <p style="margin:0 0 14px 0;color:rgba(245,240,231,0.92);font-size:18px;line-height:1.5;">
+                    <strong>Photos:</strong> ${photoCount}
+                  </p>
 
-            <p>
-              You can also copy and paste this link into your browser:<br />
-              <span style="color:#555;font-size:13px;">${galleryUrl}</span>
-            </p>
+                  <p style="margin:0;color:rgba(245,240,231,0.92);font-size:18px;line-height:1.5;">
+                    <strong>Status:</strong> Ready
+                  </p>
+                </div>
 
-            <p>Thank you for choosing Camvelle Creative.</p>
+                ${
+                  galleryDescription
+                    ? `
+                      <p style="margin:30px 0 0 0;color:rgba(245,240,231,0.68);font-size:18px;line-height:1.7;">
+                        ${safeDescription}
+                      </p>
+                    `
+                    : ""
+                }
 
-            <p style="color:#666;font-size:13px;">
-              Camvelle.com
-            </p>
+                <div style="margin:38px 0 0 0;">
+                  <a href="${safeGalleryUrl}" style="display:inline-block;background:#f5f0e7;color:#050505;text-decoration:none;border-radius:999px;padding:17px 28px;font-size:12px;font-weight:700;letter-spacing:0.34em;text-transform:uppercase;">
+                    View Your Gallery
+                  </a>
+                </div>
+
+                <p style="margin:34px 0 0 0;color:rgba(245,240,231,0.58);font-size:15px;line-height:1.7;">
+                  You can also copy and paste this link into your browser:<br />
+                  <span style="color:rgba(245,240,231,0.78);word-break:break-all;">
+                    ${safeGalleryUrl}
+                  </span>
+                </p>
+
+                <p style="margin:38px 0 0 0;color:rgba(245,240,231,0.72);font-size:19px;line-height:1.7;">
+                  Thank you for choosing Camvelle Creative.
+                </p>
+
+                <p style="margin:18px 0 0 0;color:rgba(245,240,231,0.34);font-size:15px;">
+                  Camvelle.com
+                </p>
+              </div>
+            </div>
           </div>
         `,
       }),
