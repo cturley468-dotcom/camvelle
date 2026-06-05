@@ -10,6 +10,7 @@ import {
   Pencil,
   Save,
   Search,
+  Send,
   Trash2,
   Upload,
   X,
@@ -587,8 +588,55 @@ export default function DashboardGalleriesPage() {
     await loadAllGalleryData();
   }
 
+  async function sendClientGalleryEmail(gallery: ClientGallery) {
+    if (!gallery.client_email) {
+      alert("This gallery does not have a client email.");
+      return;
+    }
+
+    const confirmSend = confirm(`Send gallery link to ${gallery.client_email}?`);
+
+    if (!confirmSend) return;
+
+    setSavingId(gallery.id);
+    setNotice("");
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+
+    if (!accessToken) {
+      setSavingId(null);
+      alert("You must be logged in to send gallery emails.");
+      return;
+    }
+
+    const response = await fetch("/api/client-gallery/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        galleryId: gallery.id,
+      }),
+    });
+
+    const result = await response.json();
+
+    setSavingId(null);
+
+    if (!response.ok) {
+      alert(result.error || "Gallery email could not be sent.");
+      return;
+    }
+
+    setNotice("Gallery email sent successfully.");
+    await loadAllGalleryData();
+  }
+
   async function copyGalleryLink(gallery: ClientGallery) {
     const url = getClientGalleryUrl(gallery);
+
     await navigator.clipboard.writeText(url);
     setNotice("Client gallery link copied.");
   }
@@ -762,7 +810,7 @@ export default function DashboardGalleriesPage() {
 
             <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
               Create a client gallery, upload 100–150 delivery photos in one
-              batch, publish the gallery, then copy the private client link.
+              batch, publish the gallery, then send the private client link.
             </p>
           </div>
 
@@ -1053,11 +1101,21 @@ export default function DashboardGalleriesPage() {
                       Copy Link
                     </button>
 
+                    <button
+                      type="button"
+                      onClick={() => sendClientGalleryEmail(gallery)}
+                      disabled={savingId === gallery.id}
+                      className={camvelleCreamButton}
+                    >
+                      <Send size={15} />
+                      {savingId === gallery.id ? "Sending" : "Send Email"}
+                    </button>
+
                     <a
                       href={getClientGalleryUrl(gallery)}
                       target="_blank"
                       rel="noreferrer"
-                      className={camvelleCreamButton}
+                      className={camvelleGhostButton}
                     >
                       Open Gallery
                     </a>
@@ -1110,11 +1168,21 @@ export default function DashboardGalleriesPage() {
                 Copy Link
               </button>
 
+              <button
+                type="button"
+                onClick={() => sendClientGalleryEmail(selectedDeliveryGallery)}
+                disabled={savingId === selectedDeliveryGallery.id}
+                className={camvelleCreamButton}
+              >
+                <Send size={15} />
+                {savingId === selectedDeliveryGallery.id ? "Sending" : "Send Email"}
+              </button>
+
               <a
                 href={getClientGalleryUrl(selectedDeliveryGallery)}
                 target="_blank"
                 rel="noreferrer"
-                className={camvelleCreamButton}
+                className={camvelleGhostButton}
               >
                 Open Client Gallery
               </a>
