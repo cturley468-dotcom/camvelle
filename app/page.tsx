@@ -185,38 +185,37 @@ export default function HomePage() {
         </details>
       </header>
 
-      <section className="w-full overflow-hidden">
+     <section className="w-full overflow-hidden">
   <CamvellePanel className="mx-auto w-full max-w-full overflow-hidden p-8 sm:p-10 md:p-14">
     <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
-<h1 className="mt-7 max-w-full text-[3.65rem] font-light leading-[0.92] tracking-[-0.085em] text-white sm:text-7xl md:text-8xl">
-  Designed to Stand The
-  <br />
-  Test Of Time
-</h1>
+    <CamvelleHeading>
+      Photography Designed To Stand
+      <br />
+      The Test Of Time.
+    </CamvelleHeading>
 
-<p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white sm:text-base">
-  Authentic. Creative. Timeless.
-</p>
+    <p className="mt-7 max-w-full text-[3.65rem] font-light leading-[0.92] tracking-[-0.085em] text-white sm:text-6xl md:text-7xl">
+      Authentic. Creative. Timeless.
+    </p>
 
-<CamvelleBody>
-  Camvelle Creative provides timeless photography for couples, families,
-  brands, businesses, and events across The Grand Strand.
-</CamvelleBody>
+    <CamvelleBody>
+      Camvelle Creative provides Timeless photography for couples, families,
+      brands, businesses, and events across The Grand Strand.
+    </CamvelleBody>
 
-<div className="mt-12 flex flex-col gap-4 sm:flex-row">
-  <Link href="/galleries" className={camvelleGhostButton}>
-    Enter Gallery
-  </Link>
+    <div className="mt-12 flex flex-col gap-4 sm:flex-row">
+      <Link href="/galleries" className={camvelleGhostButton}>
+        Enter Gallery
+      </Link>
 
-  <a href="#book" className={camvelleCreamButton}>
-    Book Session
-  </a>
-</div>
-
-
+      <a href="#book" className={camvelleCreamButton}>
+        Book Session
+      </a>
+    </div>
   </CamvellePanel>
 </section>
+
 
 
       <section id="galleries" className="mt-10">
