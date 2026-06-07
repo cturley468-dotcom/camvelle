@@ -190,13 +190,17 @@ export default function HomePage() {
     <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
     <h1 className="mt-8 max-w-full text-[4rem] font-light leading-[0.86] tracking-[-0.09em] text-white sm:text-[5.5rem] md:text-[7rem] lg:text-[9rem]">
-      Elevated
+      Designed To Stand The Test
       <br />
-      Photography
+      Of Time
     </h1>
 
+<CamvelleBody>
+      Authentic. Creative. Timeless.
+    </CamvelleBody>
+
     <CamvelleBody>
-      Camvelle Creative provides elevated photography, video, and visual storytelling across The Grand Strand.
+      Camvelle Creative provides Timeless photography for, couples, families, brands, businesses, and events across The Grand Strand.
     </CamvelleBody>
 
     <div className="mt-12 flex flex-col gap-4 sm:flex-row">
