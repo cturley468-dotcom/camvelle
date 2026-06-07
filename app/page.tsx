@@ -194,7 +194,7 @@ export default function HomePage() {
 
     </CamvelleHeading>
 
-    <p className="mt-7 max-w-full text-[3.65rem] font-light leading-[0.92] tracking-[-0.085em] text-white sm:text-6xl md:text-7xl">
+    <p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white sm:text-base">
       Authentic. Creative. Timeless.
     </p>
 
