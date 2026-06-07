@@ -190,9 +190,8 @@ export default function HomePage() {
     <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
     <CamvelleHeading>
-      Photography Designed To Stand
-      <br />
-      The Test Of Time.
+     Bofore Today Becomes Tomorrow.
+
     </CamvelleHeading>
 
     <p className="mt-7 max-w-full text-[3.65rem] font-light leading-[0.92] tracking-[-0.085em] text-white sm:text-6xl md:text-7xl">
