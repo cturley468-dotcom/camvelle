@@ -187,28 +187,32 @@ export default function HomePage() {
 
       <section className="w-full overflow-hidden">
   <CamvellePanel className="mx-auto w-full max-w-full overflow-hidden p-8 sm:p-10 md:p-14">
-    <p className="text-[11px] font-semibold uppercase tracking-[0.55em] text-white/45">
-  Naturally Timeless
-</p>
+    <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
-<h1 className="mt-8 max-w-full text-[4.65rem] font-normal leading-[0.84] tracking-[-0.095em] text-white sm:text-8xl md:text-[8.5rem]">
-  Designed
-  <br />
-  To Stand
-  <br />
-  The Test
+<h1 className="mt-7 max-w-full text-[3.65rem] font-light leading-[0.92] tracking-[-0.085em] text-white sm:text-7xl md:text-8xl">
+  Designed to Stand The Test
   <br />
   Of Time
 </h1>
 
-<p className="mt-9 text-base font-semibold tracking-[0.08em] text-white/65 sm:text-lg">
+<p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white sm:text-base">
   Authentic. Creative. Timeless.
 </p>
 
-<p className="mt-10 max-w-2xl text-[1.08rem] font-medium leading-[2.35rem] tracking-[0.035em] text-white/58 sm:text-xl sm:leading-[2.7rem]">
+<p className="mt-10 max-w-2xl text-[1rem] font-medium leading-[2.15rem] tracking-[0.015em] text-white/55 sm:text-lg sm:leading-[2.45rem]">
   Camvelle Creative provides timeless photography for couples, families,
   brands, businesses, and events across The Grand Strand.
 </p>
+
+<div className="mt-12 flex flex-col gap-4 sm:flex-row">
+  <Link href="/galleries" className={camvelleGhostButton}>
+    Enter Gallery
+  </Link>
+
+  <a href="#book" className={camvelleCreamButton}>
+    Book Session
+  </a>
+</div>
 
 
     <div className="mt-12 flex flex-col gap-4 sm:flex-row">
