@@ -119,7 +119,7 @@ export default function ClientGalleryPage() {
         </Link>
 
         <Link href="/" className={camvelleCreamButton}>
-          Camvelle
+          Home
         </Link>
       </header>
 
