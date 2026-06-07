@@ -190,9 +190,9 @@ export default function HomePage() {
     <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
 <h1 className="mt-7 max-w-full text-[3.65rem] font-light leading-[0.92] tracking-[-0.085em] text-white sm:text-7xl md:text-8xl">
-  Designed to Stand The Test
+  Designed to Stand The
   <br />
-  Of Time
+  Test Of Time
 </h1>
 
 <p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white sm:text-base">
