@@ -196,7 +196,7 @@ export default function HomePage() {
     </h1>
 
     <CamvelleBody>
-      Camvelle Creative provides elevated photography, video, and visual storytelling for proposals, couples, families, portraits, events, businesses, real estate, and automotive work across Myrtle Beach, South Carolina area.
+      Camvelle Creative provides elevated photography, video, and visual storytelling across the Grand Strand.
     </CamvelleBody>
 
     <div className="mt-12 flex flex-col gap-4 sm:flex-row">
@@ -428,8 +428,9 @@ export default function HomePage() {
       </section>
 
 
-<footer className="relative z-10 mx-auto mt-20 w-full max-w-7xl px-4 pb-12 text-center">
-  <div className="rounded-[2.5rem] border border-white/10 bg-black/20 p-7">
+     
+      <footer className="mt-12 border-t border-white/10 py-10 text-xs uppercase tracking-[0.35em] text-white/35">
+         <div className="rounded-[2.5rem] border border-white/10 bg-black/20 p-7">
     <p className="text-[10px] uppercase tracking-[0.45em] text-white/35">
       Camvelle Creative
     </p>
@@ -452,12 +453,12 @@ export default function HomePage() {
       © {new Date().getFullYear()} Camvelle Creative. All rights reserved.
     </p>
   </div>
-</footer>
-
-     
-      <footer className="mt-12 border-t border-white/10 py-10 text-xs uppercase tracking-[0.35em] text-white/35">
-        Camvelle Creative
+        Camvelle Creative LLC
+      
       </footer>
+
+
+      
     </CamvellePageShell>
   );
 }
