@@ -196,7 +196,7 @@ export default function HomePage() {
     </h1>
 
     <CamvelleBody>
-      Camvelle Creative provides elevated photography, video, and visual storytelling across the Grand Strand.
+      Camvelle Creative provides elevated photography, video, and visual storytelling across The Grand Strand.
     </CamvelleBody>
 
     <div className="mt-12 flex flex-col gap-4 sm:flex-row">
@@ -432,7 +432,7 @@ export default function HomePage() {
       <footer className="mt-12 border-t border-white/10 py-10 text-xs uppercase tracking-[0.35em] text-white/35">
          <div className="rounded-[2.5rem] border border-white/10 bg-black/20 p-7">
     <p className="text-[10px] uppercase tracking-[0.45em] text-white/35">
-      Camvelle Creative
+      Camvelle Creative LLC
     </p>
 
     <div className="mt-5 flex flex-wrap justify-center gap-4 text-[10px] font-bold uppercase tracking-[0.3em] text-white/45">
@@ -453,7 +453,7 @@ export default function HomePage() {
       © {new Date().getFullYear()} Camvelle Creative. All rights reserved.
     </p>
   </div>
-        Camvelle Creative LLC
+        
       
       </footer>
 

@@ -52,7 +52,7 @@ type Expense = {
   receipt_file_url: string | null;
 };
 
-const sections = ["overview", "clients", "bookings", "calendar", "galleries", "finance"];
+const sections = ["overview", "clients", "bookings", "calendar", "galleries", "contracts", "invoices", "finance"];
 
 const categories = [
   "Equipment",

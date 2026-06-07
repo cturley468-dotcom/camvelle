@@ -96,7 +96,6 @@ const sections = [
   "calendar",
   "contracts",
   "invoices",
-  "galleries",
   "finance",
   "expenses",
 ];

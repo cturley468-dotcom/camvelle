@@ -30,7 +30,8 @@ type Booking = {
   created_at: string | null;
 };
 
-const sections = ["overview", "clients", "calendar", "galleries", "finance"];
+const sections = ["overview", "clients", "calendar", "contracts", "invoices", "finance", "expenses", ];
+
 
 export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);

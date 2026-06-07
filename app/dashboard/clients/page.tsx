@@ -23,7 +23,8 @@ type Client = {
   created_at: string | null;
 };
 
-const sections = ["overview", "bookings", "calendar", "galleries", "finance"];
+const sections = ["overview", "bookings", "calendar","contracts", "invoices", "galleries", "finance", "expenses", ];
+
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);

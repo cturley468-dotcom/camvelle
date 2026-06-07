@@ -27,7 +27,8 @@ type Client = {
   created_at: string | null;
 };
 
-const sections = ["overview", "clients", "bookings", "galleries", "finance"];
+const sections = ["overview", "clients", "bookings", "galleries", "contracts", "invoices", "finance", "expenses", ];
+
 
 export default function CalendarPage() {
   const [clients, setClients] = useState<Client[]>([]);
