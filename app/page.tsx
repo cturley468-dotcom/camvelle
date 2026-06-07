@@ -199,7 +199,7 @@ export default function HomePage() {
   Authentic. Creative. Timeless.
 </p>
 
-<p className="mt-10 max-w-2xl text-[1rem] font-medium leading-[2.15rem] tracking-[0.015em] text-white/55 sm:text-lg sm:leading-[2.45rem]">
+<p className="p-8 sm:p-10 md:p-14">
   Camvelle Creative provides timeless photography for couples, families,
   brands, businesses, and events across The Grand Strand.
 </p>
@@ -215,15 +215,6 @@ export default function HomePage() {
 </div>
 
 
-    <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-      <Link href="/galleries" className={camvelleGhostButton}>
-        Enter Gallery
-      </Link>
-
-      <a href="#book" className={camvelleCreamButton}>
-        Book Session
-      </a>
-    </div>
   </CamvellePanel>
 </section>
 
