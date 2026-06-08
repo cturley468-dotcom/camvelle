@@ -1,10 +1,15 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
-export const camvelleBackgroundStyle = {
-  backgroundImage:
-    "linear-gradient(to bottom, rgba(0,0,0,0.08), rgba(0,0,0,0.78)), url('/backgrounds/camvelle-background.png')",
-};
+export function getCamvelleBackgroundStyle(
+  backgroundImage = "/backgrounds/camvelle-background.png"
+): CSSProperties {
+  return {
+    backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.08), rgba(0,0,0,0.78)), url('${backgroundImage}')`,
+  };
+}
+
+export const camvelleBackgroundStyle = getCamvelleBackgroundStyle();
 
 export const camvellePanel =
   "rounded-[3rem] border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_30px_90px_rgba(0,0,0,0.55)] backdrop-blur-[2px]";
@@ -18,11 +23,17 @@ export const camvelleCreamButton =
 export const camvelleGhostButton =
   "rounded-full border border-white/10 bg-black/20 px-7 py-4 text-center text-[11px] font-bold uppercase tracking-[0.35em] text-white/70 transition hover:bg-white hover:text-black";
 
-export function CamvellePageShell({ children }: { children: ReactNode }) {
+export function CamvellePageShell({
+  children,
+  backgroundImage = "/backgrounds/camvelle-background.png",
+}: {
+  children: ReactNode;
+  backgroundImage?: string;
+}) {
   return (
     <main
       className="min-h-screen bg-[#020202] bg-cover bg-center bg-fixed px-5 py-7 text-white sm:px-8"
-      style={camvelleBackgroundStyle}
+      style={getCamvelleBackgroundStyle(backgroundImage)}
     >
       <div className="mx-auto max-w-6xl">{children}</div>
     </main>
