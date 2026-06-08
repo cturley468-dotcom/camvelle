@@ -190,13 +190,14 @@ export default function HomePage() {
     <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
     <CamvelleHeading>
-     Elevated Photography
+     Authentic.
+     Creative.
+     Elevated.
+     Photography.
 
     </CamvelleHeading>
 
-    <p className="mt-8 text-lg font-semibold tracking-[0.08em] text-white sm:text-xl">
-      Authentic. Creative. Timeless.
-    </p>
+   
 
     <CamvelleBody>
       Camvelle Creative provides Timeless photography for couples, families,
