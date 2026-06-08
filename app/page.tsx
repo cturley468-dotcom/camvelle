@@ -190,7 +190,7 @@ export default function HomePage() {
     <CamvelleEyebrow>Naturally Timeless</CamvelleEyebrow>
 
     <CamvelleHeading>
-     Bofore Today Becomes Tomorrow.
+     Elevated Photography
 
     </CamvelleHeading>
 
