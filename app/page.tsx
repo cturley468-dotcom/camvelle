@@ -193,14 +193,14 @@ export default function HomePage() {
      Authentic.
      Creative.
      Elevated.
-     Photography.
+     
 
     </CamvelleHeading>
 
    
 
     <CamvelleBody>
-      Camvelle Creative provides Timeless photography for couples, families,
+      Camvelle Creative provides photography services for couples, families,
       brands, businesses, and events across The Grand Strand.
     </CamvelleBody>
 
