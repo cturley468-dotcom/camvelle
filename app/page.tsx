@@ -134,7 +134,7 @@ export default function HomePage() {
   }
 
   return (
-    <CamvellePageShell>
+    <CamvellePageShell backgroundImage="/backgrounds/camvelle-homepage-background.jpg" >
       <header className="relative z-[9999] mb-10 flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center">
           <Image
