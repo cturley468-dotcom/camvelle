@@ -122,10 +122,9 @@ export default function DashboardGalleriesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
   const [coverSavingId, setCoverSavingId] = useState<string | null>(null);
-const [deletingDeliveryPhotoId, setDeletingDeliveryPhotoId] =
-  useState<string | null>(null);
+  const [deletingDeliveryPhotoId, setDeletingDeliveryPhotoId] =
+    useState<string | null>(null);
 
   const [editForm, setEditForm] = useState({
     gallery_type: "",
@@ -152,6 +151,7 @@ const [deletingDeliveryPhotoId, setDeletingDeliveryPhotoId] =
 
   useEffect(() => {
     loadAllGalleryData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadAllGalleryData() {
@@ -599,7 +599,6 @@ const [deletingDeliveryPhotoId, setDeletingDeliveryPhotoId] =
     }
 
     const confirmSend = confirm(`Send gallery link to ${gallery.client_email}?`);
-
     if (!confirmSend) return;
 
     setSavingId(gallery.id);
@@ -640,137 +639,133 @@ const [deletingDeliveryPhotoId, setDeletingDeliveryPhotoId] =
 
   async function copyGalleryLink(gallery: ClientGallery) {
     const url = getClientGalleryUrl(gallery);
-
     await navigator.clipboard.writeText(url);
     setNotice("Client gallery link copied.");
   }
 
   async function setClientGalleryCover(photo: ClientGalleryPhoto) {
-  setCoverSavingId(photo.id);
-  setNotice("");
+    setCoverSavingId(photo.id);
+    setNotice("");
 
-  const { error: clearCoverError } = await supabase
-    .from("client_gallery_photos")
-    .update({
-      is_cover: false,
-    })
-    .eq("gallery_id", photo.gallery_id);
-
-  if (clearCoverError) {
-    setCoverSavingId(null);
-    alert(clearCoverError.message);
-    return;
-  }
-
-  const { error: photoCoverError } = await supabase
-    .from("client_gallery_photos")
-    .update({
-      is_cover: true,
-    })
-    .eq("id", photo.id);
-
-  if (photoCoverError) {
-    setCoverSavingId(null);
-    alert(photoCoverError.message);
-    return;
-  }
-
-  const { error: galleryCoverError } = await supabase
-    .from("client_galleries")
-    .update({
-      cover_image_url: photo.file_url,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", photo.gallery_id);
-
-  setCoverSavingId(null);
-
-  if (galleryCoverError) {
-    alert(galleryCoverError.message);
-    return;
-  }
-
-  setNotice("Cover photo updated.");
-  await loadAllGalleryData();
-}
-
-async function deleteClientGalleryPhoto(photo: ClientGalleryPhoto) {
-  const confirmDelete = confirm("Delete this photo from the client gallery?");
-
-  if (!confirmDelete) return;
-
-  setDeletingDeliveryPhotoId(photo.id);
-  setNotice("");
-
-  if (photo.file_path) {
-    const { error: storageError } = await supabase.storage
-      .from(GALLERY_BUCKET)
-      .remove([photo.file_path]);
-
-    if (storageError) {
-      console.error("Storage delete error:", storageError);
-    }
-  }
-
-  const { error: deleteError } = await supabase
-    .from("client_gallery_photos")
-    .delete()
-    .eq("id", photo.id);
-
-  if (deleteError) {
-    setDeletingDeliveryPhotoId(null);
-    alert(deleteError.message);
-    return;
-  }
-
-  const wasCover =
-    photo.is_cover ||
-    clientGalleries.some(
-      (gallery) =>
-        gallery.id === photo.gallery_id &&
-        gallery.cover_image_url === photo.file_url
-    );
-
-  if (wasCover) {
-    const remainingPhotos = clientGalleryPhotos
-      .filter(
-        (item) =>
-          item.gallery_id === photo.gallery_id && item.id !== photo.id
-      )
-      .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
-
-    const nextCover = remainingPhotos[0] || null;
-
-    await supabase
+    const { error: clearCoverError } = await supabase
       .from("client_gallery_photos")
       .update({
         is_cover: false,
       })
       .eq("gallery_id", photo.gallery_id);
 
-    if (nextCover) {
-      await supabase
-        .from("client_gallery_photos")
-        .update({
-          is_cover: true,
-        })
-        .eq("id", nextCover.id);
+    if (clearCoverError) {
+      setCoverSavingId(null);
+      alert(clearCoverError.message);
+      return;
     }
 
-    await supabase
+    const { error: photoCoverError } = await supabase
+      .from("client_gallery_photos")
+      .update({
+        is_cover: true,
+      })
+      .eq("id", photo.id);
+
+    if (photoCoverError) {
+      setCoverSavingId(null);
+      alert(photoCoverError.message);
+      return;
+    }
+
+    const { error: galleryCoverError } = await supabase
       .from("client_galleries")
       .update({
-        cover_image_url: nextCover?.file_url || null,
+        cover_image_url: photo.file_url,
         updated_at: new Date().toISOString(),
       })
       .eq("id", photo.gallery_id);
+
+    setCoverSavingId(null);
+
+    if (galleryCoverError) {
+      alert(galleryCoverError.message);
+      return;
+    }
+
+    setNotice("Cover photo updated.");
+    await loadAllGalleryData();
   }
 
-  setDeletingDeliveryPhotoId(null);
-  setNotice("Gallery photo deleted.");
-  await loadAllGalleryData();
-}
+  async function deleteClientGalleryPhoto(photo: ClientGalleryPhoto) {
+    const confirmDelete = confirm("Delete this photo from the client gallery?");
+    if (!confirmDelete) return;
 
+    setDeletingDeliveryPhotoId(photo.id);
+    setNotice("");
+
+    if (photo.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from(GALLERY_BUCKET)
+        .remove([photo.file_path]);
+
+      if (storageError) {
+        console.error("Storage delete error:", storageError);
+      }
+    }
+
+    const { error: deleteError } = await supabase
+      .from("client_gallery_photos")
+      .delete()
+      .eq("id", photo.id);
+
+    if (deleteError) {
+      setDeletingDeliveryPhotoId(null);
+      alert(deleteError.message);
+      return;
+    }
+
+    const wasCover =
+      photo.is_cover ||
+      clientGalleries.some(
+        (gallery) =>
+          gallery.id === photo.gallery_id &&
+          gallery.cover_image_url === photo.file_url
+      );
+
+    if (wasCover) {
+      const remainingPhotos = clientGalleryPhotos
+        .filter(
+          (item) => item.gallery_id === photo.gallery_id && item.id !== photo.id
+        )
+        .sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0));
+
+      const nextCover = remainingPhotos[0] || null;
+
+      await supabase
+        .from("client_gallery_photos")
+        .update({
+          is_cover: false,
+        })
+        .eq("gallery_id", photo.gallery_id);
+
+      if (nextCover) {
+        await supabase
+          .from("client_gallery_photos")
+          .update({
+            is_cover: true,
+          })
+          .eq("id", nextCover.id);
+      }
+
+      await supabase
+        .from("client_galleries")
+        .update({
+          cover_image_url: nextCover?.file_url || null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", photo.gallery_id);
+    }
+
+    setDeletingDeliveryPhotoId(null);
+    setNotice("Gallery photo deleted.");
+    await loadAllGalleryData();
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -1093,6 +1088,154 @@ async function deleteClientGalleryPhoto(photo: ClientGalleryPhoto) {
         </div>
       </CamvellePanel>
 
+      {selectedDeliveryGallery && (
+        <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <CamvelleEyebrow>Selected Delivery Gallery</CamvelleEyebrow>
+
+              <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
+                Gallery
+                <br />
+                controls.
+              </h2>
+
+              <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
+                {selectedDeliveryGallery.title || "Client Gallery"} has{" "}
+                {selectedDeliveryPhotos.length} uploaded photo
+                {selectedDeliveryPhotos.length === 1 ? "" : "s"}. Manage the
+                cover image or delete individual delivery photos from this
+                selected gallery.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => copyGalleryLink(selectedDeliveryGallery)}
+                className={camvelleGhostButton}
+              >
+                <Copy size={15} />
+                Copy Link
+              </button>
+
+              <button
+                type="button"
+                onClick={() => sendClientGalleryEmail(selectedDeliveryGallery)}
+                disabled={savingId === selectedDeliveryGallery.id}
+                className={camvelleCreamButton}
+              >
+                <Send size={15} />
+                {savingId === selectedDeliveryGallery.id ? "Sending" : "Send Email"}
+              </button>
+
+              <a
+                href={getClientGalleryUrl(selectedDeliveryGallery)}
+                target="_blank"
+                rel="noreferrer"
+                className={camvelleGhostButton}
+              >
+                Open Client Gallery
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-10">
+            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div>
+                <CamvelleEyebrow>Photo Manager</CamvelleEyebrow>
+
+                <h3 className="mt-4 text-4xl font-light tracking-[-0.06em] text-white">
+                  Cover and delivery photos.
+                </h3>
+              </div>
+
+              <p className="text-sm text-white/40">
+                Showing photos for selected gallery only.
+              </p>
+            </div>
+
+            {selectedDeliveryPhotos.length === 0 && (
+              <CamvelleInnerPanel className="mt-6 p-7 text-white/50">
+                No photos uploaded to this gallery yet.
+              </CamvelleInnerPanel>
+            )}
+
+            {selectedDeliveryPhotos.length > 0 && (
+              <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {selectedDeliveryPhotos.map((photo, index) => {
+                  const isCover =
+                    photo.is_cover ||
+                    selectedDeliveryGallery.cover_image_url === photo.file_url;
+
+                  return (
+                    <CamvelleInnerPanel
+                      key={photo.id}
+                      className="overflow-hidden p-0"
+                    >
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[2.4rem] bg-black/30">
+                        <img
+                          src={photo.file_url}
+                          alt={photo.file_name || `Gallery photo ${index + 1}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover"
+                        />
+
+                        {isCover && (
+                          <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-100 backdrop-blur">
+                            <Star size={13} />
+                            Cover
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-5">
+                        <p className="break-words text-sm leading-6 text-white/55">
+                          {photo.file_name || `Photo ${index + 1}`}
+                        </p>
+
+                        <p className="mt-2 text-xs text-white/30">
+                          Uploaded {formatDate(photo.created_at)}
+                        </p>
+
+                        <div className="mt-5 flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setClientGalleryCover(photo)}
+                            disabled={coverSavingId === photo.id || isCover}
+                            className={`${camvelleGhostButton} disabled:cursor-not-allowed disabled:opacity-45`}
+                          >
+                            <Star size={15} />
+                            {coverSavingId === photo.id
+                              ? "Saving"
+                              : isCover
+                                ? "Current Cover"
+                                : "Set Cover"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => deleteClientGalleryPhoto(photo)}
+                            disabled={deletingDeliveryPhotoId === photo.id}
+                            className="inline-flex items-center justify-center gap-3 rounded-full border border-red-400/20 bg-red-500/10 px-7 py-4 text-center text-[11px] font-bold uppercase tracking-[0.35em] text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Trash2 size={15} />
+                            {deletingDeliveryPhotoId === photo.id
+                              ? "Deleting"
+                              : "Delete"}
+                          </button>
+                        </div>
+                      </div>
+                    </CamvelleInnerPanel>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </CamvellePanel>
+      )}
+
       <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
@@ -1220,7 +1363,7 @@ async function deleteClientGalleryPhoto(photo: ClientGalleryPhoto) {
                       onClick={() => setSelectedDeliveryGalleryId(gallery.id)}
                       className={camvelleGhostButton}
                     >
-                      Select Gallery
+                      Manage Photos
                     </button>
 
                     <button
@@ -1267,151 +1410,6 @@ async function deleteClientGalleryPhoto(photo: ClientGalleryPhoto) {
           })}
         </div>
       </CamvellePanel>
-
-   {selectedDeliveryGallery && (
-  <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
-    <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-      <div>
-        <CamvelleEyebrow>Selected Delivery Gallery</CamvelleEyebrow>
-
-        <h2 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.07em] text-white sm:text-6xl">
-          Gallery
-          <br />
-          controls.
-        </h2>
-
-        <p className="mt-6 max-w-3xl text-base leading-8 text-white/50">
-          {selectedDeliveryGallery.title || "Client Gallery"} has{" "}
-          {selectedDeliveryPhotos.length} uploaded photo
-          {selectedDeliveryPhotos.length === 1 ? "" : "s"}. Manage the cover
-          image or delete individual delivery photos from this selected gallery.
-        </p>
-      </div>
-
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="button"
-          onClick={() => copyGalleryLink(selectedDeliveryGallery)}
-          className={camvelleGhostButton}
-        >
-          <Copy size={15} />
-          Copy Link
-        </button>
-
-        <button
-          type="button"
-          onClick={() => sendClientGalleryEmail(selectedDeliveryGallery)}
-          disabled={savingId === selectedDeliveryGallery.id}
-          className={camvelleCreamButton}
-        >
-          <Send size={15} />
-          {savingId === selectedDeliveryGallery.id ? "Sending" : "Send Email"}
-        </button>
-
-        <a
-          href={getClientGalleryUrl(selectedDeliveryGallery)}
-          target="_blank"
-          rel="noreferrer"
-          className={camvelleGhostButton}
-        >
-          Open Client Gallery
-        </a>
-      </div>
-    </div>
-
-    <div className="mt-10">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <CamvelleEyebrow>Photo Manager</CamvelleEyebrow>
-
-          <h3 className="mt-4 text-4xl font-light tracking-[-0.06em] text-white">
-            Cover and delivery photos.
-          </h3>
-        </div>
-
-        <p className="text-sm text-white/40">
-          Showing photos for selected gallery only.
-        </p>
-      </div>
-
-      {selectedDeliveryPhotos.length === 0 && (
-        <CamvelleInnerPanel className="mt-6 p-7 text-white/50">
-          No photos uploaded to this gallery yet.
-        </CamvelleInnerPanel>
-      )}
-
-      {selectedDeliveryPhotos.length > 0 && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {selectedDeliveryPhotos.map((photo, index) => {
-            const isCover =
-              photo.is_cover ||
-              selectedDeliveryGallery.cover_image_url === photo.file_url;
-
-            return (
-              <CamvelleInnerPanel key={photo.id} className="overflow-hidden p-0">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-[2.4rem] bg-black/30">
-                  <img
-                    src={photo.file_url}
-                    alt={photo.file_name || `Gallery photo ${index + 1}`}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-
-                  {isCover && (
-                    <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-100 backdrop-blur">
-                      <Star size={13} />
-                      Cover
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-5">
-                  <p className="break-words text-sm leading-6 text-white/55">
-                    {photo.file_name || `Photo ${index + 1}`}
-                  </p>
-
-                  <p className="mt-2 text-xs text-white/30">
-                    Uploaded {formatDate(photo.created_at)}
-                  </p>
-
-                  <div className="mt-5 flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setClientGalleryCover(photo)}
-                      disabled={coverSavingId === photo.id || isCover}
-                      className={`${camvelleGhostButton} disabled:cursor-not-allowed disabled:opacity-45`}
-                    >
-                      <Star size={15} />
-                      {coverSavingId === photo.id
-                        ? "Saving"
-                        : isCover
-                          ? "Current Cover"
-                          : "Set Cover"}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteClientGalleryPhoto(photo)}
-                      disabled={deletingDeliveryPhotoId === photo.id}
-                      className="inline-flex items-center justify-center gap-3 rounded-full border border-red-400/20 bg-red-500/10 px-7 py-4 text-center text-[11px] font-bold uppercase tracking-[0.35em] text-red-100 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <Trash2 size={15} />
-                      {deletingDeliveryPhotoId === photo.id
-                        ? "Deleting"
-                        : "Delete"}
-                    </button>
-                  </div>
-                </div>
-              </CamvelleInnerPanel>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  </CamvellePanel>
-)}
-
 
       <CamvellePanel className="mt-6 p-7 sm:p-10 md:p-12">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
