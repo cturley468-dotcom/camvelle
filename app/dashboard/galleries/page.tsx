@@ -249,12 +249,13 @@ export default function DashboardGalleriesPage() {
 
     const filePath = `${uploadGallery}/${Date.now()}-${safeFileName}.${fileExtension}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(GALLERY_BUCKET)
-      .upload(filePath, selectedFile, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+   const { error: uploadError } = await supabase.storage
+  .from(GALLERY_BUCKET)
+  .upload(filePath, selectedFile, {
+    cacheControl: "3600",
+    upsert: false,
+    contentType: selectedFile.type || "application/octet-stream",
+  });
 
     if (uploadError) {
       setUploading(false);
@@ -1460,7 +1461,7 @@ export default function DashboardGalleriesPage() {
             <input
               id="gallery-upload"
               type="file"
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={handleFileChange}
               className="w-full text-sm text-white/60 file:mr-4 file:rounded-full file:border-0 file:bg-[#f5f0e7] file:px-5 file:py-3 file:text-[10px] file:font-bold file:uppercase file:tracking-[0.25em] file:text-black"
             />
@@ -1493,7 +1494,7 @@ export default function DashboardGalleriesPage() {
           disabled={uploading}
           className={`mt-6 w-full ${camvelleCreamButton} disabled:cursor-not-allowed disabled:opacity-60`}
         >
-          {uploading ? "Uploading..." : "Upload Homepage Image"}
+          {uploading ? "Uploading..." : "Upload Homepage Media"}
         </button>
       </CamvellePanel>
 
@@ -1563,14 +1564,24 @@ export default function DashboardGalleriesPage() {
             return (
               <CamvelleInnerPanel key={photo.id} className="overflow-hidden p-0">
                 <div className="aspect-[4/5] w-full overflow-hidden rounded-t-[2.4rem] bg-black/30">
-                  <img
-                    src={photo.image_url}
-                    alt={photo.caption || getGalleryLabel(photo.gallery_type)}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+  {isVideoUrl(photo.image_url) ? (
+    <video
+      src={photo.image_url}
+      controls
+      preload="metadata"
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <img
+      src={photo.image_url}
+      alt={photo.caption || getGalleryLabel(photo.gallery_type)}
+      loading="lazy"
+      decoding="async"
+      className="h-full w-full object-cover"
+    />
+  )}
+</div>
+
 
                 <div className="p-5">
                   {!isEditing && (
@@ -1785,6 +1796,19 @@ function getClientGalleryUrl(gallery: ClientGallery) {
   }
 
   return `${window.location.origin}${path}`;
+}
+
+function isVideoUrl(value: string | null | undefined) {
+  if (!value) return false;
+
+  const cleanValue = value.split("?")[0].toLowerCase();
+
+  return (
+    cleanValue.endsWith(".mp4") ||
+    cleanValue.endsWith(".mov") ||
+    cleanValue.endsWith(".webm") ||
+    cleanValue.endsWith(".m4v")
+  );
 }
 
 function formatDate(value: string | null | undefined) {

@@ -133,6 +133,28 @@ export default function HomePage() {
     setSuccess("Booking request submitted. I’ll follow up soon.");
   }
 
+  function gallerySlug(service: string) {
+  return service.toLowerCase().replace(/\s+/g, "-");
+}
+
+function serviceDescription(service: string) {
+  return "Some text here...";
+}
+
+function isVideoUrl(value: string | null | undefined) {
+  if (!value) return false;
+
+  const cleanValue = value.split("?")[0].toLowerCase();
+
+  return (
+    cleanValue.endsWith(".mp4") ||
+    cleanValue.endsWith(".mov") ||
+    cleanValue.endsWith(".webm") ||
+    cleanValue.endsWith(".m4v")
+  );
+}
+
+
   return (
     <CamvellePageShell>
       <header className="relative z-[9999] mb-10 flex items-center justify-between gap-4">
@@ -253,19 +275,34 @@ export default function HomePage() {
                     {String(index + 1).padStart(2, "0")} / Gallery
                   </p>
 
-                  {previewPhoto ? (
-                    <div className="mt-10 h-[260px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/35">
-                      <img
-                        src={previewPhoto.image_url}
-                        alt={previewPhoto.caption || service}
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                      />
-                    </div>
-                  ) : (
-                    <div className="mt-10 flex h-[260px] items-center justify-center rounded-[2.5rem] border border-white/10 bg-black/25 text-center text-xs uppercase tracking-[0.35em] text-white/25">
-                      Gallery Preview
-                    </div>
-                  )}
+                 {previewPhoto ? (
+  <div className="mt-10 h-[260px] overflow-hidden rounded-[2.5rem] bg-black/40">
+    {isVideoUrl(previewPhoto.image_url) ? (
+      <video
+        src={previewPhoto.image_url}
+        muted
+        loop
+        playsInline
+        autoPlay
+        preload="metadata"
+        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+      />
+    ) : (
+      <img
+        src={previewPhoto.image_url}
+        alt={previewPhoto.caption || service}
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+      />
+    )}
+  </div>
+) : (
+  <div className="mt-10 flex h-[260px] items-center justify-center rounded-[2.5rem] bg-black/40 text-white/35">
+    Gallery Preview
+  </div>
+)}
+
 
                   <div className="mt-auto pt-12">
                     <h3 className="text-5xl font-light tracking-[-0.07em] text-white">

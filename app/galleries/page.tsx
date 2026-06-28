@@ -90,7 +90,7 @@ export default function GalleriesPage() {
         return;
       }
 
-      setPhotos(data || []);
+      setPhotos((data || []) as GalleryPhoto[]);
     }
 
     loadPhotos();
@@ -183,11 +183,22 @@ export default function GalleriesPage() {
                         key={photo.id}
                         className="h-[230px] w-[78%] shrink-0 overflow-hidden rounded-[2rem] border border-white/10 bg-black/40"
                       >
-                        <img
-                          src={photo.image_url}
-                          alt={photo.caption || gallery.title}
-                          className="h-full w-full object-cover"
-                        />
+                        {isVideoUrl(photo.image_url) ? (
+                          <video
+                            src={photo.image_url}
+                            controls
+                            preload="metadata"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={photo.image_url}
+                            alt={photo.caption || gallery.title}
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-cover"
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -216,5 +227,18 @@ export default function GalleriesPage() {
         })}
       </section>
     </CamvellePageShell>
+  );
+}
+
+function isVideoUrl(value: string | null | undefined) {
+  if (!value) return false;
+
+  const cleanValue = value.split("?")[0].toLowerCase();
+
+  return (
+    cleanValue.endsWith(".mp4") ||
+    cleanValue.endsWith(".mov") ||
+    cleanValue.endsWith(".webm") ||
+    cleanValue.endsWith(".m4v")
   );
 }
