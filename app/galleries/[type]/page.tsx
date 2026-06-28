@@ -39,7 +39,7 @@ export default function GalleryDetailPage() {
     async function loadPhotos() {
       const { data, error } = await supabase
         .from("gallery_photos")
-        .select("*")
+        .select("id, gallery_type, image_url, caption, created_at")
         .eq("gallery_type", type)
         .order("created_at", { ascending: false });
 
@@ -48,7 +48,7 @@ export default function GalleryDetailPage() {
         return;
       }
 
-      setPhotos(data || []);
+      setPhotos((data || []) as GalleryPhoto[]);
     }
 
     if (type) {
@@ -120,8 +120,8 @@ export default function GalleryDetailPage() {
         </CamvelleHeading>
 
         <CamvelleBody>
-          A collection of naturally timeless images from this Camvelle Creative
-          experience.
+          A collection of naturally timeless images and videos from this
+          Camvelle Creative experience.
         </CamvelleBody>
 
         <div className="mt-10">
@@ -133,46 +133,76 @@ export default function GalleryDetailPage() {
 
       {photos.length === 0 ? (
         <CamvellePanel className="mt-8 p-8 text-center sm:p-10 md:p-14">
-          <CamvelleEyebrow>No Images Yet</CamvelleEyebrow>
+          <CamvelleEyebrow>No Media Yet</CamvelleEyebrow>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/50">
-            This gallery is ready, but no photos have been added yet.
+            This gallery is ready, but no photos or videos have been added yet.
           </p>
         </CamvellePanel>
       ) : (
         <section className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {photos.map((photo, index) => (
-            <CamvelleInnerPanel
-              key={photo.id}
-              className="overflow-hidden p-0 transition duration-500 hover:border-white/20 hover:bg-white/[0.04]"
-            >
-              <div className="overflow-hidden rounded-[2.4rem]">
-                <img
-                  src={photo.image_url}
-                  alt={photo.caption || galleryTitle}
-                  className="aspect-[4/5] w-full object-cover"
-                />
-              </div>
+          {photos.map((photo, index) => {
+            const isVideo = isVideoUrl(photo.image_url);
 
-              <div className="p-6">
-                <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
-                  {String(index + 1).padStart(2, "0")} / Image
-                </p>
+            return (
+              <CamvelleInnerPanel
+                key={photo.id}
+                className="overflow-hidden p-0 transition duration-500 hover:border-white/20 hover:bg-white/[0.04]"
+              >
+                <div className="overflow-hidden rounded-[2.4rem] bg-black/40">
+                  {isVideo ? (
+                    <video
+                      src={photo.image_url}
+                      controls
+                      playsInline
+                      preload="metadata"
+                      className="aspect-[4/5] w-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={photo.image_url}
+                      alt={photo.caption || galleryTitle}
+                      loading="lazy"
+                      decoding="async"
+                      className="aspect-[4/5] w-full object-cover"
+                    />
+                  )}
+                </div>
 
-                {photo.caption ? (
-                  <p className="mt-4 text-base leading-8 text-white/55">
-                    {photo.caption}
+                <div className="p-6">
+                  <p className="text-[11px] uppercase tracking-[0.45em] text-white/30">
+                    {String(index + 1).padStart(2, "0")} /{" "}
+                    {isVideo ? "Video" : "Image"}
                   </p>
-                ) : (
-                  <p className="mt-4 text-base leading-8 text-white/35">
-                    {galleryTitle}
-                  </p>
-                )}
-              </div>
-            </CamvelleInnerPanel>
-          ))}
+
+                  {photo.caption ? (
+                    <p className="mt-4 text-base leading-8 text-white/55">
+                      {photo.caption}
+                    </p>
+                  ) : (
+                    <p className="mt-4 text-base leading-8 text-white/35">
+                      {galleryTitle}
+                    </p>
+                  )}
+                </div>
+              </CamvelleInnerPanel>
+            );
+          })}
         </section>
       )}
     </CamvellePageShell>
+  );
+}
+
+function isVideoUrl(value: string | null | undefined) {
+  if (!value) return false;
+
+  const cleanValue = value.split("?")[0].toLowerCase();
+
+  return (
+    cleanValue.endsWith(".mp4") ||
+    cleanValue.endsWith(".mov") ||
+    cleanValue.endsWith(".webm") ||
+    cleanValue.endsWith(".m4v")
   );
 }
