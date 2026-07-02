@@ -155,7 +155,7 @@ export default function GalleryDetailPage() {
                       src={photo.image_url}
                       controls
                       playsInline
-                      preload="metadata"
+                      preload="none"
                       className="aspect-[4/5] w-full object-cover"
                     />
                   ) : (

@@ -187,7 +187,7 @@ export default function GalleriesPage() {
                           <video
                             src={photo.image_url}
                             controls
-                            preload="metadata"
+                            preload="none"
                             className="h-full w-full object-cover"
                           />
                         ) : (
